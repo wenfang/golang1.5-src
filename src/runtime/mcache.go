@@ -67,8 +67,8 @@ func allocmcache() *mcache { // 分配出mcache结构
 	lock(&mheap_.lock)                                 // 先给mheap加锁
 	c := (*mcache)(fixAlloc_Alloc(&mheap_.cachealloc)) // 分配出来一个mcache结构
 	unlock(&mheap_.lock)                               // 分配完结构后就给mheap解锁
-	memclr(unsafe.Pointer(c), unsafe.Sizeof(*c))
-	for i := 0; i < _NumSizeClasses; i++ {
+	memclr(unsafe.Pointer(c), unsafe.Sizeof(*c))       // 清除mcache结构
+	for i := 0; i < _NumSizeClasses; i++ {             // 对67个class的每个class，都设置为emptymspan
 		c.alloc[i] = &emptymspan
 	}
 
@@ -81,7 +81,7 @@ func allocmcache() *mcache { // 分配出mcache结构
 		c.next_sample = int32(int(fastrand1()) % (2 * rate))
 	}
 
-	return c
+	return c // 返回分配出的mcache结构
 }
 
 func freemcache(c *mcache) {
@@ -101,15 +101,16 @@ func freemcache(c *mcache) {
 	})
 }
 
+// 获得一个mspan，可用于分配空间，并加入到当前mcache对应的class数组中
 // Gets a span that has a free object in it and assigns it
 // to be the cached span for the given sizeclass.  Returns this span.
 func mCache_Refill(c *mcache, sizeclass int32) *mspan {
-	_g_ := getg()
+	_g_ := getg() // 返回当前的goroutine
 
-	_g_.m.locks++
+	_g_.m.locks++ // 为当前goroutine的m加锁
 	// Return the current cached span to the central lists.
-	s := c.alloc[sizeclass]
-	if s.freelist.ptr() != nil {
+	s := c.alloc[sizeclass]      // 获得用于分配该class的mspan
+	if s.freelist.ptr() != nil { // 如果是个非空mspan，抛出异常
 		throw("refill on a nonempty span")
 	}
 	if s != &emptymspan {
@@ -117,16 +118,16 @@ func mCache_Refill(c *mcache, sizeclass int32) *mspan {
 	}
 
 	// Get a new cached span from the central lists.
-	s = mCentral_CacheSpan(&mheap_.central[sizeclass].mcentral)
-	if s == nil {
+	s = mCentral_CacheSpan(&mheap_.central[sizeclass].mcentral) // 从mcentral中获得一个mspan，对应sizeclass
+	if s == nil {                                               // 获得mspan失败，内存溢出了
 		throw("out of memory")
 	}
-	if s.freelist.ptr() == nil {
+	if s.freelist.ptr() == nil { // 如果分配出的是一个空mspan，抛出异常
 		println(s.ref, (s.npages<<_PageShift)/s.elemsize)
 		throw("empty span")
 	}
-	c.alloc[sizeclass] = s
-	_g_.m.locks--
+	c.alloc[sizeclass] = s // 将分配得到的mspan赋值给mcache
+	_g_.m.locks--          // 为当前的m解锁
 	return s
 }
 

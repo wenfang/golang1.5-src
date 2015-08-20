@@ -107,7 +107,7 @@ havespan:
 }
 
 // Return span from an MCache.
-func mCentral_UncacheSpan(c *mcentral, s *mspan) {
+func mCentral_UncacheSpan(c *mcentral, s *mspan) { // 从mcache中归还mspan到mcentral
 	lock(&c.lock)
 
 	s.incache = false
