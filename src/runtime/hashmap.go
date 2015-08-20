@@ -59,33 +59,33 @@ import (
 
 const (
 	// Maximum number of key/value pairs a bucket can hold.
-	bucketCntBits = 3                  // Ò»¸öbucketÖĞ¿ÉÒÔÈİÄÉµÄ×î´óÊıÁ¿µÄkey/value¶Ô£¬ÉèÖÃÎª3¸öbit£¬Ò²¾ÍÊÇ8¸ö
-	bucketCnt     = 1 << bucketCntBits // Ò»¸öbucketÖĞ¿ÉÒÔÈİÄÉµÄkey/value¶ÔµÄÊıÁ¿
+	bucketCntBits = 3                  // ä¸€ä¸ªbucketä¸­å¯ä»¥å®¹çº³çš„æœ€å¤§æ•°é‡çš„key/valueå¯¹ï¼Œè®¾ç½®ä¸º3ä¸ªbitï¼Œä¹Ÿå°±æ˜¯8ä¸ª
+	bucketCnt     = 1 << bucketCntBits // ä¸€ä¸ªbucketä¸­å¯ä»¥å®¹çº³çš„key/valueå¯¹çš„æ•°é‡
 
 	// Maximum average load of a bucket that triggers growth.
-	loadFactor = 6.5 // ´¥·¢hash±íÔö³¤µÄ×î´óÆ½¾ù¸ºÔØ
+	loadFactor = 6.5 // è§¦å‘hashè¡¨å¢é•¿çš„æœ€å¤§å¹³å‡è´Ÿè½½
 
 	// Maximum key or value size to keep inline (instead of mallocing per element).
 	// Must fit in a uint8.
 	// Fast versions cannot handle big values - the cutoff size for
 	// fast versions in ../../cmd/internal/gc/walk.go must be at most this value.
 	maxKeySize   = 128
-	maxValueSize = 128 // ×î´óµÄkey´óĞ¡ºÍ×î´óµÄÖµ´óĞ¡
+	maxValueSize = 128 // æœ€å¤§çš„keyå¤§å°å’Œæœ€å¤§çš„å€¼å¤§å°
 
 	// data offset should be the size of the bmap struct, but needs to be
 	// aligned correctly.  For amd64p32 this means 64-bit alignment
 	// even though pointers are 32 bit.
-	dataOffset = unsafe.Offsetof(struct { // Êı¾İÆ«ÒÆÁ¿£¬ĞèÒªÎªbmap½á¹¹µÄ´óĞ¡
+	dataOffset = unsafe.Offsetof(struct { // æ•°æ®åç§»é‡ï¼Œéœ€è¦ä¸ºbmapç»“æ„çš„å¤§å°
 		b bmap
 		v int64
 	}{}.v)
-	// tophash¿ÉÄÜµÄÈ¡Öµ
+	// tophashå¯èƒ½çš„å–å€¼
 	// Possible tophash values.  We reserve a few possibilities for special marks.
 	// Each bucket (including its overflow buckets, if any) will have either all or none of its
 	// entries in the evacuated* states (except during the evacuate() method, which only happens
 	// during map writes and thus no one else can observe the map during that time).
-	empty          = 0 // cell is empty µ±Ç°cellÎª¿Õ
-	evacuatedEmpty = 1 // cell is empty, bucket is evacuated. µ±Ç°cellÎª¿Õ,bucketÕıÔÚ½øĞĞevacuated
+	empty          = 0 // cell is empty å½“å‰cellä¸ºç©º
+	evacuatedEmpty = 1 // cell is empty, bucket is evacuated. å½“å‰cellä¸ºç©º,bucketæ­£åœ¨è¿›è¡Œevacuated
 	evacuatedX     = 2 // key/value is valid.  Entry has been evacuated to first half of larger table.
 	evacuatedY     = 3 // same as above, but evacuated to second half of larger table.
 	minTopHash     = 4 // minimum tophash for a normal filled cell.
@@ -99,7 +99,7 @@ const (
 )
 
 // A header for a Go map.
-type hmap struct { // Go map½á¹¹µÄÍ·²¿
+type hmap struct { // Go mapç»“æ„çš„å¤´éƒ¨
 	// Note: the format of the Hmap is encoded in ../../cmd/internal/gc/reflect.go and
 	// ../reflect/type.go.  Don't change this structure without also changing that code!
 	count int // # live cells == size of map.  Must be first (used by len() builtin)
@@ -124,8 +124,8 @@ type hmap struct { // Go map½á¹¹µÄÍ·²¿
 }
 
 // A bucket for a Go map.
-type bmap struct { // Ò»¸öGo mapµÄbucket
-	tophash  [bucketCnt]uint8 // 8¸ö×Ö½ÚµÄtophash
+type bmap struct { // ä¸€ä¸ªGo mapçš„bucket
+	tophash [bucketCnt]uint8 // 8ä¸ªå­—èŠ‚çš„tophash
 	// Followed by bucketCnt keys and then bucketCnt values.
 	// NOTE: packing all the keys together and then all the values together makes the
 	// code a bit more complicated than alternating key/value/key/value/... but it allows
@@ -136,7 +136,7 @@ type bmap struct { // Ò»¸öGo mapµÄbucket
 // A hash iteration structure.
 // If you modify hiter, also change cmd/internal/gc/reflect.go to indicate
 // the layout of this structure.
-type hiter struct { // hashµü´ú½á¹¹
+type hiter struct { // hashè¿­ä»£ç»“æ„
 	key         unsafe.Pointer // Must be in first position.  Write nil to indicate iteration end (see cmd/internal/gc/range.go).
 	value       unsafe.Pointer // Must be in second position (see cmd/internal/gc/range.go).
 	t           *maptype
@@ -153,7 +153,7 @@ type hiter struct { // hashµü´ú½á¹¹
 	checkBucket uintptr
 }
 
-func evacuated(b *bmap) bool { // ÅĞ¶Ïµ±Ç°bucketÊÇ·ñÕıÔÚevacuated
+func evacuated(b *bmap) bool { // åˆ¤æ–­å½“å‰bucketæ˜¯å¦æ­£åœ¨evacuated
 	h := b.tophash[0]
 	return h > empty && h < minTopHash
 }
@@ -190,12 +190,12 @@ func makemap(t *maptype, hint int64, h *hmap, bucket unsafe.Pointer) *hmap {
 		throw("bad hmap size")
 	}
 
-	if hint < 0 || int64(int32(hint)) != hint { // Ö¸¶¨mapÖĞÔªËØµÄ¸öÊıÓĞÎó£¬panic
+	if hint < 0 || int64(int32(hint)) != hint { // æŒ‡å®šmapä¸­å…ƒç´ çš„ä¸ªæ•°æœ‰è¯¯ï¼Œpanic
 		panic("makemap: size out of range")
 		// TODO: make hint an int, then none of this nonsense
 	}
 
-	if !ismapkey(t.key) { // mapµÄkey²»ÄÜ×÷ÎªkeyÀàĞÍ£¬Å×³öÒì³£
+	if !ismapkey(t.key) { // mapçš„keyä¸èƒ½ä½œä¸ºkeyç±»å‹ï¼ŒæŠ›å‡ºå¼‚å¸¸
 		throw("runtime.makemap: unsupported map key type")
 	}
 
@@ -211,19 +211,19 @@ func makemap(t *maptype, hint int64, h *hmap, bucket unsafe.Pointer) *hmap {
 
 	// invariants we depend on.  We should probably check these at compile time
 	// somewhere, but for now we'll do it here.
-	if t.key.align > bucketCnt { // key¶ÔÆë´óĞ¡´íÎó
+	if t.key.align > bucketCnt { // keyå¯¹é½å¤§å°é”™è¯¯
 		throw("key align too big")
 	}
-	if t.elem.align > bucketCnt { // value¶ÔÆë´óĞ¡´íÎó
+	if t.elem.align > bucketCnt { // valueå¯¹é½å¤§å°é”™è¯¯
 		throw("value align too big")
 	}
-	if uintptr(t.key.size)%uintptr(t.key.align) != 0 { // key²»ÊÇ¶ÔÆë´óĞ¡µÄÕûÊı±¶
+	if uintptr(t.key.size)%uintptr(t.key.align) != 0 { // keyä¸æ˜¯å¯¹é½å¤§å°çš„æ•´æ•°å€
 		throw("key size not a multiple of key align")
 	}
-	if uintptr(t.elem.size)%uintptr(t.elem.align) != 0 { // value²»ÊÇ¶ÔÆë´óĞ¡µÄÕûÊı±¶
+	if uintptr(t.elem.size)%uintptr(t.elem.align) != 0 { // valueä¸æ˜¯å¯¹é½å¤§å°çš„æ•´æ•°å€
 		throw("value size not a multiple of value align")
 	}
-	if bucketCnt < 8 { // bucketÖĞÔªËØµÄÊıÁ¿Ì«ÉÙÁË
+	if bucketCnt < 8 { // bucketä¸­å…ƒç´ çš„æ•°é‡å¤ªå°‘äº†
 		throw("bucketsize too small for proper alignment")
 	}
 	if dataOffset%uintptr(t.key.align) != 0 {
@@ -237,7 +237,7 @@ func makemap(t *maptype, hint int64, h *hmap, bucket unsafe.Pointer) *hmap {
 	mapzero(t.elem)
 
 	// find size parameter which will hold the requested # of elements
-	B := uint8(0) // ¸ù¾İhint»ñµÃBµÄÖµ
+	B := uint8(0) // æ ¹æ®hintè·å¾—Bçš„å€¼
 	for ; hint > bucketCnt && float32(hint) > loadFactor*float32(uintptr(1)<<B); B++ {
 	}
 
@@ -261,7 +261,7 @@ func makemap(t *maptype, hint int64, h *hmap, bucket unsafe.Pointer) *hmap {
 	h.oldbuckets = nil
 	h.nevacuate = 0
 
-	return h // ·µ»Øhmap½á¹¹
+	return h // è¿”å›hmapç»“æ„
 }
 
 // mapaccess1 returns a pointer to h[key].  Never returns nil, instead
@@ -269,14 +269,14 @@ func makemap(t *maptype, hint int64, h *hmap, bucket unsafe.Pointer) *hmap {
 // the key is not in the map.
 // NOTE: The returned pointer may keep the whole map live, so don't
 // hold onto it for very long.
-func mapaccess1(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer { // ·µ»ØÖ¸Ïòh[key]µÄÖ¸Õë£¬´ÓÀ´²»»á·µ»ØNUL£¬Èç¹ûkeyÃ»ÓĞÔÚmapÖĞ·µ»ØÒ»¸ö¶Ózero¶ÔÏóµÄÒıÓÃ
+func mapaccess1(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer { // è¿”å›æŒ‡å‘h[key]çš„æŒ‡é’ˆï¼Œä»æ¥ä¸ä¼šè¿”å›NULï¼Œå¦‚æœkeyæ²¡æœ‰åœ¨mapä¸­è¿”å›ä¸€ä¸ªé˜Ÿzeroå¯¹è±¡çš„å¼•ç”¨
 	if raceenabled && h != nil {
 		callerpc := getcallerpc(unsafe.Pointer(&t))
 		pc := funcPC(mapaccess1)
 		racereadpc(unsafe.Pointer(h), callerpc, pc)
 		raceReadObjectPC(t.key, key, callerpc, pc)
 	}
-	if h == nil || h.count == 0 { // Èç¹ûhmapÎª¿Õ£¬·µ»ØÖ¸Ïòzero¶ÔÏóµÄÖ¸Õë
+	if h == nil || h.count == 0 { // å¦‚æœhmapä¸ºç©ºï¼Œè¿”å›æŒ‡å‘zeroå¯¹è±¡çš„æŒ‡é’ˆ
 		return unsafe.Pointer(t.elem.zero)
 	}
 	alg := t.key.alg
@@ -285,7 +285,7 @@ func mapaccess1(t *maptype, h *hmap, key unsafe.Pointer) unsafe.Pointer { // ·µ»
 	b := (*bmap)(add(h.buckets, (hash&m)*uintptr(t.bucketsize)))
 	if c := h.oldbuckets; c != nil {
 		oldb := (*bmap)(add(c, (hash&(m>>1))*uintptr(t.bucketsize)))
-		if !evacuated(oldb) { // Èç¹ûoldb bmapÃ»ÔÚ½øĞĞevacuated
+		if !evacuated(oldb) { // å¦‚æœoldb bmapæ²¡åœ¨è¿›è¡Œevacuated
 			b = oldb
 		}
 	}
@@ -408,8 +408,8 @@ func mapaccessK(t *maptype, h *hmap, key unsafe.Pointer) (unsafe.Pointer, unsafe
 	}
 }
 
-func mapassign1(t *maptype, h *hmap, key unsafe.Pointer, val unsafe.Pointer) { // ½«keyºÍvalue¸³Öµ¸øÒ»¸ömap
-	if h == nil { // Èç¹ûmapÎª¿Õ£¬panic
+func mapassign1(t *maptype, h *hmap, key unsafe.Pointer, val unsafe.Pointer) { // å°†keyå’Œvalueèµ‹å€¼ç»™ä¸€ä¸ªmap
+	if h == nil { // å¦‚æœmapä¸ºç©ºï¼Œpanic
 		panic("assignment to entry in nil map")
 	}
 	if raceenabled {
@@ -428,11 +428,11 @@ func mapassign1(t *maptype, h *hmap, key unsafe.Pointer, val unsafe.Pointer) { /
 	}
 
 again:
-	bucket := hash & (uintptr(1)<<h.B - 1) // »ñµÃbucketºÅ
+	bucket := hash & (uintptr(1)<<h.B - 1) // è·å¾—bucketå·
 	if h.oldbuckets != nil {
 		growWork(t, h, bucket)
 	}
-	b := (*bmap)(unsafe.Pointer(uintptr(h.buckets) + bucket*uintptr(t.bucketsize))) // ¶¨Î»µ½bmap
+	b := (*bmap)(unsafe.Pointer(uintptr(h.buckets) + bucket*uintptr(t.bucketsize))) // å®šä½åˆ°bmap
 	top := uint8(hash >> (ptrSize*8 - 8))
 	if top < minTopHash {
 		top += minTopHash
@@ -442,7 +442,7 @@ again:
 	var insertk unsafe.Pointer
 	var insertv unsafe.Pointer
 	for {
-		for i := uintptr(0); i < bucketCnt; i++ { // ±éÀúËùÓĞµÄbucketmap
+		for i := uintptr(0); i < bucketCnt; i++ { // éå†æ‰€æœ‰çš„bucketmap
 			if b.tophash[i] != top {
 				if b.tophash[i] == empty && inserti == nil {
 					inserti = &b.tophash[i]
@@ -556,7 +556,7 @@ func mapdelete(t *maptype, h *hmap, key unsafe.Pointer) {
 	}
 }
 
-func mapiterinit(t *maptype, h *hmap, it *hiter) { // ³õÊ¼»¯mapµü´úÆ÷
+func mapiterinit(t *maptype, h *hmap, it *hiter) { // åˆå§‹åŒ–mapè¿­ä»£å™¨
 	// Clear pointer fields so garbage collector does not complain.
 	it.key = nil
 	it.value = nil
@@ -618,7 +618,7 @@ func mapiterinit(t *maptype, h *hmap, it *hiter) { // ³õÊ¼»¯mapµü´úÆ÷
 	mapiternext(it)
 }
 
-func mapiternext(it *hiter) { // ÔÚmapÖĞµü´úÏÂÒ»Ïî
+func mapiternext(it *hiter) { // åœ¨mapä¸­è¿­ä»£ä¸‹ä¸€é¡¹
 	h := it.h
 	if raceenabled {
 		callerpc := getcallerpc(unsafe.Pointer(&it))

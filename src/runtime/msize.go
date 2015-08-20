@@ -5,7 +5,7 @@
 // Malloc small size classes.
 //
 // See malloc.go for overview.
-//
+// 选择出size class能够满足分配的数据，而且最多浪费12.5%的空间
 // The size classes are chosen so that rounding an allocation
 // request up to the next size class wastes at most 12.5% (1.125x).
 //
@@ -46,21 +46,21 @@ package runtime
 // size divided by 128 (rounded up).  The arrays are filled in
 // by InitSizes.
 
-var class_to_size [_NumSizeClasses]int32
-var class_to_allocnpages [_NumSizeClasses]int32
-var class_to_divmagic [_NumSizeClasses]divMagic
+var class_to_size [_NumSizeClasses]int32        // 67个class_to_size数组
+var class_to_allocnpages [_NumSizeClasses]int32 // 67个class_to_allocnpages数组
+var class_to_divmagic [_NumSizeClasses]divMagic // 67个div魔数
 
-var size_to_class8 [1024/8 + 1]int8
-var size_to_class128 [(_MaxSmallSize-1024)/128 + 1]int8
+var size_to_class8 [1024/8 + 1]int8                     // 127个size_to_class8数组
+var size_to_class128 [(_MaxSmallSize-1024)/128 + 1]int8 // 249个的size_to_class128数组
 
-func sizeToClass(size int32) int32 {
-	if size > _MaxSmallSize {
+func sizeToClass(size int32) int32 { // 传入size返回class
+	if size > _MaxSmallSize { // size class不能处理大于32K的size
 		throw("SizeToClass - invalid size")
 	}
-	if size > 1024-8 {
-		return int32(size_to_class128[(size-1024+127)>>7])
+	if size > 1024-8 { // 如果大于1016个字节，从size_to_class128数组取
+		return int32(size_to_class128[(size-1024+127)>>7]) // 按128个字节对齐
 	}
-	return int32(size_to_class8[(size+7)>>3])
+	return int32(size_to_class8[(size+7)>>3]) // 小于1016个字节，从size_to_class8取，按8个字节对齐
 }
 
 func initSizes() {

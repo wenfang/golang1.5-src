@@ -110,7 +110,7 @@ const (
 )
 
 const (
-	// _64bit = 1 on 64-bit systems, 0 on 32-bit systems
+	// _64bit = 1 on 64-bit systems, 0 on 32-bit systems 在64bit系统中该位为1，在32位系统中为0
 	_64bit = 1 << (^uintptr(0) >> 63) / 2
 
 	// Computed constant.  The definition of MaxSmallSize and the
@@ -120,20 +120,22 @@ const (
 	// size choosing algorithm it double-checks that NumSizeClasses agrees.
 	_NumSizeClasses = 67
 
-	// Tunable constants.
+	// Tunable constants. SmallSize的界限，32K
 	_MaxSmallSize = 32 << 10
 
 	// Tiny allocator parameters, see "Tiny allocator" comment in malloc.go.
 	_TinySize      = 16
 	_TinySizeClass = 2
 
-	_FixAllocChunk  = 16 << 10               // Chunk size for FixAlloc
-	_MaxMHeapList   = 1 << (20 - _PageShift) // Maximum page length for fixed-size list in MHeap.
+	_FixAllocChunk  = 16 << 10               // Chunk size for FixAlloc 16K，FixAlloc一次批量分配的大小
+	_MaxMHeapList   = 1 << (20 - _PageShift) // Maximum page length for fixed-size list in MHeap. MHeap固定size列表128个
 	_HeapAllocChunk = 1 << 20                // Chunk size for heap growth
 
 	// Per-P, per order stack segment cache size.
 	_StackCacheSize = 32 * 1024
 
+	// 被cache的order，order 0是固定的stackSize大小，每个后一个order是前一个的2倍
+	// cache 2KB, 4KB, 8KB和16KB的栈，更大的栈会直接分配
 	// Number of orders that get caching.  Order 0 is FixedStack
 	// and each successive order is twice as large.
 	// We want to cache 2KB, 4KB, 8KB, and 16KB stacks.  Larger stacks
@@ -479,23 +481,24 @@ var zerobase uintptr
 
 const (
 	// flags to malloc
-	_FlagNoScan = 1 << 0 // GC doesn't have to scan object
+	_FlagNoScan = 1 << 0 // GC doesn't have to scan object gc不用scan对象
 	_FlagNoZero = 1 << 1 // don't zero memory
 )
 
+// 分配对象，对象大小为size，小对象从每个P的cache的free list中获取，大于32K的大对象直接从堆中获取
 // Allocate an object of size bytes.
 // Small objects are allocated from the per-P cache's free lists.
 // Large objects (> 32 kB) are allocated straight from the heap.
 func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
-	if gcphase == _GCmarktermination {
+	if gcphase == _GCmarktermination { // 如果当前处于mark结束阶段，抛出异常
 		throw("mallocgc called with gcphase == _GCmarktermination")
 	}
 
-	if size == 0 {
+	if size == 0 { // 如果分配大小为0，返回固定的0对象
 		return unsafe.Pointer(&zerobase)
 	}
 
-	if flags&flagNoScan == 0 && typ == nil {
+	if flags&flagNoScan == 0 && typ == nil { // 如果没有设置NoScan同时类型为空，抛出异常
 		throw("malloc missing type")
 	}
 
@@ -508,21 +511,21 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 	}
 
 	// Set mp.mallocing to keep from being preempted by GC.
-	mp := acquirem()
+	mp := acquirem() // 获取当前的m结构
 	if mp.mallocing != 0 {
 		throw("malloc deadlock")
 	}
 	if mp.gsignal == getg() {
 		throw("malloc during signal")
 	}
-	mp.mallocing = 1
+	mp.mallocing = 1 // 设置当前m正在分配空间
 
 	shouldhelpgc := false
 	dataSize := size
 	c := gomcache()
 	var s *mspan
 	var x unsafe.Pointer
-	if size <= maxSmallSize {
+	if size <= maxSmallSize { // 如果size小于32K
 		if flags&flagNoScan != 0 && size < maxTinySize {
 			// Tiny allocator.
 			//
@@ -598,12 +601,12 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 			size = maxTinySize
 		} else {
 			var sizeclass int8
-			if size <= 1024-8 {
+			if size <= 1024-8 { // 首先根据size大小获得class
 				sizeclass = size_to_class8[(size+7)>>3]
 			} else {
 				sizeclass = size_to_class128[(size-1024+127)>>7]
 			}
-			size = uintptr(class_to_size[sizeclass])
+			size = uintptr(class_to_size[sizeclass]) // 根据class获得对齐后实际分配的内存大小
 			s = c.alloc[sizeclass]
 			v := s.freelist
 			if v.ptr() == nil {

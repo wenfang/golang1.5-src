@@ -25,8 +25,8 @@ func main_main()
 var runtimeInitTime int64
 
 // The main goroutine.
-func main() { // ��goroutine
-	g := getg() // ���ص�ǰ��g�ṹ
+func main() { // 主goroutine
+	g := getg() // 返回当前的g结构指针
 
 	// Racectx of m0->g0 is used only as the parent of the main goroutine.
 	// It must not be used for anything else.
@@ -35,17 +35,17 @@ func main() { // ��goroutine
 	// Max stack size is 1 GB on 64-bit, 250 MB on 32-bit.
 	// Using decimal instead of binary GB and MB because
 	// they look nicer in the stack overflow failure message.
-	if ptrSize == 8 { // ��64λϵͳ�£����ջ��СΪ1G
+	if ptrSize == 8 { // 在64位系统下，最大栈大小为1G
 		maxstacksize = 1000000000
-	} else { // ��32λϵͳ�£����ջ��СΪ250M
+	} else { // 在32位系统下，最大栈大小为250M
 		maxstacksize = 250000000
 	}
 
 	// Record when the world started.
-	runtimeInitTime = nanotime()
+	runtimeInitTime = nanotime() // 记录下来启动时间
 
 	systemstack(func() {
-		newm(sysmon, nil)
+		newm(sysmon, nil) // 在系统栈上执行newm函数
 	})
 
 	// Lock the main goroutine onto this, the main OS thread,
@@ -56,14 +56,14 @@ func main() { // ��goroutine
 	// to preserve the lock.
 	lockOSThread()
 
-	if g.m != &m0 {
+	if g.m != &m0 { // 如果goroutine当前没有在m0上执行，抛出异常
 		throw("runtime.main not on m0")
 	}
 
 	runtime_init() // must be before defer
 
 	// Defer unlock so that runtime.Goexit during init does the unlock too.
-	needUnlock := true
+	needUnlock := true // 是否需要解锁，将解锁函数放到defer中
 	defer func() {
 		if needUnlock {
 			unlockOSThread()
@@ -169,15 +169,15 @@ func Gosched() {
 // Puts the current goroutine into a waiting state and calls unlockf.
 // If unlockf returns false, the goroutine is resumed.
 func gopark(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason string, traceEv byte, traceskip int) {
-	mp := acquirem()                                    // ��ȡ��ǰ��M
-	gp := mp.curg                                       // ��ȡ��ǰM�ĵ�ǰgoroutine
-	status := readgstatus(gp)                           // ��ȡ��ǰgoroutine��״̬
-	if status != _Grunning && status != _Gscanrunning { // ��ǰgoroutine����Ϊ����״̬
+	mp := acquirem()                                    // 获取当前的M
+	gp := mp.curg                                       // 获取当前M的当前goroutine
+	status := readgstatus(gp)                           // 读取当前goroutine的状态
+	if status != _Grunning && status != _Gscanrunning { // 当前goroutine必须为运行状态
 		throw("gopark: bad g status")
 	}
 	mp.waitlock = lock
 	mp.waitunlockf = *(*unsafe.Pointer)(unsafe.Pointer(&unlockf))
-	gp.waitreason = reason   // ���õȴ�����
+	gp.waitreason = reason // 设置等待理由
 	mp.waittraceev = traceEv
 	mp.waittraceskip = traceskip
 	releasem(mp)

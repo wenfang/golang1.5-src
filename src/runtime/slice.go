@@ -9,9 +9,9 @@ import (
 )
 
 type slice struct {
-	array unsafe.Pointer // Ö¸ÏòÊı¾İµÄÖ¸Õë
-	len   int            // µ±Ç°sliceµÄ³¤¶È
-	cap   int            // µ±Ç°sliceµÄÈİÁ¿
+	array unsafe.Pointer // æŒ‡å‘æ•°æ®çš„æŒ‡é’ˆ
+	len   int            // å½“å‰sliceçš„é•¿åº¦
+	cap   int            // å½“å‰sliceçš„å®¹é‡
 }
 
 // TODO: take uintptrs instead of int64s?
@@ -29,7 +29,7 @@ func makeslice(t *slicetype, len64, cap64 int64) slice {
 	if cap < len || int64(cap) != cap64 || t.elem.size > 0 && uintptr(cap) > _MaxMem/uintptr(t.elem.size) {
 		panic(errorString("makeslice: cap out of range"))
 	}
-	p := newarray(t.elem, uintptr(cap)) // ´´½¨Ò»¸öĞÂarray£¬ÔªËØÀàĞÍÎªt.elem£¬ÈİÁ¿´óĞ¡Îªcap
+	p := newarray(t.elem, uintptr(cap)) // åˆ›å»ºä¸€ä¸ªæ–°arrayï¼Œå…ƒç´ ç±»å‹ä¸ºt.elemï¼Œå®¹é‡å¤§å°ä¸ºcap
 	return slice{p, len, cap}
 }
 
@@ -58,21 +58,21 @@ func growslice(t *slicetype, old slice, cap int) slice {
 		racereadrangepc(old.array, uintptr(old.len*int(t.elem.size)), callerpc, funcPC(growslice))
 	}
 
-	et := t.elem      // »ñµÃsliceÖĞµÄÔªËØ
-	if et.size == 0 { // ÔªËØ´óĞ¡Îª0£¬²»ÓÃÖØĞÂ·ÖÅä£¬Ö±½Ó·µ»Ø
+	et := t.elem      // è·å¾—sliceä¸­çš„å…ƒç´ 
+	if et.size == 0 { // å…ƒç´ å¤§å°ä¸º0ï¼Œä¸ç”¨é‡æ–°åˆ†é…ï¼Œç›´æ¥è¿”å›
 		// append should not create a slice with nil pointer but non-zero len.
 		// We assume that append doesn't need to preserve old.array in this case.
 		return slice{unsafe.Pointer(&zerobase), old.len, cap}
 	}
 
 	newcap := old.cap
-	if newcap+newcap < cap { // ĞÂµÄÈİÁ¿´óÓÚ2±¶µÄÏÖÈİÁ¿£¬ÉèÖÃÎªĞÂÈİÁ¿
+	if newcap+newcap < cap { // æ–°çš„å®¹é‡å¤§äº2å€çš„ç°å®¹é‡ï¼Œè®¾ç½®ä¸ºæ–°å®¹é‡
 		newcap = cap
 	} else {
 		for {
-			if old.len < 1024 { // Èç¹ûÏÖÈİÁ¿Ğ¡ÓÚ1024£¬ÒÔ·­±¶µÄÈİÁ¿Ôö³¤
+			if old.len < 1024 { // å¦‚æœç°å®¹é‡å°äº1024ï¼Œä»¥ç¿»å€çš„å®¹é‡å¢é•¿
 				newcap += newcap
-			} else { // Èç¹ûÏÖÈİÁ¿´óÓÚµÈÓÚ1024£¬ÒÔËÄ·ÖÖ®Ò»µÄÈİÁ¿Ôö³¤
+			} else { // å¦‚æœç°å®¹é‡å¤§äºç­‰äº1024ï¼Œä»¥å››åˆ†ä¹‹ä¸€çš„å®¹é‡å¢é•¿
 				newcap += newcap / 4
 			}
 			if newcap >= cap {
@@ -84,17 +84,17 @@ func growslice(t *slicetype, old slice, cap int) slice {
 	if uintptr(newcap) >= _MaxMem/uintptr(et.size) {
 		panic(errorString("growslice: cap out of range"))
 	}
-	lenmem := uintptr(old.len) * uintptr(et.size) // »ñÈ¡µ±Ç°sliceÓĞĞ§Êı¾İËùÕ¼µÄ¿Õ¼äµÄ´óĞ¡
+	lenmem := uintptr(old.len) * uintptr(et.size) // è·å–å½“å‰sliceæœ‰æ•ˆæ•°æ®æ‰€å çš„ç©ºé—´çš„å¤§å°
 	capmem := roundupsize(uintptr(newcap) * uintptr(et.size))
 	newcap = int(capmem / uintptr(et.size))
 	var p unsafe.Pointer
-	if et.kind&kindNoPointers != 0 { // Èç¹ûsliceÔªËØÀàĞÍÖĞ²»°üº¬Ö¸Õë
-		p = rawmem(capmem)                    // ·ÖÅäÒ»¶ÎÔ­ÉúÄÚ´æ£¬²»°üÀ¨Ö¸Õë
+	if et.kind&kindNoPointers != 0 { // å¦‚æœsliceå…ƒç´ ç±»å‹ä¸­ä¸åŒ…å«æŒ‡é’ˆ
+		p = rawmem(capmem) // åˆ†é…ä¸€æ®µåŸç”Ÿå†…å­˜ï¼Œä¸åŒ…æ‹¬æŒ‡é’ˆ
 		memmove(p, old.array, lenmem)
-		memclr(add(p, lenmem), capmem-lenmem) // Çå¿ÕÄÚ´æ
+		memclr(add(p, lenmem), capmem-lenmem) // æ¸…ç©ºå†…å­˜
 	} else {
 		// Note: can't use rawmem (which avoids zeroing of memory), because then GC can scan uninitialized memory.
-		p = newarray(et, uintptr(newcap)) // ÎŞ·¨Ê¹ÓÃrawmem£¬µ÷ÓÃnewarray·ÖÅä
+		p = newarray(et, uintptr(newcap)) // æ— æ³•ä½¿ç”¨rawmemï¼Œè°ƒç”¨newarrayåˆ†é…
 		if !writeBarrierEnabled {
 			memmove(p, old.array, lenmem)
 		} else {
@@ -112,7 +112,7 @@ func slicecopy(to, fm slice, width uintptr) int {
 		return 0
 	}
 
-	n := fm.len // Ñ¡³öÀ´fmºÍtoÖĞlen×îĞ¡µÄ
+	n := fm.len // é€‰å‡ºæ¥fmå’Œtoä¸­lenæœ€å°çš„
 	if to.len < n {
 		n = to.len
 	}
@@ -128,8 +128,8 @@ func slicecopy(to, fm slice, width uintptr) int {
 		racereadrangepc(fm.array, uintptr(n*int(width)), callerpc, pc)
 	}
 
-	size := uintptr(n) * width // »ñµÃ¿½±´µÄÊı¾İÁ¿´óĞ¡
-	if size == 1 { // common case worth about 2x to do here
+	size := uintptr(n) * width // è·å¾—æ‹·è´çš„æ•°æ®é‡å¤§å°
+	if size == 1 {             // common case worth about 2x to do here
 		// TODO: is this still worth it with new memmove impl?
 		*(*byte)(to.array) = *(*byte)(fm.array) // known to be a byte pointer
 	} else {
@@ -138,7 +138,7 @@ func slicecopy(to, fm slice, width uintptr) int {
 	return int(n)
 }
 
-func slicestringcopy(to []byte, fm string) int { // Õë¶ÔcopyÊ±Ä¿µÄÎª[]byteÔ´ÎªstringµÄÇé¿ö
+func slicestringcopy(to []byte, fm string) int { // é’ˆå¯¹copyæ—¶ç›®çš„ä¸º[]byteæºä¸ºstringçš„æƒ…å†µ
 	if len(fm) == 0 || len(to) == 0 {
 		return 0
 	}

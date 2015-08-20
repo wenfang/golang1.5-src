@@ -11,7 +11,7 @@ const (
 )
 
 var (
-	ifaceLock mutex // lock for accessing hash ×÷Îª·ÃÎÊhash±íµÄËø
+	ifaceLock mutex // lock for accessing hash ä½œä¸ºè®¿é—®hashè¡¨çš„é”
 	hash      [hashSize]*itab
 )
 

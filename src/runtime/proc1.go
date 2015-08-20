@@ -52,7 +52,7 @@ func schedinit() {
 
 	tracebackinit()
 	moduledataverify()
-	stackinit()
+	stackinit() // 初始化栈
 	mallocinit()
 	mcommoninit(_g_.m)
 
@@ -863,10 +863,10 @@ type cgothreadstart struct {
 // Allocate a new m unassociated with any thread.
 // Can use p for allocation context if needed.
 // fn is recorded as the new m's m.mstartfn.
-func allocm(_p_ *p, fn func()) *m {
-	_g_ := getg()
-	_g_.m.locks++ // disable GC because it can be called from sysmon
-	if _g_.m.p == 0 {
+func allocm(_p_ *p, fn func()) *m { // 分配一个新的m
+	_g_ := getg()     // 获得当前的goroutine
+	_g_.m.locks++     // disable GC because it can be called from sysmon disable掉gc
+	if _g_.m.p == 0 { // 如果当前的m没有p，临时借用_p_
 		acquirep(_p_) // temporarily borrow p for mallocs in this function
 	}
 	mp := new(m)
@@ -885,7 +885,7 @@ func allocm(_p_ *p, fn func()) *m {
 	if _p_ == _g_.m.p.ptr() {
 		releasep()
 	}
-	_g_.m.locks--
+	_g_.m.locks--                        // 恢复gc
 	if _g_.m.locks == 0 && _g_.preempt { // restore the preemption request in case we've cleared it in newstack
 		_g_.stackguard0 = stackPreempt
 	}
@@ -1087,7 +1087,7 @@ func unlockextra(mp *m) {
 // fn needs to be static and not a heap allocated closure.
 // May run with m.p==nil, so write barriers are not allowed.
 //go:nowritebarrier
-func newm(fn func(), _p_ *p) {
+func newm(fn func(), _p_ *p) { // 创建一个新的m，开始执行fn
 	mp := allocm(_p_, fn)
 	mp.nextp.set(_p_)
 	msigsave(mp)
@@ -2817,7 +2817,7 @@ func procresize(nprocs int32) *p {
 }
 
 // Associate p and the current m.
-func acquirep(_p_ *p) {
+func acquirep(_p_ *p) { // 把p分配到当前的m上
 	acquirep1(_p_)
 
 	// have p; write barriers now allowed
@@ -2831,10 +2831,10 @@ func acquirep(_p_ *p) {
 
 // May run during STW, so write barriers are not allowed.
 //go:nowritebarrier
-func acquirep1(_p_ *p) {
-	_g_ := getg()
+func acquirep1(_p_ *p) { // 必须在STW时调用
+	_g_ := getg() // 获得当前的goroutine结构指针
 
-	if _g_.m.p != 0 || _g_.m.mcache != nil {
+	if _g_.m.p != 0 || _g_.m.mcache != nil { // 如果当前m已经有p了，抛出异常
 		throw("acquirep: already in go")
 	}
 	if _p_.m != 0 || _p_.status != _Pidle {

@@ -10,7 +10,7 @@ import "unsafe"
  * defined constants
  */
 const (
-	// G status
+	// G status goroutine所处的状态
 	//
 	// If you add to this list, add to the list
 	// of "okay during garbage collection" status
@@ -77,12 +77,12 @@ type funcval struct {
 	// variable-size, fn-specific data here
 }
 
-type iface struct {
+type iface struct { // 接口
 	tab  *itab
 	data unsafe.Pointer
 }
 
-type eface struct {
+type eface struct { // 空接口
 	_type *_type
 	data  unsafe.Pointer
 }
@@ -197,7 +197,7 @@ type wincallbackcontext struct {
 // Stack describes a Go execution stack.
 // The bounds of the stack are exactly [lo, hi),
 // with no implicit data structures on either side.
-type stack struct {
+type stack struct { // 描述了go的执行栈，在[lo, hi)之间
 	lo uintptr
 	hi uintptr
 }
@@ -258,7 +258,7 @@ type g struct {
 	waiting        *sudog // sudog structures this g is waiting on (that have a valid elem ptr)
 	readyg         *g     // scratch for readyExecute
 
-	// Per-G gcController state
+	// Per-G gcController state 对应每个g的gc控制状态
 	gcalloc    uintptr // bytes allocated during this GC cycle
 	gcscanwork int64   // scan work done (or stolen) this GC cycle
 }

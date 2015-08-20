@@ -46,16 +46,16 @@ type pollDesc struct { // 网络poller描述结构，如果是epoll的话会保�
 	// in a lock-free way by all operations.
 	// NOTE(dvyukov): the following code uses uintptr to store *g (rg/wg),
 	// that will blow up when GC starts moving objects.
-	lock    mutex // protects the following fields
-	fd      uintptr        // 对应打开句柄
-	closing bool           // 该句柄是否关闭
+	lock    mutex   // protects the following fields
+	fd      uintptr // 对应打开句柄
+	closing bool    // 该句柄是否关闭
 	seq     uintptr // protects from stale timers and ready notifications
 	rg      uintptr // pdReady, pdWait, G waiting for read or nil
-	rt      timer          // read deadline timer (set if rt.f != nil) 读deadline定时器
-	rd      int64          // read deadline 读deadline
+	rt      timer   // read deadline timer (set if rt.f != nil) 读deadline定时器
+	rd      int64   // read deadline 读deadline
 	wg      uintptr // pdReady, pdWait, G waiting for write or nil
-	wt      timer          // write deadline timer 写deadline定时器
-	wd      int64          // write deadline 写deadline
+	wt      timer   // write deadline timer 写deadline定时器
+	wd      int64   // write deadline 写deadline
 	user    uint32  // user settable cookie
 }
 

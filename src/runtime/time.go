@@ -152,7 +152,7 @@ func deltimer(t *timer) bool {
 // It sleeps until the next event in the timers heap.
 // If addtimer inserts a new earlier event, addtimer1 wakes timerproc early.
 func timerproc() { // 用于处理定时器的goroutine
-	timers.gp = getg()        // 获取当前的goroutine
+	timers.gp = getg() // 获取当前的goroutine
 	for {
 		lock(&timers.lock)
 		timers.sleeping = false

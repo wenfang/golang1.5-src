@@ -429,7 +429,7 @@ func releasem(mp *m) {
 }
 
 //go:nosplit
-func gomcache() *mcache {
+func gomcache() *mcache { // 返回当前goroutine所在m的mcache结构
 	return getg().m.mcache
 }
 

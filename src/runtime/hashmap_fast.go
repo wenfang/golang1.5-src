@@ -8,23 +8,23 @@ import (
 	"unsafe"
 )
 
-func mapaccess1_fast32(t *maptype, h *hmap, key uint32) unsafe.Pointer { // keyÎªuint32£¬µÚÒ»ÖÖ·ÃÎÊµÄÇé¿ö£¬Ö»·µ»ØÔªËØ
+func mapaccess1_fast32(t *maptype, h *hmap, key uint32) unsafe.Pointer { // keyä¸ºuint32ï¼Œç¬¬ä¸€ç§è®¿é—®çš„æƒ…å†µï¼Œåªè¿”å›å…ƒç´ 
 	if raceenabled && h != nil {
 		callerpc := getcallerpc(unsafe.Pointer(&t))
 		racereadpc(unsafe.Pointer(h), callerpc, funcPC(mapaccess1_fast32))
 	}
-	if h == nil || h.count == 0 { // Èç¹ûhashmap½á¹¹Îª¿Õ»òÕß²»°üº¬ÔªËØ£¬·µ»Ø0ÔªËØ
+	if h == nil || h.count == 0 { // å¦‚æœhashmapç»“æ„ä¸ºç©ºæˆ–è€…ä¸åŒ…å«å…ƒç´ ï¼Œè¿”å›0å…ƒç´ 
 		return unsafe.Pointer(t.elem.zero)
 	}
 	var b *bmap
-	if h.B == 0 { // Ö»ÓĞÒ»¸öbucketµÄ±í£¬²»ĞèÒª½øĞĞhash
+	if h.B == 0 { // åªæœ‰ä¸€ä¸ªbucketçš„è¡¨ï¼Œä¸éœ€è¦è¿›è¡Œhash
 		// One-bucket table.  No need to hash.
 		b = (*bmap)(h.buckets)
 	} else {
 		hash := t.key.alg.hash(noescape(unsafe.Pointer(&key)), uintptr(h.hash0))
 		m := uintptr(1)<<h.B - 1
-		b = (*bmap)(add(h.buckets, (hash&m)*uintptr(t.bucketsize))) // ²éÕÒµ½¶ÔÓ¦µÄbuckets
-		if c := h.oldbuckets; c != nil {                            // Èç¹ûÕıÔÚgrow
+		b = (*bmap)(add(h.buckets, (hash&m)*uintptr(t.bucketsize))) // æŸ¥æ‰¾åˆ°å¯¹åº”çš„buckets
+		if c := h.oldbuckets; c != nil {                            // å¦‚æœæ­£åœ¨grow
 			oldb := (*bmap)(add(c, (hash&(m>>1))*uintptr(t.bucketsize)))
 			if !evacuated(oldb) {
 				b = oldb
@@ -34,28 +34,28 @@ func mapaccess1_fast32(t *maptype, h *hmap, key uint32) unsafe.Pointer { // keyÎ
 	for {
 		for i := uintptr(0); i < bucketCnt; i++ {
 			k := *((*uint32)(add(unsafe.Pointer(b), dataOffset+i*4)))
-			if k != key { // Èç¹ûkey²»ÏàÍ¬£¬²éÕÒÏÂÒ»¸ö
+			if k != key { // å¦‚æœkeyä¸ç›¸åŒï¼ŒæŸ¥æ‰¾ä¸‹ä¸€ä¸ª
 				continue
 			}
-			x := *((*uint8)(add(unsafe.Pointer(b), i))) // b.topbits[i] without the bounds check »ñÈ¡¶ÔÓ¦Î»ÖÃµÄtophashµÄÖµ
-			if x == empty {                             // Èç¹û¶ÔÓ¦Î»ÖÃÎª¿Õ£¬¼ÌĞø²éÕÒÏÂÒ»¸ö
+			x := *((*uint8)(add(unsafe.Pointer(b), i))) // b.topbits[i] without the bounds check è·å–å¯¹åº”ä½ç½®çš„tophashçš„å€¼
+			if x == empty {                             // å¦‚æœå¯¹åº”ä½ç½®ä¸ºç©ºï¼Œç»§ç»­æŸ¥æ‰¾ä¸‹ä¸€ä¸ª
 				continue
 			}
-			return add(unsafe.Pointer(b), dataOffset+bucketCnt*4+i*uintptr(t.valuesize)) // ·µ»Ø¶ÔÓ¦µÄvalueÖµ
+			return add(unsafe.Pointer(b), dataOffset+bucketCnt*4+i*uintptr(t.valuesize)) // è¿”å›å¯¹åº”çš„valueå€¼
 		}
 		b = b.overflow(t)
-		if b == nil {  // Ã»ÓĞbucketÁË£¬·µ»Ø0ÔªËØ
+		if b == nil { // æ²¡æœ‰bucketäº†ï¼Œè¿”å›0å…ƒç´ 
 			return unsafe.Pointer(t.elem.zero)
 		}
 	}
 }
 
-func mapaccess2_fast32(t *maptype, h *hmap, key uint32) (unsafe.Pointer, bool) { // keyÎªuint32£¬µÚ¶şÖÖ·ÃÎÊµÄÇé¿ö£¬·µ»ØÔªËØºÍÊÇ·ñÓĞĞ§
+func mapaccess2_fast32(t *maptype, h *hmap, key uint32) (unsafe.Pointer, bool) { // keyä¸ºuint32ï¼Œç¬¬äºŒç§è®¿é—®çš„æƒ…å†µï¼Œè¿”å›å…ƒç´ å’Œæ˜¯å¦æœ‰æ•ˆ
 	if raceenabled && h != nil {
 		callerpc := getcallerpc(unsafe.Pointer(&t))
 		racereadpc(unsafe.Pointer(h), callerpc, funcPC(mapaccess2_fast32))
 	}
-	if h == nil || h.count == 0 { // Èç¹ûhmapÎªnil£¬»òmapÖĞÃ»ÓĞÔªËØ£¬·µ»Ø0ÔªËØºÍfalse
+	if h == nil || h.count == 0 { // å¦‚æœhmapä¸ºnilï¼Œæˆ–mapä¸­æ²¡æœ‰å…ƒç´ ï¼Œè¿”å›0å…ƒç´ å’Œfalse
 		return unsafe.Pointer(t.elem.zero), false
 	}
 	var b *bmap
@@ -92,7 +92,7 @@ func mapaccess2_fast32(t *maptype, h *hmap, key uint32) (unsafe.Pointer, bool) {
 	}
 }
 
-func mapaccess1_fast64(t *maptype, h *hmap, key uint64) unsafe.Pointer { // keyÎªuint64µÚÒ»ÖÖ·ÃÎÊµÄÇé¿ö
+func mapaccess1_fast64(t *maptype, h *hmap, key uint64) unsafe.Pointer { // keyä¸ºuint64ç¬¬ä¸€ç§è®¿é—®çš„æƒ…å†µ
 	if raceenabled && h != nil {
 		callerpc := getcallerpc(unsafe.Pointer(&t))
 		racereadpc(unsafe.Pointer(h), callerpc, funcPC(mapaccess1_fast64))
@@ -116,9 +116,9 @@ func mapaccess1_fast64(t *maptype, h *hmap, key uint64) unsafe.Pointer { // keyÎ
 		}
 	}
 	for {
-		for i := uintptr(0); i < bucketCnt; i++ { // ±éÀúbucket
-			k := *((*uint64)(add(unsafe.Pointer(b), dataOffset+i*8))) // »ñµÃ¶ÔÓ¦µÄkey
-			if k != key {                                             // ±È½Ïkey²»ÏàÍ¬£¬¼ÌĞøÏÂÒ»¸ö
+		for i := uintptr(0); i < bucketCnt; i++ { // éå†bucket
+			k := *((*uint64)(add(unsafe.Pointer(b), dataOffset+i*8))) // è·å¾—å¯¹åº”çš„key
+			if k != key {                                             // æ¯”è¾ƒkeyä¸ç›¸åŒï¼Œç»§ç»­ä¸‹ä¸€ä¸ª
 				continue
 			}
 			x := *((*uint8)(add(unsafe.Pointer(b), i))) // b.topbits[i] without the bounds check
@@ -134,7 +134,7 @@ func mapaccess1_fast64(t *maptype, h *hmap, key uint64) unsafe.Pointer { // keyÎ
 	}
 }
 
-func mapaccess2_fast64(t *maptype, h *hmap, key uint64) (unsafe.Pointer, bool) { // keyÎªuint64µÚ¶şÖÖ·ÃÎÊµÄÇé¿ö
+func mapaccess2_fast64(t *maptype, h *hmap, key uint64) (unsafe.Pointer, bool) { // keyä¸ºuint64ç¬¬äºŒç§è®¿é—®çš„æƒ…å†µ
 	if raceenabled && h != nil {
 		callerpc := getcallerpc(unsafe.Pointer(&t))
 		racereadpc(unsafe.Pointer(h), callerpc, funcPC(mapaccess2_fast64))
@@ -176,7 +176,7 @@ func mapaccess2_fast64(t *maptype, h *hmap, key uint64) (unsafe.Pointer, bool) {
 	}
 }
 
-func mapaccess1_faststr(t *maptype, h *hmap, ky string) unsafe.Pointer { // keyÎªstring£¬µÚÒ»ÖÖ·ÃÎÊÇé¿ö
+func mapaccess1_faststr(t *maptype, h *hmap, ky string) unsafe.Pointer { // keyä¸ºstringï¼Œç¬¬ä¸€ç§è®¿é—®æƒ…å†µ
 	if raceenabled && h != nil {
 		callerpc := getcallerpc(unsafe.Pointer(&t))
 		racereadpc(unsafe.Pointer(h), callerpc, funcPC(mapaccess1_faststr))
@@ -184,28 +184,28 @@ func mapaccess1_faststr(t *maptype, h *hmap, ky string) unsafe.Pointer { // keyÎ
 	if h == nil || h.count == 0 {
 		return unsafe.Pointer(t.elem.zero)
 	}
-	key := (*stringStruct)(unsafe.Pointer(&ky)) // ½«key×ª±äÎªstringStruct
+	key := (*stringStruct)(unsafe.Pointer(&ky)) // å°†keyè½¬å˜ä¸ºstringStruct
 	if h.B == 0 {
 		// One-bucket table.
 		b := (*bmap)(h.buckets)
-		if key.len < 32 { // Èç¹ûkeyµÄ³¤¶ÈĞ¡ÓÚ32¸ö×Ö½Ú
+		if key.len < 32 { // å¦‚æœkeyçš„é•¿åº¦å°äº32ä¸ªå­—èŠ‚
 			// short key, doing lots of comparisons is ok
 			for i := uintptr(0); i < bucketCnt; i++ {
 				x := *((*uint8)(add(unsafe.Pointer(b), i))) // b.topbits[i] without the bounds check
 				if x == empty {
 					continue
 				}
-				k := (*stringStruct)(add(unsafe.Pointer(b), dataOffset+i*2*ptrSize)) // »ñÈ¡keyµÄstringStructÖ¸Õë
+				k := (*stringStruct)(add(unsafe.Pointer(b), dataOffset+i*2*ptrSize)) // è·å–keyçš„stringStructæŒ‡é’ˆ
 				if k.len != key.len {
 					continue
 				}
-				if k.str == key.str || memeq(k.str, key.str, uintptr(key.len)) { // Èç¹û×Ö·û´®ÏàÍ¬
-					return add(unsafe.Pointer(b), dataOffset+bucketCnt*2*ptrSize+i*uintptr(t.valuesize)) // ·µ»ØvalueÖµ
+				if k.str == key.str || memeq(k.str, key.str, uintptr(key.len)) { // å¦‚æœå­—ç¬¦ä¸²ç›¸åŒ
+					return add(unsafe.Pointer(b), dataOffset+bucketCnt*2*ptrSize+i*uintptr(t.valuesize)) // è¿”å›valueå€¼
 				}
 			}
 			return unsafe.Pointer(t.elem.zero)
 		}
-		// long key, try not to do more comparisons than necessary Èç¹ûkeyµÄ³¤¶È´óÓÚ32¸ö×Ö½Ú
+		// long key, try not to do more comparisons than necessary å¦‚æœkeyçš„é•¿åº¦å¤§äº32ä¸ªå­—èŠ‚
 		keymaybe := uintptr(bucketCnt)
 		for i := uintptr(0); i < bucketCnt; i++ {
 			x := *((*uint8)(add(unsafe.Pointer(b), i))) // b.topbits[i] without the bounds check

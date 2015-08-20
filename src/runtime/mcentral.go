@@ -5,7 +5,7 @@
 // Central free lists.
 //
 // See malloc.go for an overview.
-//
+// mcentral不真实包含空闲对象的列表，而是由mspan包含，每个mcentral包含两个mspan列表，一个包含空闲对象，另一个已完全分配完
 // The MCentral doesn't actually contain the list of free objects; the MSpan does.
 // Each MCentral is two lists of MSpans: those with free objects (c->nonempty)
 // and those that are completely allocated (c->empty).
@@ -13,44 +13,44 @@
 package runtime
 
 // Central list of free objects of a given size.
-type mcentral struct {
+type mcentral struct { // 给定大小的空闲对象
 	lock      mutex
-	sizeclass int32
-	nonempty  mspan // list of spans with a free object
-	empty     mspan // list of spans with no free objects (or cached in an mcache)
+	sizeclass int32 // 该mcentral用于分配sizeclass大小的空间
+	nonempty  mspan // list of spans with a free object 还具有空闲对象的mspan
+	empty     mspan // list of spans with no free objects (or cached in an mcache) 没有空闲对象的mspan
 }
 
 // Initialize a single central free list.
-func mCentral_Init(c *mcentral, sizeclass int32) {
+func mCentral_Init(c *mcentral, sizeclass int32) { // 初始化mcentral结构
 	c.sizeclass = sizeclass
-	mSpanList_Init(&c.nonempty)
-	mSpanList_Init(&c.empty)
+	mSpanList_Init(&c.nonempty) // 初始化mcentral内部的nonempty mspan
+	mSpanList_Init(&c.empty)    // 初始化mcentral内部的empty mspan
 }
 
 // Allocate a span to use in an MCache.
-func mCentral_CacheSpan(c *mcentral) *mspan {
+func mCentral_CacheSpan(c *mcentral) *mspan { // 分配一个mspan在MCache中使用
 	// Deduct credit for this span allocation and sweep if necessary.
 	deductSweepCredit(uintptr(class_to_size[c.sizeclass]), 0)
 
 	lock(&c.lock)
-	sg := mheap_.sweepgen
+	sg := mheap_.sweepgen // 获得当前mheap的sweep代数
 retry:
 	var s *mspan
-	for s = c.nonempty.next; s != &c.nonempty; s = s.next {
-		if s.sweepgen == sg-2 && cas(&s.sweepgen, sg-2, sg-1) {
-			mSpanList_Remove(s)
-			mSpanList_InsertBack(&c.empty, s)
+	for s = c.nonempty.next; s != &c.nonempty; s = s.next { // 遍历nonempty span列表
+		if s.sweepgen == sg-2 && cas(&s.sweepgen, sg-2, sg-1) { // 如果central中mspan的代数比heap小2，尝试将该mspan sweep的代数增加1
+			mSpanList_Remove(s)               // 从列表中获取mspan
+			mSpanList_InsertBack(&c.empty, s) // 将获取到的mspan加入到empty列表尾部
 			unlock(&c.lock)
-			mSpan_Sweep(s, true)
+			mSpan_Sweep(s, true) // 需要自己主动的进行一次MSpan的sweep
 			goto havespan
 		}
-		if s.sweepgen == sg-1 {
+		if s.sweepgen == sg-1 { // 如果当前mspan的代数已经变为sg-1了，表明后台有sweeper,sweep了该Mspan，跳过
 			// the span is being swept by background sweeper, skip
 			continue
 		}
-		// we have a nonempty span that does not require sweeping, allocate from it
-		mSpanList_Remove(s)
-		mSpanList_InsertBack(&c.empty, s)
+		// we have a nonempty span that does not require sweeping, allocate from it 到这里有个不需要sweep的mspan，从其中分配
+		mSpanList_Remove(s)               // 从列表中获取s
+		mSpanList_InsertBack(&c.empty, s) // 将s加入empty列表
 		unlock(&c.lock)
 		goto havespan
 	}
@@ -103,7 +103,7 @@ havespan:
 		throw("freelist empty")
 	}
 	s.incache = true
-	return s
+	return s // 返回找到的mspan
 }
 
 // Return span from an MCache.

@@ -13,11 +13,11 @@ import "unsafe"
 // Main malloc heap.
 // The heap itself is the "free[]" and "large" arrays,
 // but all the other global data is here too.
-type mheap struct {
+type mheap struct { // 主malloc的堆
 	lock      mutex
-	free      [_MaxMHeapList]mspan // free lists of given length
+	free      [_MaxMHeapList]mspan // free lists of given length 给定长度的空闲列表128个
 	freelarge mspan                // free lists length >= _MaxMHeapList
-	busy      [_MaxMHeapList]mspan // busy lists of large objects of given length
+	busy      [_MaxMHeapList]mspan // busy lists of large objects of given length 给定长度的处于使用状态的列表128个
 	busylarge mspan                // busy lists of large objects length >= _MaxMHeapList
 	allspans  **mspan              // all spans out there
 	gcspans   **mspan              // copy of allspans referenced by gc marker or sweeper
@@ -62,44 +62,44 @@ type mheap struct {
 	speciallock           mutex    // lock for special record allocators.
 }
 
-var mheap_ mheap
+var mheap_ mheap // 全局的mheap结构
 
-// An MSpan is a run of pages.
-//
+// An MSpan is a run of pages. MSpan是一堆页面的集合
+// 当MSpan在堆的free列表时，状态为MSpanFree
 // When a MSpan is in the heap free list, state == MSpanFree
 // and heapmap(s->start) == span, heapmap(s->start+s->npages-1) == span.
-//
+// 当一个MSpan被分配时，状态变为MSpanInUse或者MSpanStack
 // When a MSpan is allocated, state == MSpanInUse or MSpanStack
 // and heapmap(i) == span for all s->start <= i < s->start+s->npages.
-
+// 每一个MSpan都在一个双向列表中，或者在MHeap的free列表中，或者在MCentral的span列表中，使用空MSpan结构作为列表头
 // Every MSpan is in one doubly-linked list,
 // either one of the MHeap's free lists or one of the
 // MCentral's span lists.  We use empty MSpan structures as list heads.
-
+// 当MSpan为_MSpanInUse状态时保存有确定的内存
 // An MSpan representing actual memory has state _MSpanInUse,
 // _MSpanStack, or _MSpanFree. Transitions between these states are
 // constrained as follows:
-//
+// 在GC阶段,Mspan的状态可以从free变为in-use或者stack状态
 // * A span may transition from free to in-use or stack during any GC
 //   phase.
-//
+// 在sweeping阶段，span可以从in_use状态变为free状态或者从stack状态变为free状态
 // * During sweeping (gcphase == _GCoff), a span may transition from
 //   in-use to free (as a result of sweeping) or stack to free (as a
 //   result of stacks being freed).
-//
+// 在GC阶段，span一定不能从stack或in-use状态变为free状态，因为并发的gc可能会读一个指针并且查找其Span
 // * During GC (gcphase != _GCoff), a span *must not* transition from
 //   stack or in-use to free. Because concurrent GC may read a pointer
 //   and then look up its span, the span state must be monotonic.
 const (
 	_MSpanInUse = iota // allocated for garbage collected heap
-	_MSpanStack        // allocated for use by stack allocator
+	_MSpanStack        // allocated for use by stack allocator 该Mspan用作栈分配
 	_MSpanFree
 	_MSpanListHead
 	_MSpanDead
 )
 
 type mspan struct {
-	next     *mspan    // in a span linked list
+	next     *mspan    // in a span linked list mspan的双向列表
 	prev     *mspan    // in a span linked list
 	start    pageID    // starting page number
 	npages   uintptr   // number of pages in span
@@ -270,20 +270,20 @@ func mlookup(v uintptr, base *uintptr, size *uintptr, sp **mspan) int32 {
 }
 
 // Initialize the heap.
-func mHeap_Init(h *mheap, spans_size uintptr) {
-	fixAlloc_Init(&h.spanalloc, unsafe.Sizeof(mspan{}), recordspan, unsafe.Pointer(h), &memstats.mspan_sys)
-	fixAlloc_Init(&h.cachealloc, unsafe.Sizeof(mcache{}), nil, nil, &memstats.mcache_sys)
-	fixAlloc_Init(&h.specialfinalizeralloc, unsafe.Sizeof(specialfinalizer{}), nil, nil, &memstats.other_sys)
-	fixAlloc_Init(&h.specialprofilealloc, unsafe.Sizeof(specialprofile{}), nil, nil, &memstats.other_sys)
+func mHeap_Init(h *mheap, spans_size uintptr) { // 初始化memory的堆
+	fixAlloc_Init(&h.spanalloc, unsafe.Sizeof(mspan{}), recordspan, unsafe.Pointer(h), &memstats.mspan_sys)   // 用作分配mspan结构
+	fixAlloc_Init(&h.cachealloc, unsafe.Sizeof(mcache{}), nil, nil, &memstats.mcache_sys)                     // 用作分配mcache结构
+	fixAlloc_Init(&h.specialfinalizeralloc, unsafe.Sizeof(specialfinalizer{}), nil, nil, &memstats.other_sys) // 用作分配specialfinalizer结构
+	fixAlloc_Init(&h.specialprofilealloc, unsafe.Sizeof(specialprofile{}), nil, nil, &memstats.other_sys)     // 用作分配specialprofile结构
 
 	// h->mapcache needs no init
-	for i := range h.free {
+	for i := range h.free { // 一次初始化free和busy列表中的每个MSpan
 		mSpanList_Init(&h.free[i])
 		mSpanList_Init(&h.busy[i])
 	}
 
-	mSpanList_Init(&h.freelarge)
-	mSpanList_Init(&h.busylarge)
+	mSpanList_Init(&h.freelarge) // 初始化freelarge MSpan
+	mSpanList_Init(&h.busylarge) // 初始化busylarge MSpan
 	for i := range h.central {
 		mCentral_Init(&h.central[i].mcentral, int32(i))
 	}
@@ -841,11 +841,11 @@ func runtime_debug_freeOSMemory() {
 }
 
 // Initialize a new span with the given start and npages.
-func mSpan_Init(span *mspan, start pageID, npages uintptr) {
+func mSpan_Init(span *mspan, start pageID, npages uintptr) { // 初始化mSpan,start为其实页面id，npages为页面数量
 	span.next = nil
 	span.prev = nil
-	span.start = start
-	span.npages = npages
+	span.start = start   // 起始页面id
+	span.npages = npages // 页面数量
 	span.freelist = 0
 	span.ref = 0
 	span.sizeclass = 0
@@ -860,8 +860,8 @@ func mSpan_Init(span *mspan, start pageID, npages uintptr) {
 }
 
 // Initialize an empty doubly-linked list.
-func mSpanList_Init(list *mspan) {
-	list.state = _MSpanListHead
+func mSpanList_Init(list *mspan) { // 初始化mspan列表
+	list.state = _MSpanListHead // 将Mspan的状态变为列表头
 	list.next = list
 	list.prev = list
 }
@@ -876,7 +876,7 @@ func mSpanList_Remove(span *mspan) {
 	span.next = nil
 }
 
-func mSpanList_IsEmpty(list *mspan) bool {
+func mSpanList_IsEmpty(list *mspan) bool { // 查看mspan列表是否为空
 	return list.next == list
 }
 

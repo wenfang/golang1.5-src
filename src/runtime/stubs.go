@@ -14,14 +14,14 @@ const spAlign = 1*(1-goarch_arm64) + 16*goarch_arm64 // SP alignment: 1 normally
 
 // Should be a built-in for unsafe.Pointer?
 //go:nosplit
-func add(p unsafe.Pointer, x uintptr) unsafe.Pointer { // ������ָ���������
+func add(p unsafe.Pointer, x uintptr) unsafe.Pointer { // 将两个指针数据相加
 	return unsafe.Pointer(uintptr(p) + x)
 }
 
 // getg returns the pointer to the current g.
 // The compiler rewrites calls to this function into instructions
 // that fetch the g directly (from TLS or from the dedicated register).
-func getg() *g
+func getg() *g // 返回指向当前g的指针
 
 // mcall switches from the g to the g0 stack and invokes fn(g),
 // where g is the goroutine that made the call.
@@ -57,7 +57,7 @@ func mcall(fn func(*g))
 //	... use x ...
 //
 //go:noescape
-func systemstack(fn func())
+func systemstack(fn func()) // 在系统栈上运行fn函数，如果是goroutine的栈，切换到线程栈上执行
 
 func badsystemstack() {
 	throw("systemstack called from unexpected goroutine")

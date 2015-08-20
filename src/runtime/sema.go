@@ -23,18 +23,18 @@ import "unsafe"
 
 // Asynchronous semaphore for sync.Mutex.
 
-type semaRoot struct { // Òì²½ĞÅºÅÁ¿½á¹¹£¬µÈ´ıÔÚÒ»¸öµØÖ·ÉÏµÄgoroutineÁĞ±í
+type semaRoot struct { // å¼‚æ­¥ä¿¡å·é‡ç»“æ„ï¼Œç­‰å¾…åœ¨ä¸€ä¸ªåœ°å€ä¸Šçš„goroutineåˆ—è¡¨
 	lock  mutex
 	head  *sudog
-	tail  *sudog // µÈ´ıµÄgoroutine¶ÓÁĞ
-	nwait uint32 // Number of waiters. Read w/o the lock. µÈ´ıÕßµÄÊıÁ¿
+	tail  *sudog // ç­‰å¾…çš„goroutineé˜Ÿåˆ—
+	nwait uint32 // Number of waiters. Read w/o the lock. ç­‰å¾…è€…çš„æ•°é‡
 }
 
 // Prime to not correlate with any user patterns.
 const semTabSize = 251
 
-var semtable [semTabSize]struct { // Ò»¸ö251ÏîµÄ½á¹¹Êı×é£¬°üº¬semaRoot½á¹¹±äÁ¿
-	root semaRoot // ×Ü¹²ÓĞ251¸ösemaRoot
+var semtable [semTabSize]struct { // ä¸€ä¸ª251é¡¹çš„ç»“æ„æ•°ç»„ï¼ŒåŒ…å«semaRootç»“æ„å˜é‡
+	root semaRoot // æ€»å…±æœ‰251ä¸ªsemaRoot
 	pad  [_CacheLineSize - unsafe.Sizeof(semaRoot{})]byte
 }
 
@@ -59,14 +59,14 @@ func net_runtime_Semrelease(addr *uint32) {
 }
 
 // Called from runtime.
-func semacquire(addr *uint32, profile bool) { // profile±íÃ÷ÊÇ·ñ½øĞĞĞÔÄÜprofile
-	gp := getg()         // »ñÈ¡µ±Ç°µÄgoroutine
-	if gp != gp.m.curg { // Èç¹ûÃ»ÓĞÔÚµ±Ç°mµÄµ±Ç°µÄGÉÏÖ´ĞĞ£¬Å×³öÒì³£
+func semacquire(addr *uint32, profile bool) { // profileè¡¨æ˜æ˜¯å¦è¿›è¡Œæ€§èƒ½profile
+	gp := getg()         // è·å–å½“å‰çš„goroutine
+	if gp != gp.m.curg { // å¦‚æœæ²¡æœ‰åœ¨å½“å‰mçš„å½“å‰çš„Gä¸Šæ‰§è¡Œï¼ŒæŠ›å‡ºå¼‚å¸¸
 		throw("semacquire not on the G stack")
 	}
 
 	// Easy case.
-	if cansemacquire(addr) { // ¿ìËÙ»ñÈ¡×ÊÔ´£¬³É¹¦ºó·µ»Ø
+	if cansemacquire(addr) { // å¿«é€Ÿè·å–èµ„æºï¼ŒæˆåŠŸåè¿”å›
 		return
 	}
 
@@ -76,27 +76,27 @@ func semacquire(addr *uint32, profile bool) { // profile±íÃ÷ÊÇ·ñ½øĞĞĞÔÄÜprofile
 	//	enqueue itself as a waiter
 	//	sleep
 	//	(waiter descriptor is dequeued by signaler)
-	s := acquireSudog()   // »ñÈ¡Ò»¸öSudog½á¹¹
-	root := semroot(addr) // ¸ù¾İµØÖ·»ñÈ¡¶ÔÓ¦µÄsemroot½á¹¹
-	t0 := int64(0)        // ÉèÖÃt0³õÖµÎª0
-	s.releasetime = 0     // ÉèÖÃÊÍ·ÅÊ±¼ä
+	s := acquireSudog()   // è·å–ä¸€ä¸ªSudogç»“æ„
+	root := semroot(addr) // æ ¹æ®åœ°å€è·å–å¯¹åº”çš„semrootç»“æ„
+	t0 := int64(0)        // è®¾ç½®t0åˆå€¼ä¸º0
+	s.releasetime = 0     // è®¾ç½®é‡Šæ”¾æ—¶é—´
 	if profile && blockprofilerate > 0 {
 		t0 = cputicks()
 		s.releasetime = -1
 	}
-	for { // Ñ­»·½øĞĞ¼ÓËø
-		lock(&root.lock) // ¶Ô»ñÈ¡µÄsemaroot½øĞĞ¼ÓËø
+	for { // å¾ªç¯è¿›è¡ŒåŠ é”
+		lock(&root.lock) // å¯¹è·å–çš„semarootè¿›è¡ŒåŠ é”
 		// Add ourselves to nwait to disable "easy case" in semrelease.
-		xadd(&root.nwait, 1) // Ôö¼ÓµÈ´ıÕßÊıÁ¿
+		xadd(&root.nwait, 1) // å¢åŠ ç­‰å¾…è€…æ•°é‡
 		// Check cansemacquire to avoid missed wakeup.
-		if cansemacquire(addr) { // Èç¹ûÄÜ¹»»ñµÃ×ÊÔ´ÁË£¬¼õÈ¥µÈ´ıÕßÊıÁ¿£¬·µ»Ø
+		if cansemacquire(addr) { // å¦‚æœèƒ½å¤Ÿè·å¾—èµ„æºäº†ï¼Œå‡å»ç­‰å¾…è€…æ•°é‡ï¼Œè¿”å›
 			xadd(&root.nwait, -1)
 			unlock(&root.lock)
 			break
 		}
 		// Any semrelease after the cansemacquire knows we're waiting
 		// (we set nwait above), so go to sleep.
-		root.queue(addr, s)                    // ¼ÓÈëaddr¼ÓÈëµ½¶ÓÁĞsÖĞ
+		root.queue(addr, s) // åŠ å…¥addråŠ å…¥åˆ°é˜Ÿåˆ—sä¸­
 		goparkunlock(&root.lock, "semacquire", traceEvGoBlockSync, 4)
 		if cansemacquire(addr) {
 			break
@@ -144,27 +144,27 @@ func semrelease(addr *uint32) {
 	}
 }
 
-func semroot(addr *uint32) *semaRoot { // ·µ»Ø¶ÔÓ¦addrµÄsemaRoot½á¹¹
+func semroot(addr *uint32) *semaRoot { // è¿”å›å¯¹åº”addrçš„semaRootç»“æ„
 	return &semtable[(uintptr(unsafe.Pointer(addr))>>3)%semTabSize].root
 }
 
-func cansemacquire(addr *uint32) bool { // »ñÈ¡addrÎ»ÖÃµÄ×ÊÔ´,addrÎ»ÖÃÎªÒ»¸öÖµ£¬µ±Îª0Ê±±íÃ÷×ÊÔ´ÒÑ±»»ñµÃ
+func cansemacquire(addr *uint32) bool { // è·å–addrä½ç½®çš„èµ„æº,addrä½ç½®ä¸ºä¸€ä¸ªå€¼ï¼Œå½“ä¸º0æ—¶è¡¨æ˜èµ„æºå·²è¢«è·å¾—
 	for {
-		v := atomicload(addr) // »ñµÃaddrÎ»ÖÃµÄÖµ
-		if v == 0 {           // Èç¹ûµ±Ç°ÖµÎª0£¬²»ÄÜ»ñÈ¡×ÊÔ´ÁË
+		v := atomicload(addr) // è·å¾—addrä½ç½®çš„å€¼
+		if v == 0 {           // å¦‚æœå½“å‰å€¼ä¸º0ï¼Œä¸èƒ½è·å–èµ„æºäº†
 			return false
 		}
-		if cas(addr, v, v-1) { // ½«µ±Ç°µÄÖµ¼õ1£¬»ñÈ¡×ÊÔ´³É¹¦
+		if cas(addr, v, v-1) { // å°†å½“å‰çš„å€¼å‡1ï¼Œè·å–èµ„æºæˆåŠŸ
 			return true
 		}
 	}
 }
 
 func (root *semaRoot) queue(addr *uint32, s *sudog) {
-	s.g = getg()                  // »ñÈ¡µ±Ç°µÄgoroutine½á¹¹£¬·ÅÈëgÖĞ
-	s.elem = unsafe.Pointer(addr) // ÉèÖÃÔªËØ£¬ÎªsemaµÄµØÖ·
+	s.g = getg()                  // è·å–å½“å‰çš„goroutineç»“æ„ï¼Œæ”¾å…¥gä¸­
+	s.elem = unsafe.Pointer(addr) // è®¾ç½®å…ƒç´ ï¼Œä¸ºsemaçš„åœ°å€
 	s.next = nil
-	s.prev = root.tail // ½«sudog·ÅÈëµ½semaRootÎ²²¿
+	s.prev = root.tail // å°†sudogæ”¾å…¥åˆ°semaRootå°¾éƒ¨
 	if root.tail != nil {
 		root.tail.next = s
 	} else {
@@ -173,7 +173,7 @@ func (root *semaRoot) queue(addr *uint32, s *sudog) {
 	root.tail = s
 }
 
-func (root *semaRoot) dequeue(s *sudog) { // ½«sudog´ÓsemaRoot¶ÓÁĞÖĞÒÆ³ı
+func (root *semaRoot) dequeue(s *sudog) { // å°†sudogä»semaRooté˜Ÿåˆ—ä¸­ç§»é™¤
 	if s.next != nil {
 		s.next.prev = s.prev
 	} else {

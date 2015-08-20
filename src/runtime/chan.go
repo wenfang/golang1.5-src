@@ -39,13 +39,13 @@ func reflect_makechan(t *chantype, size int64) *hchan {
 }
 
 func makechan(t *chantype, size int64) *hchan {
-	elem := t.elem // »ñµÃÔªËØ
+	elem := t.elem // è·å¾—å…ƒç´ 
 
 	// compiler checks this but be safe.
-	if elem.size >= 1<<16 { // ÔªËØÌ«´ó£¬²»ÄÜ´óÓÚ64K
+	if elem.size >= 1<<16 { // å…ƒç´ å¤ªå¤§ï¼Œä¸èƒ½å¤§äº64K
 		throw("makechan: invalid channel element type")
 	}
-	if hchanSize%maxAlign != 0 || elem.align > maxAlign { // ÔªËØ¶ÔÆë´íÎó
+	if hchanSize%maxAlign != 0 || elem.align > maxAlign { // å…ƒç´ å¯¹é½é”™è¯¯
 		throw("makechan: bad alignment")
 	}
 	if size < 0 || int64(uintptr(size)) != size || (elem.size > 0 && uintptr(size) > (_MaxMem-hchanSize)/uintptr(elem.size)) {
@@ -53,7 +53,7 @@ func makechan(t *chantype, size int64) *hchan {
 	}
 
 	var c *hchan
-	if elem.kind&kindNoPointers != 0 || size == 0 { // Èç¹ûchanÔªËØÎª¿Õ¼´unbuffered£¬»òÕßÀàĞÍ²»°üº¬Ö¸Õë
+	if elem.kind&kindNoPointers != 0 || size == 0 { // å¦‚æœchanå…ƒç´ ä¸ºç©ºå³unbufferedï¼Œæˆ–è€…ç±»å‹ä¸åŒ…å«æŒ‡é’ˆ
 		// Allocate memory in one call.
 		// Hchan does not contain pointers interesting for GC in this case:
 		// buf points into the same allocation, elemtype is persistent.
@@ -67,13 +67,13 @@ func makechan(t *chantype, size int64) *hchan {
 			// Also prevents us from pointing beyond the allocation (see issue 9401).
 			c.buf = unsafe.Pointer(c)
 		}
-	} else { // Èç¹û°üº¬Ö¸Õë£¬ÓÃnew·ÖÅä½á¹¹
-		c = new(hchan)                                  // ´´½¨hchan½á¹¹
+	} else { // å¦‚æœåŒ…å«æŒ‡é’ˆï¼Œç”¨newåˆ†é…ç»“æ„
+		c = new(hchan) // åˆ›å»ºhchanç»“æ„
 		c.buf = newarray(elem, uintptr(size))
 	}
-	c.elemsize = uint16(elem.size) // ÉèÖÃÃ¿¸öÔªËØµÄ´óĞ¡
-	c.elemtype = elem              // ÉèÖÃÔªËØÀàĞÍ
-	c.dataqsiz = uint(size)        // ÉèÖÃµ±Ç°bufferÖĞÔªËØµÄ¸öÊı
+	c.elemsize = uint16(elem.size) // è®¾ç½®æ¯ä¸ªå…ƒç´ çš„å¤§å°
+	c.elemtype = elem              // è®¾ç½®å…ƒç´ ç±»å‹
+	c.dataqsiz = uint(size)        // è®¾ç½®å½“å‰bufferä¸­å…ƒç´ çš„ä¸ªæ•°
 
 	if debugChan {
 		print("makechan: chan=", c, "; elemsize=", elem.size, "; elemalg=", elem.alg, "; dataqsiz=", size, "\n")
@@ -82,14 +82,14 @@ func makechan(t *chantype, size int64) *hchan {
 }
 
 // chanbuf(c, i) is pointer to the i'th slot in the buffer.
-func chanbuf(c *hchan, i uint) unsafe.Pointer { // ·µ»ØchanÖĞµÚi¸öslotµÄÖ¸Õë
+func chanbuf(c *hchan, i uint) unsafe.Pointer { // è¿”å›chanä¸­ç¬¬iä¸ªslotçš„æŒ‡é’ˆ
 	return add(c.buf, uintptr(i)*uintptr(c.elemsize))
 }
 
 // entry point for c <- x from compiled code
 //go:nosplit
-func chansend1(t *chantype, c *hchan, elem unsafe.Pointer) { // ½«ÔªËØelem·ÅÈëchan cÖĞ£¬×èÈû·¢ËÍ
-	chansend(t, c, elem, true, getcallerpc(unsafe.Pointer(&t))) // µ÷ÓÃchansend
+func chansend1(t *chantype, c *hchan, elem unsafe.Pointer) { // å°†å…ƒç´ elemæ”¾å…¥chan cä¸­ï¼Œé˜»å¡å‘é€
+	chansend(t, c, elem, true, getcallerpc(unsafe.Pointer(&t))) // è°ƒç”¨chansend
 }
 
 /*
@@ -104,14 +104,14 @@ func chansend1(t *chantype, c *hchan, elem unsafe.Pointer) { // ½«ÔªËØelem·ÅÈëch
  * been closed.  it is easiest to loop and re-run
  * the operation; we'll see that it's now closed.
  */
-// chanµÄÀàĞÍÎªt£¬¶ÔÓ¦µÄchanÎªc£¬epÎªÖ¸ÏòÔªËØµÄÖ¸Õë£¬blockÖ¸Ê¾ÊÇ·ñ×èÈû£¬callerpcÎªµ÷ÓÃÕßµÄpcÖµ
-func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool { // ·µ»ØÒ»¸öÊÇ·ñ·¢ËÍ³É¹¦µÄboolÖµ
+// chançš„ç±»å‹ä¸ºtï¼Œå¯¹åº”çš„chanä¸ºcï¼Œepä¸ºæŒ‡å‘å…ƒç´ çš„æŒ‡é’ˆï¼ŒblockæŒ‡ç¤ºæ˜¯å¦é˜»å¡ï¼Œcallerpcä¸ºè°ƒç”¨è€…çš„pcå€¼
+func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool { // è¿”å›ä¸€ä¸ªæ˜¯å¦å‘é€æˆåŠŸçš„boolå€¼
 	if raceenabled {
 		raceReadObjectPC(t.elem, ep, callerpc, funcPC(chansend))
 	}
 
-	if c == nil { // Èç¹ûchanÎª¿Õ, ¶ÔÓÚnilÍ¨µÀ£¬Ö±½Ó×èÈû
-		if !block { // Èç¹û²»ÄÜ×èÈû£¬·µ»Øfalse
+	if c == nil { // å¦‚æœchanä¸ºç©º, å¯¹äºnilé€šé“ï¼Œç›´æ¥é˜»å¡
+		if !block { // å¦‚æœä¸èƒ½é˜»å¡ï¼Œè¿”å›false
 			return false
 		}
 		gopark(nil, nil, "chan send (nil chan)", traceEvGoStop, 2)
@@ -127,7 +127,7 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 	}
 
 	// Fast path: check for failed non-blocking operation without acquiring the lock.
-	// ÔÚ²»»ñµÃËøµÄÇé¿öÏÂ£¬¼ì²é´íÎóµÄ·Ç×èÈû²Ù×÷
+	// åœ¨ä¸è·å¾—é”çš„æƒ…å†µä¸‹ï¼Œæ£€æŸ¥é”™è¯¯çš„éé˜»å¡æ“ä½œ
 	// After observing that the channel is not closed, we observe that the channel is
 	// not ready for sending. Each of these observations is a single word-sized read
 	// (first c.closed and second c.recvq.first or c.qcount depending on kind of channel).
@@ -141,47 +141,47 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 	// ready for sending and then observe that it is not closed, that implies that the
 	// channel wasn't closed during the first observation.
 	if !block && c.closed == 0 && ((c.dataqsiz == 0 && c.recvq.first == nil) ||
-		(c.dataqsiz > 0 && c.qcount == c.dataqsiz)) { // Èç¹ûÊÇ·Ç×èÈû²Ù×÷£¬ÇÒµ±Ç°µÄchanÃ»ÓĞ±»¹Ø±Õ£¬µ±Ç°Ã»ÓĞ¿Õ¼äÈİÄÉ£¬Ñ¸ËÙ·µ»Øfalse
+		(c.dataqsiz > 0 && c.qcount == c.dataqsiz)) { // å¦‚æœæ˜¯éé˜»å¡æ“ä½œï¼Œä¸”å½“å‰çš„chanæ²¡æœ‰è¢«å…³é—­ï¼Œå½“å‰æ²¡æœ‰ç©ºé—´å®¹çº³ï¼Œè¿…é€Ÿè¿”å›false
 		return false
 	}
 
 	var t0 int64
 	if blockprofilerate > 0 {
-		t0 = cputicks() // ·µ»Øcpu Ê±ÖÓÖÜÆÚÊı
+		t0 = cputicks() // è¿”å›cpu æ—¶é’Ÿå‘¨æœŸæ•°
 	}
 
-	lock(&c.lock)      // chan¼ÓËø
-	if c.closed != 0 { // Èç¹ûchanÒÑ¾­±»¹Ø±Õ£¬panic£¬²»ÄÜÏòÒÑ¾­¹Ø±ÕµÄchan·¢ËÍ
+	lock(&c.lock)      // chanåŠ é”
+	if c.closed != 0 { // å¦‚æœchanå·²ç»è¢«å…³é—­ï¼Œpanicï¼Œä¸èƒ½å‘å·²ç»å…³é—­çš„chanå‘é€
 		unlock(&c.lock)
 		panic("send on closed channel")
 	}
 
-	if c.dataqsiz == 0 { // synchronous channel Èç¹ûÊÇunbufferedµÄchan
-		sg := c.recvq.dequeue() // È¡µÃµÈ´ı½ÓÊÕµÄ¶ÓÁĞ
-		if sg != nil {          // found a waiting receiver ÕÒµ½ÁËÒ»¸öÕıÔÚµÈ´ıµÄ½ÓÊÕÕß
+	if c.dataqsiz == 0 { // synchronous channel å¦‚æœæ˜¯unbufferedçš„chan
+		sg := c.recvq.dequeue() // å–å¾—ç­‰å¾…æ¥æ”¶çš„é˜Ÿåˆ—
+		if sg != nil {          // found a waiting receiver æ‰¾åˆ°äº†ä¸€ä¸ªæ­£åœ¨ç­‰å¾…çš„æ¥æ”¶è€…
 			if raceenabled {
 				racesync(c, sg)
 			}
-			unlock(&c.lock) // ½âËøchan
+			unlock(&c.lock) // è§£é”chan
 
-			recvg := sg.g       // È¡»ØÁË½ÓÊÕÕßµÄgoroutine
+			recvg := sg.g // å–å›äº†æ¥æ”¶è€…çš„goroutine
 			if sg.elem != nil {
 				syncsend(c, sg, ep)
 			}
-			recvg.param = unsafe.Pointer(sg) // ÉèÖÃrecvgµÄ²ÎÊıÎªsudog½á¹¹
+			recvg.param = unsafe.Pointer(sg) // è®¾ç½®recvgçš„å‚æ•°ä¸ºsudogç»“æ„
 			if sg.releasetime != 0 {
-				sg.releasetime = cputicks() // ÉèÖÃ½ÓÊÕÕßgoroutine sgµÄÊÍ·ÅÊ±¼ä
+				sg.releasetime = cputicks() // è®¾ç½®æ¥æ”¶è€…goroutine sgçš„é‡Šæ”¾æ—¶é—´
 			}
 			goready(recvg, 3)
 			return true
 		}
 
-		if !block { // Èç¹û·Ç×èÈû£¬µ±Ç°Ã»ÓĞµÈ´ı½ÓÊÕÕß£¬·µ»Øfalse
+		if !block { // å¦‚æœéé˜»å¡ï¼Œå½“å‰æ²¡æœ‰ç­‰å¾…æ¥æ”¶è€…ï¼Œè¿”å›false
 			unlock(&c.lock)
 			return false
 		}
 
-		// no receiver available: block on this channel. Ã»ÓĞ½ÓÊÕÕß£¬×èÈûÔÚ¸ÃchanÉÏ
+		// no receiver available: block on this channel. æ²¡æœ‰æ¥æ”¶è€…ï¼Œé˜»å¡åœ¨è¯¥chanä¸Š
 		gp := getg()
 		mysg := acquireSudog()
 		mysg.releasetime = 0
@@ -215,7 +215,7 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 		releaseSudog(mysg)
 		return true
 	}
-	// Èç¹ûÊÇbufferedµÄchan
+	// å¦‚æœæ˜¯bufferedçš„chan
 	// asynchronous channel
 	// wait for some space to write our data
 	var t1 int64
@@ -224,7 +224,7 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 			unlock(&c.lock)
 			return false
 		}
-		gp := getg() // ·µ»Øµ±Ç°µÄG½á¹¹
+		gp := getg() // è¿”å›å½“å‰çš„Gç»“æ„
 		mysg := acquireSudog()
 		mysg.releasetime = 0
 		if t0 != 0 {
@@ -293,13 +293,13 @@ func syncsend(c *hchan, sg *sudog, elem unsafe.Pointer) {
 	sg.elem = nil
 }
 
-func closechan(c *hchan) { // ¹Ø±Õchan
-	if c == nil { // Èç¹ûchanÎª¿Õ£¬panic£¬²»ÄÜ¹Ø±ÕnilµÄchan
+func closechan(c *hchan) { // å…³é—­chan
+	if c == nil { // å¦‚æœchanä¸ºç©ºï¼Œpanicï¼Œä¸èƒ½å…³é—­nilçš„chan
 		panic("close of nil channel")
 	}
 
 	lock(&c.lock)
-	if c.closed != 0 { // ÏÈ¸øchan¼ÓËø£¬Èç¹û¼ÓËøºó·¢ÏÖÒÑ¾­±»¹Ø±Õ£¬±»¹Ø±ÕÁËÁ½´Î£¬panic
+	if c.closed != 0 { // å…ˆç»™chanåŠ é”ï¼Œå¦‚æœåŠ é”åå‘ç°å·²ç»è¢«å…³é—­ï¼Œè¢«å…³é—­äº†ä¸¤æ¬¡ï¼Œpanic
 		unlock(&c.lock)
 		panic("close of closed channel")
 	}
@@ -310,10 +310,10 @@ func closechan(c *hchan) { // ¹Ø±Õchan
 		racerelease(unsafe.Pointer(c))
 	}
 
-	c.closed = 1 // ÉèÖÃchan±»¹Ø±Õ
+	c.closed = 1 // è®¾ç½®chanè¢«å…³é—­
 
 	// release all readers
-	for { // ÊÍ·ÅËùÓĞ×èÈûÔÚ¸ÃchanÉÏµÄ¶ÁÕß
+	for { // é‡Šæ”¾æ‰€æœ‰é˜»å¡åœ¨è¯¥chanä¸Šçš„è¯»è€…
 		sg := c.recvq.dequeue()
 		if sg == nil {
 			break
@@ -328,7 +328,7 @@ func closechan(c *hchan) { // ¹Ø±Õchan
 	}
 
 	// release all writers
-	for { // ÊÍ·ÅËùÓĞ×èÈûÔÚ¸ÃchanÉÏµÄĞ´Õß
+	for { // é‡Šæ”¾æ‰€æœ‰é˜»å¡åœ¨è¯¥chanä¸Šçš„å†™è€…
 		sg := c.sendq.dequeue()
 		if sg == nil {
 			break
@@ -361,15 +361,15 @@ func chanrecv2(t *chantype, c *hchan, elem unsafe.Pointer) (received bool) {
 // If block == false and no elements are available, returns (false, false).
 // Otherwise, if c is closed, zeros *ep and returns (true, false).
 // Otherwise, fills in *ep with an element and returns (true, true).
-func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, received bool) { // ½«Êı¾İ¶Á³öµ½ep
+func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, received bool) { // å°†æ•°æ®è¯»å‡ºåˆ°ep
 	// raceenabled: don't need to check ep, as it is always on the stack.
 
 	if debugChan {
 		print("chanrecv: chan=", c, "\n")
 	}
 
-	if c == nil { // Èç¹ûchanÎªnil
-		if !block { // Èç¹ûÒªÇó·Ç×èÈû£¬Á¢¼´·µ»Ø£¬´ËÊ±selectedºÍreceivedÎªfalse
+	if c == nil { // å¦‚æœchanä¸ºnil
+		if !block { // å¦‚æœè¦æ±‚éé˜»å¡ï¼Œç«‹å³è¿”å›ï¼Œæ­¤æ—¶selectedå’Œreceivedä¸ºfalse
 			return
 		}
 		gopark(nil, nil, "chan receive (nil chan)", traceEvGoStop, 2)
@@ -390,18 +390,18 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
 	// incorrect behavior when racing with a close.
 	if !block && (c.dataqsiz == 0 && c.sendq.first == nil ||
 		c.dataqsiz > 0 && atomicloaduint(&c.qcount) == 0) &&
-		atomicload(&c.closed) == 0 { // Èç¹û·Ç×èÈû£¬ÇÒchanÃ»ÓĞ¹Ø±Õ
+		atomicload(&c.closed) == 0 { // å¦‚æœéé˜»å¡ï¼Œä¸”chanæ²¡æœ‰å…³é—­
 		return
 	}
 
 	var t0 int64
 	if blockprofilerate > 0 {
-		t0 = cputicks() // »ñµÃµ±Ç°µÄcpu ticksÊı
+		t0 = cputicks() // è·å¾—å½“å‰çš„cpu ticksæ•°
 	}
 
 	lock(&c.lock)
-	if c.dataqsiz == 0 { // synchronous channel Èç¹ûÊÇÍ¬²½µÄchan
-		if c.closed != 0 { // Èç¹ûchanÒÑ¾­¹Ø±Õ,µ÷ÓÃrecvclosed
+	if c.dataqsiz == 0 { // synchronous channel å¦‚æœæ˜¯åŒæ­¥çš„chan
+		if c.closed != 0 { // å¦‚æœchanå·²ç»å…³é—­,è°ƒç”¨recvclosed
 			return recvclosed(c, ep)
 		}
 
@@ -552,12 +552,12 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
 // recvclosed is a helper function for chanrecv.  Handles cleanup
 // when the receiver encounters a closed channel.
 // Caller must hold c.lock, recvclosed will release the lock.
-func recvclosed(c *hchan, ep unsafe.Pointer) (selected, recevied bool) { // ´ÓÒÑ¾­closeµÄchanÖĞ¶Á³ö
+func recvclosed(c *hchan, ep unsafe.Pointer) (selected, recevied bool) { // ä»å·²ç»closeçš„chanä¸­è¯»å‡º
 	if raceenabled {
 		raceacquire(unsafe.Pointer(c))
 	}
 	unlock(&c.lock)
-	if ep != nil { // Èç¹ûÓĞep£¬½«epÇå¿Õ
+	if ep != nil { // å¦‚æœæœ‰epï¼Œå°†epæ¸…ç©º
 		memclr(ep, uintptr(c.elemsize))
 	}
 	return true, false
@@ -580,7 +580,7 @@ func recvclosed(c *hchan, ep unsafe.Pointer) (selected, recevied bool) { // ´ÓÒÑ
 //		... bar
 //	}
 //
-func selectnbsend(t *chantype, c *hchan, elem unsafe.Pointer) (selected bool) { // selectÌ½²âchan send²»ÄÜ×èÈû
+func selectnbsend(t *chantype, c *hchan, elem unsafe.Pointer) (selected bool) { // selectæ¢æµ‹chan sendä¸èƒ½é˜»å¡
 	return chansend(t, c, elem, false, getcallerpc(unsafe.Pointer(&t)))
 }
 
@@ -601,7 +601,7 @@ func selectnbsend(t *chantype, c *hchan, elem unsafe.Pointer) (selected bool) { 
 //		... bar
 //	}
 //
-func selectnbrecv(t *chantype, elem unsafe.Pointer, c *hchan) (selected bool) { // selectÌ½²âchan recv²»ÄÜ×èÈû
+func selectnbrecv(t *chantype, elem unsafe.Pointer, c *hchan) (selected bool) { // selectæ¢æµ‹chan recvä¸èƒ½é˜»å¡
 	selected, _ = chanrecv(t, c, elem, false)
 	return
 }

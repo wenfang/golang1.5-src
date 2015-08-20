@@ -40,7 +40,7 @@ const (
 
 // typeAlg is also copied/used in reflect/type.go.
 // keep them in sync.
-type typeAlg struct { // 算法类型结构
+type typeAlg struct { // 绠楁硶绫诲瀷缁撴瀯
 	// function for hashing objects of this type
 	// (ptr to object, seed) -> hash
 	hash func(unsafe.Pointer, uintptr) uintptr

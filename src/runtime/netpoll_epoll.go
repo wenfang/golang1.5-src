@@ -19,11 +19,11 @@ func epollwait(epfd int32, ev *epollevent, nev, timeout int32) int32
 func closeonexec(fd int32)
 
 var (
-	epfd           int32 = -1 // epoll descriptor È«¾ÖµÄepollÃèÊö·û
+	epfd           int32 = -1 // epoll descriptor å…¨å±€çš„epollæè¿°ç¬¦
 	netpolllasterr int32
 )
 
-func netpollinit() { // ³õÊ¼»¯epoll,´´½¨epoll¾ä±ú²¢ÉèÖÃclose_on_exec
+func netpollinit() { // åˆå§‹åŒ–epoll,åˆ›å»ºepollå¥æŸ„å¹¶è®¾ç½®close_on_exec
 	epfd = epollcreate1(_EPOLL_CLOEXEC)
 	if epfd >= 0 {
 		return
@@ -37,14 +37,14 @@ func netpollinit() { // ³õÊ¼»¯epoll,´´½¨epoll¾ä±ú²¢ÉèÖÃclose_on_exec
 	throw("netpollinit: failed to create descriptor")
 }
 
-func netpollopen(fd uintptr, pd *pollDesc) int32 { // ´ò¿ªfd¾ä±ú
+func netpollopen(fd uintptr, pd *pollDesc) int32 { // æ‰“å¼€fdå¥æŸ„
 	var ev epollevent
-	ev.events = _EPOLLIN | _EPOLLOUT | _EPOLLRDHUP | _EPOLLET // ÉèÖÃ¼àÌıÊÂ¼ş
-	*(**pollDesc)(unsafe.Pointer(&ev.data)) = pd              // ½«pollDescÉèÖÃµ½ev.dataÖĞ
-	return -epollctl(epfd, _EPOLL_CTL_ADD, int32(fd), &ev)    // Ö´ĞĞepoll_ctl¼àÌıËùÓĞÊÂ¼ş
+	ev.events = _EPOLLIN | _EPOLLOUT | _EPOLLRDHUP | _EPOLLET // è®¾ç½®ç›‘å¬äº‹ä»¶
+	*(**pollDesc)(unsafe.Pointer(&ev.data)) = pd              // å°†pollDescè®¾ç½®åˆ°ev.dataä¸­
+	return -epollctl(epfd, _EPOLL_CTL_ADD, int32(fd), &ev)    // æ‰§è¡Œepoll_ctlç›‘å¬æ‰€æœ‰äº‹ä»¶
 }
 
-func netpollclose(fd uintptr) int32 { // É¾³ıfd¶ÔÓ¦µÄepollÊÂ¼ş
+func netpollclose(fd uintptr) int32 { // åˆ é™¤fdå¯¹åº”çš„epolläº‹ä»¶
 	var ev epollevent
 	return -epollctl(epfd, _EPOLL_CTL_DEL, int32(fd), &ev)
 }
@@ -56,38 +56,38 @@ func netpollarm(pd *pollDesc, mode int) {
 // polls for ready network connections
 // returns list of goroutines that become runnable
 func netpoll(block bool) *g {
-	if epfd == -1 { // Ã»ÓĞÉèÖÃepoll¾ä±ú£¬·µ»Ø
+	if epfd == -1 { // æ²¡æœ‰è®¾ç½®epollå¥æŸ„ï¼Œè¿”å›
 		return nil
 	}
-	waitms := int32(-1) // Èç¹û×èÈûµÈ´ı£¬½«µÈ´ıÊ±¼äÉèÖÃÎª-1£¬ÓÀ¾Ã×èÈû
-	if !block {         // Èç¹û²»×èÈû£¬Á¢¿Ì·µ»Ø
-		waitms = 0 // ÉèÖÃÁ¢¼´·µ»Ø
+	waitms := int32(-1) // å¦‚æœé˜»å¡ç­‰å¾…ï¼Œå°†ç­‰å¾…æ—¶é—´è®¾ç½®ä¸º-1ï¼Œæ°¸ä¹…é˜»å¡
+	if !block {         // å¦‚æœä¸é˜»å¡ï¼Œç«‹åˆ»è¿”å›
+		waitms = 0 // è®¾ç½®ç«‹å³è¿”å›
 	}
-	var events [128]epollevent // ×î¶àµÈ´ı128¸öÊÂ¼ş
+	var events [128]epollevent // æœ€å¤šç­‰å¾…128ä¸ªäº‹ä»¶
 retry:
-	n := epollwait(epfd, &events[0], int32(len(events)), waitms) // Ö´ĞĞepoll_wait
-	if n < 0 {                                                   // Ö´ĞĞ³ö´í
+	n := epollwait(epfd, &events[0], int32(len(events)), waitms) // æ‰§è¡Œepoll_wait
+	if n < 0 {                                                   // æ‰§è¡Œå‡ºé”™
 		if n != -_EINTR && n != netpolllasterr {
 			netpolllasterr = n
 			println("runtime: epollwait on fd", epfd, "failed with", -n)
 		}
-		goto retry // ÎŞÂÛ³öÏÖÊ²Ã´´íÎó¶¼Ìø×ªµ½retryÖ´ĞĞ,Çø±ğÊÇ³ıÁËEINTR´íÎó»á´òÓ¡Ò»´ÎÌáÊ¾
+		goto retry // æ— è®ºå‡ºç°ä»€ä¹ˆé”™è¯¯éƒ½è·³è½¬åˆ°retryæ‰§è¡Œ,åŒºåˆ«æ˜¯é™¤äº†EINTRé”™è¯¯ä¼šæ‰“å°ä¸€æ¬¡æç¤º
 	}
 	var gp guintptr
-	for i := int32(0); i < n; i++ { // ±éÀúËùÓĞµÄÊÂ¼ş
-		ev := &events[i]    // È¡»ØÊÂ¼ş½á¹¹
-		if ev.events == 0 { // Èç¹ûÎ´·¢ÉúÊÂ¼ş£¬¼ÌĞøÏÂÒ»¸ö
+	for i := int32(0); i < n; i++ { // éå†æ‰€æœ‰çš„äº‹ä»¶
+		ev := &events[i]    // å–å›äº‹ä»¶ç»“æ„
+		if ev.events == 0 { // å¦‚æœæœªå‘ç”Ÿäº‹ä»¶ï¼Œç»§ç»­ä¸‹ä¸€ä¸ª
 			continue
 		}
-		var mode int32                                                 // ¸ù¾İÄ£Ê½ÉèÖÃ¶Á»òÕßĞ´
-		if ev.events&(_EPOLLIN|_EPOLLRDHUP|_EPOLLHUP|_EPOLLERR) != 0 { // Èç¹û²úÉúÁË¶ÁÊÂ¼ş
+		var mode int32                                                 // æ ¹æ®æ¨¡å¼è®¾ç½®è¯»æˆ–è€…å†™
+		if ev.events&(_EPOLLIN|_EPOLLRDHUP|_EPOLLHUP|_EPOLLERR) != 0 { // å¦‚æœäº§ç”Ÿäº†è¯»äº‹ä»¶
 			mode += 'r'
 		}
-		if ev.events&(_EPOLLOUT|_EPOLLHUP|_EPOLLERR) != 0 { // Èç¹û²úÉúÁËĞ´ÊÂ¼ş
+		if ev.events&(_EPOLLOUT|_EPOLLHUP|_EPOLLERR) != 0 { // å¦‚æœäº§ç”Ÿäº†å†™äº‹ä»¶
 			mode += 'w'
 		}
 		if mode != 0 {
-			pd := *(**pollDesc)(unsafe.Pointer(&ev.data))                // È¡³öÀ´pollDesc½á¹¹
+			pd := *(**pollDesc)(unsafe.Pointer(&ev.data)) // å–å‡ºæ¥pollDescç»“æ„
 
 			netpollready(&gp, pd, mode)
 		}

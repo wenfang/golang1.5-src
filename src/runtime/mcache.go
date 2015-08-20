@@ -6,9 +6,11 @@ package runtime
 
 import "unsafe"
 
+// 每个P的cache，用来分配小对象，因为只被一个P所使用，所以不需要锁定
 // Per-thread (in Go, per-P) cache for small objects.
 // No locking needed because it is per-thread (per-P).
 type mcache struct {
+	// 下列成员在每个malloc调用时访问，因此成组出现
 	// The following members are accessed on every malloc,
 	// so they are grouped here for better caching.
 	next_sample      int32   // trigger heap sample after allocating this many bytes
@@ -21,9 +23,9 @@ type mcache struct {
 	local_tinyallocs uintptr // number of tiny allocs not counted in other stats
 
 	// The rest is not accessed on every malloc.
-	alloc [_NumSizeClasses]*mspan // spans to allocate from
+	alloc [_NumSizeClasses]*mspan // spans to allocate from 对应每个67类的mspan
 
-	stackcache [_NumStackOrders]stackfreelist
+	stackcache [_NumStackOrders]stackfreelist // 用作分配栈空间的stackfreelist
 
 	// Local allocator stats, flushed during GC.
 	local_nlookup    uintptr                  // number of pointer lookups
@@ -61,10 +63,10 @@ type stackfreelist struct {
 // dummy MSpan that contains no free objects.
 var emptymspan mspan
 
-func allocmcache() *mcache {
-	lock(&mheap_.lock)
-	c := (*mcache)(fixAlloc_Alloc(&mheap_.cachealloc))
-	unlock(&mheap_.lock)
+func allocmcache() *mcache { // 分配出mcache结构
+	lock(&mheap_.lock)                                 // 先给mheap加锁
+	c := (*mcache)(fixAlloc_Alloc(&mheap_.cachealloc)) // 分配出来一个mcache结构
+	unlock(&mheap_.lock)                               // 分配完结构后就给mheap解锁
 	memclr(unsafe.Pointer(c), unsafe.Sizeof(*c))
 	for i := 0; i < _NumSizeClasses; i++ {
 		c.alloc[i] = &emptymspan
