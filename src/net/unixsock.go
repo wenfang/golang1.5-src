@@ -5,18 +5,18 @@
 package net
 
 // UnixAddr represents the address of a Unix domain socket end point.
-type UnixAddr struct { // unix socket µØÖ·½á¹¹
+type UnixAddr struct { // unix socket åœ°å€ç»“æ„
 	Name string
 	Net  string
 }
 
 // Network returns the address's network name, "unix", "unixgram" or
 // "unixpacket".
-func (a *UnixAddr) Network() string { // ·µ»ØÍøÂçÃû
+func (a *UnixAddr) Network() string { // è¿”å›ç½‘ç»œå
 	return a.Net
 }
 
-func (a *UnixAddr) String() string { // ·µ»ØµØÖ·Ãû
+func (a *UnixAddr) String() string { // è¿”å›åœ°å€å
 	if a == nil {
 		return "<nil>"
 	}
@@ -37,11 +37,11 @@ func (a *UnixAddr) opAddr() Addr {
 // ResolveUnixAddr parses addr as a Unix domain socket address.
 // The string net gives the network name, "unix", "unixgram" or
 // "unixpacket".
-func ResolveUnixAddr(net, addr string) (*UnixAddr, error) { // ½âÎöunixµØÖ·£¬·µ»ØunixµØÖ·½á¹¹
+func ResolveUnixAddr(net, addr string) (*UnixAddr, error) { // è§£æunixåœ°å€ï¼Œè¿”å›unixåœ°å€ç»“æ„
 	switch net {
 	case "unix", "unixgram", "unixpacket":
 		return &UnixAddr{Name: addr, Net: net}, nil
-	default: // ·ÇUnixÓòµØÖ·£¬·µ»Ø´íÎó
+	default: // éUnixåŸŸåœ°å€ï¼Œè¿”å›é”™è¯¯
 		return nil, UnknownNetworkError(net)
 	}
 }

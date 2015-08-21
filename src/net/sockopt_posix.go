@@ -124,18 +124,18 @@ func setKeepAlive(fd *netFD, keepalive bool) error {
 	return os.NewSyscallError("setsockopt", syscall.SetsockoptInt(fd.sysfd, syscall.SOL_SOCKET, syscall.SO_KEEPALIVE, boolint(keepalive)))
 }
 
-func setLinger(fd *netFD, sec int) error { // ÉèÖÃLinger
-	var l syscall.Linger // ÉùÃ÷Linger½á¹¹
-	if sec >= 0 {        // sec´óÓÚµÈÓÚ0£¬¿ªÆôLinger
+func setLinger(fd *netFD, sec int) error { // è®¾ç½®Linger
+	var l syscall.Linger // å£°æ˜Lingerç»“æ„
+	if sec >= 0 {        // secå¤§äºç­‰äº0ï¼Œå¼€å¯Linger
 		l.Onoff = 1
 		l.Linger = int32(sec)
-	} else { // secĞ¡ÓÚ0£¬¹Ø±ÕLinger
+	} else { // secå°äº0ï¼Œå…³é—­Linger
 		l.Onoff = 0
 		l.Linger = 0
 	}
-	if err := fd.incref(); err != nil { // ÏÈÔö¼ÓfdµÄÒıÓÃ¼ÆÊı
+	if err := fd.incref(); err != nil { // å…ˆå¢åŠ fdçš„å¼•ç”¨è®¡æ•°
 		return err
 	}
-	defer fd.decref() // ÉèÖÃÍê³Éºó¼õĞ¡fdµÄÒıÓÃ¼ÆÊı
+	defer fd.decref() // è®¾ç½®å®Œæˆåå‡å°fdçš„å¼•ç”¨è®¡æ•°
 	return os.NewSyscallError("setsockopt", syscall.SetsockoptLinger(fd.sysfd, syscall.SOL_SOCKET, syscall.SO_LINGER, &l))
 }

@@ -11,7 +11,7 @@ import (
 	"syscall"
 )
 
-func setNoDelay(fd *netFD, noDelay bool) error { // ÉèÖÃnoDelay±êÖ¾
+func setNoDelay(fd *netFD, noDelay bool) error { // è®¾ç½®noDelayæ ‡å¿—
 	if err := fd.incref(); err != nil {
 		return err
 	}

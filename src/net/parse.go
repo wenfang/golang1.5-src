@@ -212,7 +212,7 @@ func appendHex(dst []byte, i uint32) []byte {
 }
 
 // Number of occurrences of b in s.
-func count(s string, b byte) int { // 找到b在s中出现的次数
+func count(s string, b byte) int { // 鎵惧埌b鍦╯涓嚭鐜扮殑娆℃暟
 	n := 0
 	for i := 0; i < len(s); i++ {
 		if s[i] == b {
@@ -223,7 +223,7 @@ func count(s string, b byte) int { // 找到b在s中出现的次数
 }
 
 // Index of rightmost occurrence of b in s.
-func last(s string, b byte) int { // 找到b在s中最右索引的位置
+func last(s string, b byte) int { // 鎵惧埌b鍦╯涓渶鍙崇储寮曠殑浣嶇疆
 	i := len(s)
 	for i--; i >= 0; i-- {
 		if s[i] == b {

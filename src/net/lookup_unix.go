@@ -13,13 +13,13 @@ var onceReadProtocols sync.Once
 // readProtocols loads contents of /etc/protocols into protocols map
 // for quick access.
 func readProtocols() {
-	if file, err := open("/etc/protocols"); err == nil { // ¶ÁprotocolsÎÄ¼ş
-		for line, ok := file.readLine(); ok; line, ok = file.readLine() { // ¶ÁÎÄ¼şµÄÃ¿Ò»ĞĞ
+	if file, err := open("/etc/protocols"); err == nil { // è¯»protocolsæ–‡ä»¶
+		for line, ok := file.readLine(); ok; line, ok = file.readLine() { // è¯»æ–‡ä»¶çš„æ¯ä¸€è¡Œ
 			// tcp    6   TCP    # transmission control protocol
-			if i := byteIndex(line, '#'); i >= 0 { // ºöÂÔ×¢ÊÍ
+			if i := byteIndex(line, '#'); i >= 0 { // å¿½ç•¥æ³¨é‡Š
 				line = line[0:i]
 			}
-			f := getFields(line) // ·Ö¸îÓò
+			f := getFields(line) // åˆ†å‰²åŸŸ
 			if len(f) < 2 {
 				continue
 			}
@@ -41,8 +41,8 @@ func readProtocols() {
 // lookupProtocol looks up IP protocol name in /etc/protocols and
 // returns correspondent protocol number.
 func lookupProtocol(name string) (int, error) {
-	onceReadProtocols.Do(readProtocols) // ¶ÁÒ»´ÎĞ­ÒéÎÄ¼ş
-	proto, found := protocols[name]     // ¸ù¾İĞ­ÒéÃû·µ»ØĞ­ÒéºÅ
+	onceReadProtocols.Do(readProtocols) // è¯»ä¸€æ¬¡åè®®æ–‡ä»¶
+	proto, found := protocols[name]     // æ ¹æ®åè®®åè¿”å›åè®®å·
 	if !found {
 		return 0, &AddrError{Err: "unknown IP protocol specified", Addr: name}
 	}

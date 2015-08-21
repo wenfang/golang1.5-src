@@ -117,11 +117,11 @@ func (fd *netFD) addrFunc() func(syscall.Sockaddr) Addr {
 	return func(syscall.Sockaddr) Addr { return nil }
 }
 
-func (fd *netFD) dial(laddr, raddr sockaddr, deadline time.Time) error { // 执行dial连接
+func (fd *netFD) dial(laddr, raddr sockaddr, deadline time.Time) error { // 鎵цdial杩炴帴
 	var err error
 	var lsa syscall.Sockaddr
 	if laddr != nil {
-		if lsa, err = laddr.sockaddr(fd.family); err != nil { // 先返回本地地址
+		if lsa, err = laddr.sockaddr(fd.family); err != nil { // 鍏堣繑鍥炴湰鍦板湴鍧�
 			return err
 		} else if lsa != nil {
 			if err := syscall.Bind(fd.sysfd, lsa); err != nil {
@@ -134,7 +134,7 @@ func (fd *netFD) dial(laddr, raddr sockaddr, deadline time.Time) error { // 执行
 		if rsa, err = raddr.sockaddr(fd.family); err != nil {
 			return err
 		}
-		if err := fd.connect(lsa, rsa, deadline); err != nil { // 连接远端地址
+		if err := fd.connect(lsa, rsa, deadline); err != nil { // 杩炴帴杩滅鍦板潃
 			return err
 		}
 		fd.isConnected = true

@@ -87,7 +87,7 @@ func fileListener(f *os.File) (Listener, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch laddr := fd.laddr.(type) { // 根据地址类型返回listener
+	switch laddr := fd.laddr.(type) { // 鏍规嵁鍦板潃绫诲瀷杩斿洖listener
 	case *TCPAddr:
 		return &TCPListener{fd}, nil
 	case *UnixAddr:

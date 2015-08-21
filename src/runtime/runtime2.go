@@ -37,7 +37,7 @@ const (
 )
 
 const (
-	// P status
+	// P status P的状态
 	_Pidle    = iota
 	_Prunning // Only this P is allowed to change from _Prunning.
 	_Psyscall

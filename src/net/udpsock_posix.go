@@ -44,7 +44,7 @@ type UDPConn struct {
 	conn
 }
 
-func newUDPConn(fd *netFD) *UDPConn { return &UDPConn{conn{fd}} } // ´´½¨Ò»¸öĞÂµÄUDPÁ¬½Ó
+func newUDPConn(fd *netFD) *UDPConn { return &UDPConn{conn{fd}} } // åˆ›å»ºä¸€ä¸ªæ–°çš„UDPè¿æ¥
 
 // ReadFromUDP reads a UDP packet from c, copying the payload into b.
 // It returns the number of bytes copied into b and the return address
@@ -76,7 +76,7 @@ func (c *UDPConn) ReadFrom(b []byte) (int, Addr, error) {
 	if !c.ok() {
 		return 0, nil, syscall.EINVAL
 	}
-	n, addr, err := c.ReadFromUDP(b) // µ÷ÓÃReadFromUDP
+	n, addr, err := c.ReadFromUDP(b) // è°ƒç”¨ReadFromUDP
 	if addr == nil {
 		return n, nil, err
 	}
@@ -203,20 +203,20 @@ func dialUDP(net string, laddr, raddr *UDPAddr, deadline time.Time) (*UDPConn, e
 // discover the port.  The returned connection's ReadFrom and WriteTo
 // methods can be used to receive and send UDP packets with per-packet
 // addressing.
-func ListenUDP(net string, laddr *UDPAddr) (*UDPConn, error) { // ¼àÌıudp¶Ë¿Ú£¬´´½¨Ò»¸öudp socket
-	switch net { // ÍøÂçÀàĞÍ±ØĞëÎªudp
+func ListenUDP(net string, laddr *UDPAddr) (*UDPConn, error) { // ç›‘å¬udpç«¯å£ï¼Œåˆ›å»ºä¸€ä¸ªudp socket
+	switch net { // ç½‘ç»œç±»å‹å¿…é¡»ä¸ºudp
 	case "udp", "udp4", "udp6":
-	default: // Èç¹ûÍøÂçÀàĞÍ²»ÊÇudp·µ»Ø´íÎó
+	default: // å¦‚æœç½‘ç»œç±»å‹ä¸æ˜¯udpè¿”å›é”™è¯¯
 		return nil, &OpError{Op: "listen", Net: net, Source: nil, Addr: laddr.opAddr(), Err: UnknownNetworkError(net)}
 	}
-	if laddr == nil { // Èç¹û±¾µØµØÖ·Ã»ÓĞÉèÖÃ£¬ÉèÖÃÎª¿Õ
+	if laddr == nil { // å¦‚æœæœ¬åœ°åœ°å€æ²¡æœ‰è®¾ç½®ï¼Œè®¾ç½®ä¸ºç©º
 		laddr = &UDPAddr{}
 	}
 	fd, err := internetSocket(net, laddr, nil, noDeadline, syscall.SOCK_DGRAM, 0, "listen")
 	if err != nil {
 		return nil, &OpError{Op: "listen", Net: net, Source: nil, Addr: laddr, Err: err}
 	}
-	return newUDPConn(fd), nil // ·µ»ØĞÂµÄUDPÁ¬½Ó
+	return newUDPConn(fd), nil // è¿”å›æ–°çš„UDPè¿æ¥
 }
 
 // ListenMulticastUDP listens for incoming multicast UDP packets
@@ -243,13 +243,13 @@ func ListenMulticastUDP(network string, ifi *Interface, gaddr *UDPAddr) (*UDPCon
 	if err != nil {
 		return nil, &OpError{Op: "listen", Net: network, Source: nil, Addr: gaddr, Err: err}
 	}
-	c := newUDPConn(fd)                    // ´´½¨Ò»¸öudpÁ¬½Ó
-	if ip4 := gaddr.IP.To4(); ip4 != nil { // Èç¹ûÊÇipv4µØÖ·
+	c := newUDPConn(fd)                    // åˆ›å»ºä¸€ä¸ªudpè¿æ¥
+	if ip4 := gaddr.IP.To4(); ip4 != nil { // å¦‚æœæ˜¯ipv4åœ°å€
 		if err := listenIPv4MulticastUDP(c, ifi, ip4); err != nil {
 			c.Close()
 			return nil, &OpError{Op: "listen", Net: network, Source: c.fd.laddr, Addr: &IPAddr{IP: ip4}, Err: err}
 		}
-	} else { // Èç¹ûÊÇipv6µØÖ·
+	} else { // å¦‚æœæ˜¯ipv6åœ°å€
 		if err := listenIPv6MulticastUDP(c, ifi, gaddr.IP); err != nil {
 			c.Close()
 			return nil, &OpError{Op: "listen", Net: network, Source: c.fd.laddr, Addr: &IPAddr{IP: gaddr.IP}, Err: err}

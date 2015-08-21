@@ -154,10 +154,10 @@ func ready(gp *g, traceskip int) {
 	}
 }
 
-func gcprocs() int32 {
+func gcprocs() int32 { // 获得可用于gc的p的数量
 	// Figure out how many CPUs to use during GC.
 	// Limited by gomaxprocs, number of actual CPUs, and MaxGcproc.
-	lock(&sched.lock)
+	lock(&sched.lock) // 调度器加锁
 	n := gomaxprocs
 	if n > ncpu {
 		n = ncpu
@@ -516,6 +516,8 @@ func startTheWorld() {
 // and prevents gomaxprocs from changing concurrently.
 var worldsema uint32 = 1
 
+// stopTheWorldWithSema是stopTheWorld的核心实现，调用者负责获取worldsema
+// 并且先disable掉抢占调度。stopTheWorldWithSema需要在系统栈上执行
 // stopTheWorldWithSema is the core implementation of stopTheWorld.
 // The caller is responsible for acquiring worldsema and disabling
 // preemption first and then should stopTheWorldWithSema on the system
@@ -525,6 +527,7 @@ var worldsema uint32 = 1
 //	m.preemptoff = "reason"
 //	systemstack(stopTheWorldWithSema)
 //
+// 当工作完成时，调用者需要调用startTheWorld
 // When finished, the caller must either call startTheWorld or undo
 // these three operations separately:
 //
@@ -532,33 +535,34 @@ var worldsema uint32 = 1
 //	systemstack(startTheWorldWithSema)
 //	semrelease(&worldsema)
 //
+// 允许获得一次worldsema然后执行多次startTheWorldWithSema/stopTheWorldWithSema对
 // It is allowed to acquire worldsema once and then execute multiple
 // startTheWorldWithSema/stopTheWorldWithSema pairs.
 // Other P's are able to execute between successive calls to
 // startTheWorldWithSema and stopTheWorldWithSema.
 // Holding worldsema causes any other goroutines invoking
 // stopTheWorld to block.
-func stopTheWorldWithSema() {
-	_g_ := getg()
+func stopTheWorldWithSema() { // 将所有的P都设置为gcstop状态
+	_g_ := getg() // 获取当前的goroutine
 
 	// If we hold a lock, then we won't be able to stop another M
 	// that is blocked trying to acquire the lock.
-	if _g_.m.locks > 0 {
+	if _g_.m.locks > 0 { // 如果已经获得锁了
 		throw("stopTheWorld: holding locks")
 	}
 
-	lock(&sched.lock)
-	sched.stopwait = gomaxprocs
-	atomicstore(&sched.gcwaiting, 1)
+	lock(&sched.lock)                // 锁定全局调度
+	sched.stopwait = gomaxprocs      // 需要等待停止的P的数量
+	atomicstore(&sched.gcwaiting, 1) // 设置gcwaiting
 	preemptall()
 	// stop current P
-	_g_.m.p.ptr().status = _Pgcstop // Pgcstop is only diagnostic.
-	sched.stopwait--
+	_g_.m.p.ptr().status = _Pgcstop // Pgcstop is only diagnostic. 停止掉当前的P
+	sched.stopwait--                // 当前已经停止一个P了stopwait值减1
 	// try to retake all P's in Psyscall status
-	for i := 0; i < int(gomaxprocs); i++ {
-		p := allp[i]
-		s := p.status
-		if s == _Psyscall && cas(&p.status, s, _Pgcstop) {
+	for i := 0; i < int(gomaxprocs); i++ { // 遍历所有的P
+		p := allp[i]                                       // 获得P
+		s := p.status                                      // 获得P的状态
+		if s == _Psyscall && cas(&p.status, s, _Pgcstop) { // 如果当前P的状态为系统调用状态，设置为gcstop状态
 			if trace.enabled {
 				traceGoSysBlock(p)
 				traceProcStop(p)
@@ -568,7 +572,7 @@ func stopTheWorldWithSema() {
 		}
 	}
 	// stop idle P's
-	for {
+	for { // 遍历所有的idle状态的P，设置为gcstop状态
 		p := pidleget()
 		if p == nil {
 			break
@@ -576,24 +580,24 @@ func stopTheWorldWithSema() {
 		p.status = _Pgcstop
 		sched.stopwait--
 	}
-	wait := sched.stopwait > 0
-	unlock(&sched.lock)
+	wait := sched.stopwait > 0 // 查看是否还有需要等待的P
+	unlock(&sched.lock)        // 给调度器解锁
 
 	// wait for remaining P's to stop voluntarily
-	if wait {
+	if wait { // 如果需要等待P
 		for {
 			// wait for 100us, then try to re-preempt in case of any races
-			if notetsleep(&sched.stopnote, 100*1000) {
+			if notetsleep(&sched.stopnote, 100*1000) { // 等待100微秒
 				noteclear(&sched.stopnote)
 				break
 			}
 			preemptall()
 		}
 	}
-	if sched.stopwait != 0 {
+	if sched.stopwait != 0 { // stopTheWorld失败抛出异常
 		throw("stopTheWorld: not stopped")
 	}
-	for i := 0; i < int(gomaxprocs); i++ {
+	for i := 0; i < int(gomaxprocs); i++ { // 再检查一遍所有的P，如果不是gcstop状态，抛出异常
 		p := allp[i]
 		if p.status != _Pgcstop {
 			throw("stopTheWorld: not stopped")

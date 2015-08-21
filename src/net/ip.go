@@ -13,7 +13,7 @@
 package net
 
 // IP address lengths (bytes).
-const ( // ÉèÖÃIPv4¼°IPv6µØÖ·³¤¶È
+const ( // è®¾ç½®IPv4åŠIPv6åœ°å€é•¿åº¦
 	IPv4len = 4
 	IPv6len = 16
 )
@@ -27,20 +27,20 @@ const ( // ÉèÖÃIPv4¼°IPv6µØÖ·³¤¶È
 // is a semantic property of the address, not just the
 // length of the byte slice: a 16-byte slice can still
 // be an IPv4 address.
-type IP []byte // Ò»¸öIPµØÖ·£¬¿ÉÒÔÊÇIPV4Ò²¿ÉÒÔÊÇIPV6
+type IP []byte // ä¸€ä¸ªIPåœ°å€ï¼Œå¯ä»¥æ˜¯IPV4ä¹Ÿå¯ä»¥æ˜¯IPV6
 
 // An IP mask is an IP address.
-type IPMask []byte // IPµØÖ·µÄÑÚÂë
+type IPMask []byte // IPåœ°å€çš„æ©ç 
 
 // An IPNet represents an IP network.
-type IPNet struct { // IPÍøÂç,°üº¬IPµØÖ·ºÍÑÚÂë
+type IPNet struct { // IPç½‘ç»œ,åŒ…å«IPåœ°å€å’Œæ©ç 
 	IP   IP     // network number
 	Mask IPMask // network mask
 }
 
 // IPv4 returns the IP address (in 16-byte form) of the
 // IPv4 address a.b.c.d.
-func IPv4(a, b, c, d byte) IP { // ´´½¨Ò»¸öIPv4µØÖ·£¬¸ù¾İ4¸öbyte´´½¨
+func IPv4(a, b, c, d byte) IP { // åˆ›å»ºä¸€ä¸ªIPv4åœ°å€ï¼Œæ ¹æ®4ä¸ªbyteåˆ›å»º
 	p := make(IP, IPv6len)
 	copy(p, v4InV6Prefix)
 	p[12] = a
@@ -50,11 +50,11 @@ func IPv4(a, b, c, d byte) IP { // ´´½¨Ò»¸öIPv4µØÖ·£¬¸ù¾İ4¸öbyte´´½¨
 	return p
 }
 
-var v4InV6Prefix = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff} // ipv4ÔÚipv6µØÖ·ÉÏµÄÇ°×º
+var v4InV6Prefix = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff} // ipv4åœ¨ipv6åœ°å€ä¸Šçš„å‰ç¼€
 
 // IPv4Mask returns the IP mask (in 4-byte form) of the
 // IPv4 mask a.b.c.d.
-func IPv4Mask(a, b, c, d byte) IPMask { // ´´½¨Ò»¸öIpv4ÑÚÂë
+func IPv4Mask(a, b, c, d byte) IPMask { // åˆ›å»ºä¸€ä¸ªIpv4æ©ç 
 	p := make(IPMask, IPv4len)
 	p[0] = a
 	p[1] = b
@@ -66,7 +66,7 @@ func IPv4Mask(a, b, c, d byte) IPMask { // ´´½¨Ò»¸öIpv4ÑÚÂë
 // CIDRMask returns an IPMask consisting of `ones' 1 bits
 // followed by 0s up to a total length of `bits' bits.
 // For a mask of this form, CIDRMask is the inverse of IPMask.Size.
-func CIDRMask(ones, bits int) IPMask { // ·µ»ØÒ»¸öIPÑÚÂë
+func CIDRMask(ones, bits int) IPMask { // è¿”å›ä¸€ä¸ªIPæ©ç 
 	if bits != 8*IPv4len && bits != 8*IPv6len {
 		return nil
 	}
@@ -107,12 +107,12 @@ var (
 )
 
 // IsUnspecified reports whether ip is an unspecified address.
-func (ip IP) IsUnspecified() bool { // Èç¹ûIPµØÖ·ÊÇÒ»¸öÎ´Ö¸¶¨µÄµØÖ·£¬·µ»Øtrue
+func (ip IP) IsUnspecified() bool { // å¦‚æœIPåœ°å€æ˜¯ä¸€ä¸ªæœªæŒ‡å®šçš„åœ°å€ï¼Œè¿”å›true
 	return ip.Equal(IPv4zero) || ip.Equal(IPv6unspecified)
 }
 
 // IsLoopback reports whether ip is a loopback address.
-func (ip IP) IsLoopback() bool { // ÊÇ·ñ»Ø»·µØÖ·
+func (ip IP) IsLoopback() bool { // æ˜¯å¦å›ç¯åœ°å€
 	if ip4 := ip.To4(); ip4 != nil {
 		return ip4[0] == 127
 	}
@@ -120,7 +120,7 @@ func (ip IP) IsLoopback() bool { // ÊÇ·ñ»Ø»·µØÖ·
 }
 
 // IsMulticast reports whether ip is a multicast address.
-func (ip IP) IsMulticast() bool { // ÊÇ·ñÊÇ¶à²¥µØÖ·
+func (ip IP) IsMulticast() bool { // æ˜¯å¦æ˜¯å¤šæ’­åœ°å€
 	if ip4 := ip.To4(); ip4 != nil {
 		return ip4[0]&0xf0 == 0xe0
 	}
@@ -174,15 +174,15 @@ func isZeros(p IP) bool {
 
 // To4 converts the IPv4 address ip to a 4-byte representation.
 // If ip is not an IPv4 address, To4 returns nil.
-func (ip IP) To4() IP { // ×ª»»³ÉÒ»¸ö4×Ö½ÚµÄIPµØÖ·±íÊ¾
-	if len(ip) == IPv4len { // Èç¹û±íÊ¾ipµØÖ·µÄ³¤¶È±¾À´¾ÍÊÇ4£¬·µ»Ø
+func (ip IP) To4() IP { // è½¬æ¢æˆä¸€ä¸ª4å­—èŠ‚çš„IPåœ°å€è¡¨ç¤º
+	if len(ip) == IPv4len { // å¦‚æœè¡¨ç¤ºipåœ°å€çš„é•¿åº¦æœ¬æ¥å°±æ˜¯4ï¼Œè¿”å›
 		return ip
 	}
 	if len(ip) == IPv6len &&
 		isZeros(ip[0:10]) &&
 		ip[10] == 0xff &&
-		ip[11] == 0xff { // Èç¹ûÊÇipv6µØÖ·£¬µ«ÊÇ0~10Î»Îª0,11ºÍ12Î»Îªff
-		return ip[12:16] // ×ª»»Îªipv4µØÖ·
+		ip[11] == 0xff { // å¦‚æœæ˜¯ipv6åœ°å€ï¼Œä½†æ˜¯0~10ä½ä¸º0,11å’Œ12ä½ä¸ºff
+		return ip[12:16] // è½¬æ¢ä¸ºipv4åœ°å€
 	}
 	return nil
 }
@@ -209,21 +209,21 @@ var (
 // DefaultMask returns the default IP mask for the IP address ip.
 // Only IPv4 addresses have default masks; DefaultMask returns
 // nil if ip is not a valid IPv4 address.
-func (ip IP) DefaultMask() IPMask { // ·µ»ØipµØÖ·µÄÈ±Ê¡ÑÚÂë£¬¸ù¾İÆäËùÊôÀàÓò
+func (ip IP) DefaultMask() IPMask { // è¿”å›ipåœ°å€çš„ç¼ºçœæ©ç ï¼Œæ ¹æ®å…¶æ‰€å±ç±»åŸŸ
 	if ip = ip.To4(); ip == nil {
 		return nil
 	}
 	switch true {
 	case ip[0] < 0x80:
-		return classAMask // AÀàµØÖ·
+		return classAMask // Aç±»åœ°å€
 	case ip[0] < 0xC0:
-		return classBMask // BÀàµØÖ·
+		return classBMask // Bç±»åœ°å€
 	default:
-		return classCMask // CÀàµØÖ·
+		return classCMask // Cç±»åœ°å€
 	}
 }
 
-func allFF(b []byte) bool { // ÅĞ¶ÏbÖĞËùÓĞ×Ö½ÚÊÇ·ñ¶¼Îªff
+func allFF(b []byte) bool { // åˆ¤æ–­bä¸­æ‰€æœ‰å­—èŠ‚æ˜¯å¦éƒ½ä¸ºff
 	for _, c := range b {
 		if c != 0xff {
 			return false
@@ -255,7 +255,7 @@ func (ip IP) Mask(mask IPMask) IP {
 // If the address is an IPv4 address, the string representation
 // is dotted decimal ("74.125.19.99").  Otherwise the representation
 // is IPv6 ("2001:4860:0:2001::68").
-func (ip IP) String() string { // ·µ»Øip×Ö·û´®
+func (ip IP) String() string { // è¿”å›ipå­—ç¬¦ä¸²
 	p := ip
 
 	if len(ip) == 0 {
@@ -263,7 +263,7 @@ func (ip IP) String() string { // ·µ»Øip×Ö·û´®
 	}
 
 	// If IPv4, use dotted notation.
-	if p4 := p.To4(); len(p4) == IPv4len { // Èç¹ûÊÇipv4µØÖ·£¬×ª»»Îª×Ö·û´®ĞÎÊ½
+	if p4 := p.To4(); len(p4) == IPv4len { // å¦‚æœæ˜¯ipv4åœ°å€ï¼Œè½¬æ¢ä¸ºå­—ç¬¦ä¸²å½¢å¼
 		return uitoa(uint(p4[0])) + "." +
 			uitoa(uint(p4[1])) + "." +
 			uitoa(uint(p4[2])) + "." +
@@ -352,7 +352,7 @@ func (ip *IP) UnmarshalText(text []byte) error {
 // Equal reports whether ip and x are the same IP address.
 // An IPv4 address and that same address in IPv6 form are
 // considered to be equal.
-func (ip IP) Equal(x IP) bool { // ÅĞ¶ÏÁ½¸öIPµØÖ·ÊÇ·ñÏàµÈ
+func (ip IP) Equal(x IP) bool { // åˆ¤æ–­ä¸¤ä¸ªIPåœ°å€æ˜¯å¦ç›¸ç­‰
 	if len(ip) == len(x) {
 		return bytesEqual(ip, x)
 	}
@@ -453,7 +453,7 @@ func networkNumberAndMask(n *IPNet) (ip IP, m IPMask) {
 }
 
 // Contains reports whether the network includes ip.
-func (n *IPNet) Contains(ip IP) bool { // ÅĞ¶ÏIPÍøÂçÖĞÊÇ·ñ°üº¬Ä³IPµØÖ·
+func (n *IPNet) Contains(ip IP) bool { // åˆ¤æ–­IPç½‘ç»œä¸­æ˜¯å¦åŒ…å«æŸIPåœ°å€
 	nn, m := networkNumberAndMask(n)
 	if x := ip.To4(); x != nil {
 		ip = x
@@ -492,7 +492,7 @@ func (n *IPNet) String() string {
 }
 
 // Parse IPv4 address (d.d.d.d).
-func parseIPv4(s string) IP { // ½«×Ö·û´®½âÎöÎªIPv4µØÖ·
+func parseIPv4(s string) IP { // å°†å­—ç¬¦ä¸²è§£æä¸ºIPv4åœ°å€
 	var p [IPv4len]byte
 	i := 0
 	for j := 0; j < IPv4len; j++ {
@@ -526,7 +526,7 @@ func parseIPv4(s string) IP { // ½«×Ö·û´®½âÎöÎªIPv4µØÖ·
 // and RFC 5952.  It can also parse a literal scoped IPv6 address with
 // zone identifier which is described in RFC 4007 when zoneAllowed is
 // true.
-func parseIPv6(s string, zoneAllowed bool) (ip IP, zone string) { // ½«×Ö·û´®½âÎöÎªIPv6µØÖ·
+func parseIPv6(s string, zoneAllowed bool) (ip IP, zone string) { // å°†å­—ç¬¦ä¸²è§£æä¸ºIPv6åœ°å€
 	ip = make(IP, IPv6len)
 	ellipsis := -1 // position of ellipsis in p
 	i := 0         // index in string s
@@ -635,7 +635,7 @@ func parseIPv6(s string, zoneAllowed bool) (ip IP, zone string) { // ½«×Ö·û´®½âÎ
 // or IPv6 ("2001:4860:0:2001::68") form.
 // If s is not a valid textual representation of an IP address,
 // ParseIP returns nil.
-func ParseIP(s string) IP { // ½«Ò»¸ö×Ö·û´®½âÎöÎªipµØÖ·£¬·µ»Ø½âÎöºóµÄipµØÖ·
+func ParseIP(s string) IP { // å°†ä¸€ä¸ªå­—ç¬¦ä¸²è§£æä¸ºipåœ°å€ï¼Œè¿”å›è§£æåçš„ipåœ°å€
 	for i := 0; i < len(s); i++ {
 		switch s[i] {
 		case '.':
@@ -655,22 +655,22 @@ func ParseIP(s string) IP { // ½«Ò»¸ö×Ö·û´®½âÎöÎªipµØÖ·£¬·µ»Ø½âÎöºóµÄipµØÖ·
 // It returns the IP address and the network implied by the IP
 // and mask.  For example, ParseCIDR("192.168.100.1/16") returns
 // the IP address 192.168.100.1 and the network 192.168.0.0/16.
-func ParseCIDR(s string) (IP, *IPNet, error) { // ½âÎöCIDR¸ñÊ½µÄIPµØÖ·ºÍÑÚÂë
-	i := byteIndex(s, '/') // Èç¹ûstringÖĞ²»°üº¬/,²»ÊÇÒ»¸öCIDRµØÖ·
+func ParseCIDR(s string) (IP, *IPNet, error) { // è§£æCIDRæ ¼å¼çš„IPåœ°å€å’Œæ©ç 
+	i := byteIndex(s, '/') // å¦‚æœstringä¸­ä¸åŒ…å«/,ä¸æ˜¯ä¸€ä¸ªCIDRåœ°å€
 	if i < 0 {
 		return nil, nil, &ParseError{Type: "CIDR address", Text: s}
 	}
-	addr, mask := s[:i], s[i+1:] // È¡³öµØÖ·ºÍÑÚÂë
+	addr, mask := s[:i], s[i+1:] // å–å‡ºåœ°å€å’Œæ©ç 
 	iplen := IPv4len
-	ip := parseIPv4(addr) // ½âÎöipv4µØÖ·£¬ĞÎ³ÉipµØÖ·½á¹¹
-	if ip == nil {        // Èç¹û½âÎöipv4µØÖ·´íÎó
+	ip := parseIPv4(addr) // è§£æipv4åœ°å€ï¼Œå½¢æˆipåœ°å€ç»“æ„
+	if ip == nil {        // å¦‚æœè§£æipv4åœ°å€é”™è¯¯
 		iplen = IPv6len
-		ip, _ = parseIPv6(addr, false) // ½âÎöipv6µØÖ·
+		ip, _ = parseIPv6(addr, false) // è§£æipv6åœ°å€
 	}
 	n, i, ok := dtoi(mask, 0)
 	if ip == nil || !ok || i != len(mask) || n < 0 || n > 8*iplen {
 		return nil, nil, &ParseError{Type: "CIDR address", Text: s}
 	}
-	m := CIDRMask(n, 8*iplen) // ´´½¨ÑÚÂë
+	m := CIDRMask(n, 8*iplen) // åˆ›å»ºæ©ç 
 	return ip, &IPNet{IP: ip.Mask(m), Mask: m}, nil
 }

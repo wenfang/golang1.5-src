@@ -6,7 +6,7 @@ package net
 
 import "errors"
 
-var ( // ´íÎóÀàĞÍ
+var ( // é”™è¯¯ç±»å‹
 	errInvalidInterface         = errors.New("invalid network interface")
 	errInvalidInterfaceIndex    = errors.New("invalid network interface index")
 	errInvalidInterfaceName     = errors.New("invalid network interface name")
@@ -17,25 +17,25 @@ var ( // ´íÎóÀàĞÍ
 // Interface represents a mapping between network interface name
 // and index.  It also represents network interface facility
 // information.
-type Interface struct { // ÍøÂç½Ó¿ÚÃûµ½Ë÷ÒıµÄÓ³Éä
-	Index        int          // positive integer that starts at one, zero is never used Ë÷ÒıÖµ
-	MTU          int          // maximum transmission unit MTU´óĞ¡
-	Name         string       // e.g., "en0", "lo0", "eth0.100" ½Ó¿ÚÃû
-	HardwareAddr HardwareAddr // IEEE MAC-48, EUI-48 and EUI-64 form Ó²¼şµØÖ·
-	Flags        Flags        // e.g., FlagUp, FlagLoopback, FlagMulticast ½Ó¿ÚFlag
+type Interface struct { // ç½‘ç»œæ¥å£ååˆ°ç´¢å¼•çš„æ˜ å°„
+	Index        int          // positive integer that starts at one, zero is never used ç´¢å¼•å€¼
+	MTU          int          // maximum transmission unit MTUå¤§å°
+	Name         string       // e.g., "en0", "lo0", "eth0.100" æ¥å£å
+	HardwareAddr HardwareAddr // IEEE MAC-48, EUI-48 and EUI-64 form ç¡¬ä»¶åœ°å€
+	Flags        Flags        // e.g., FlagUp, FlagLoopback, FlagMulticast æ¥å£Flag
 }
 
 type Flags uint
 
-const ( // ½Ó¿ÚµÄ×´Ì¬±ê¼Ç£¬Î»±ê¼Ç
-	FlagUp           Flags = 1 << iota // interface is up Æô¶¯×´Ì¬
-	FlagBroadcast                      // interface supports broadcast access capability ¹ã²¥×´Ì¬
-	FlagLoopback                       // interface is a loopback interface ±¾µØloopback
-	FlagPointToPoint                   // interface belongs to a point-to-point link µã¶ÔµãÁ¬½Ó
-	FlagMulticast                      // interface supports multicast access capability ¶à²¥×´Ì¬
+const ( // æ¥å£çš„çŠ¶æ€æ ‡è®°ï¼Œä½æ ‡è®°
+	FlagUp           Flags = 1 << iota // interface is up å¯åŠ¨çŠ¶æ€
+	FlagBroadcast                      // interface supports broadcast access capability å¹¿æ’­çŠ¶æ€
+	FlagLoopback                       // interface is a loopback interface æœ¬åœ°loopback
+	FlagPointToPoint                   // interface belongs to a point-to-point link ç‚¹å¯¹ç‚¹è¿æ¥
+	FlagMulticast                      // interface supports multicast access capability å¤šæ’­çŠ¶æ€
 )
 
-var flagNames = []string{ // ½Ó¿Ú×´Ì¬µÄ±ê¼Ç×Ö·û´®
+var flagNames = []string{ // æ¥å£çŠ¶æ€çš„æ ‡è®°å­—ç¬¦ä¸²
 	"up",
 	"broadcast",
 	"loopback",
@@ -43,9 +43,9 @@ var flagNames = []string{ // ½Ó¿Ú×´Ì¬µÄ±ê¼Ç×Ö·û´®
 	"multicast",
 }
 
-func (f Flags) String() string { // flagµ½×Ö·û´®µÄ×ª»»
+func (f Flags) String() string { // flagåˆ°å­—ç¬¦ä¸²çš„è½¬æ¢
 	s := ""
-	for i, name := range flagNames { // ±éÀúËùÓĞµÄflagÃû³Æ
+	for i, name := range flagNames { // éå†æ‰€æœ‰çš„flagåç§°
 		if f&(1<<uint(i)) != 0 {
 			if s != "" {
 				s += "|"
@@ -85,7 +85,7 @@ func (ifi *Interface) MulticastAddrs() ([]Addr, error) {
 }
 
 // Interfaces returns a list of the system's network interfaces.
-func Interfaces() ([]Interface, error) { // ·µ»ØÏµÍ³ÍøÂç½Ó¿ÚÁĞ±í
+func Interfaces() ([]Interface, error) { // è¿”å›ç³»ç»Ÿç½‘ç»œæ¥å£åˆ—è¡¨
 	ift, err := interfaceTable(0)
 	if err != nil {
 		err = &OpError{Op: "route", Net: "ip+net", Source: nil, Addr: nil, Err: err}
@@ -95,7 +95,7 @@ func Interfaces() ([]Interface, error) { // ·µ»ØÏµÍ³ÍøÂç½Ó¿ÚÁĞ±í
 
 // InterfaceAddrs returns a list of the system's network interface
 // addresses.
-func InterfaceAddrs() ([]Addr, error) { // ·µ»Ø½Ó¿ÚµÄµØÖ·ÁĞ±í
+func InterfaceAddrs() ([]Addr, error) { // è¿”å›æ¥å£çš„åœ°å€åˆ—è¡¨
 	ifat, err := interfaceAddrTable(nil)
 	if err != nil {
 		err = &OpError{Op: "route", Net: "ip+net", Source: nil, Addr: nil, Err: err}

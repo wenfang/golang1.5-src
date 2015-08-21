@@ -9,8 +9,8 @@ import "sync/atomic"
 // fdMutex is a specialized synchronization primitive
 // that manages lifetime of an fd and serializes access
 // to Read and Write methods on netFD.
-type fdMutex struct { // ¶ÔÎÄ¼şµÄĞòÁĞ»¯Í¬²½Ô­Óï£¬¹ÜÀífdµÄÉúÃüÖÜÆÚ²¢ĞòÁĞ»¯¶ÁĞ´·½·¨
-	state uint64 // ¸ÃmutexµÄ×´Ì¬
+type fdMutex struct { // å¯¹æ–‡ä»¶çš„åºåˆ—åŒ–åŒæ­¥åŸè¯­ï¼Œç®¡ç†fdçš„ç”Ÿå‘½å‘¨æœŸå¹¶åºåˆ—åŒ–è¯»å†™æ–¹æ³•
+	state uint64 // è¯¥mutexçš„çŠ¶æ€
 	rsema uint32
 	wsema uint32
 }
@@ -23,15 +23,15 @@ type fdMutex struct { // ¶ÔÎÄ¼şµÄĞòÁĞ»¯Í¬²½Ô­Óï£¬¹ÜÀífdµÄÉúÃüÖÜÆÚ²¢ĞòÁĞ»¯¶ÁĞ´·½·
 // 20 bits - number of outstanding read waiters.
 // 20 bits - number of outstanding write waiters.
 const (
-	mutexClosed  = 1 << 0 // µÚÒ»Î»±íÃ÷ÊÇ·ñnetFD±»¹Ø±Õ
-	mutexRLock   = 1 << 1 // µÚ¶şÎ»£¬¶Á²Ù×÷µÄËø
-	mutexWLock   = 1 << 2 // µÚÈıÎ»£¬Ğ´²Ù×÷µÄËø
-	mutexRef     = 1 << 3 // ´ÓµÚËÄÎ»¿ªÊ¼ÎªÒıÓÃ¼ÆÊı£¬×Ü¹²20Î»
+	mutexClosed  = 1 << 0 // ç¬¬ä¸€ä½è¡¨æ˜æ˜¯å¦netFDè¢«å…³é—­
+	mutexRLock   = 1 << 1 // ç¬¬äºŒä½ï¼Œè¯»æ“ä½œçš„é”
+	mutexWLock   = 1 << 2 // ç¬¬ä¸‰ä½ï¼Œå†™æ“ä½œçš„é”
+	mutexRef     = 1 << 3 // ä»ç¬¬å››ä½å¼€å§‹ä¸ºå¼•ç”¨è®¡æ•°ï¼Œæ€»å…±20ä½
 	mutexRefMask = (1<<20 - 1) << 3
 	mutexRWait   = 1 << 23
-	mutexRMask   = (1<<20 - 1) << 23 // ´ÓµÚ24Î»¿ªÊ¼ÎªµÈ´ı¶ÁÕßµÄÊıÁ¿£¬×Ü¹²20Î»
+	mutexRMask   = (1<<20 - 1) << 23 // ä»ç¬¬24ä½å¼€å§‹ä¸ºç­‰å¾…è¯»è€…çš„æ•°é‡ï¼Œæ€»å…±20ä½
 	mutexWWait   = 1 << 43
-	mutexWMask   = (1<<20 - 1) << 43 // ´ÓµÚ44Îª¿ªÊ¼ÎªµÈ´ıĞ´ÕßµÄÊıÁ¿£¬×Ü¹²20Î»
+	mutexWMask   = (1<<20 - 1) << 43 // ä»ç¬¬44ä¸ºå¼€å§‹ä¸ºç­‰å¾…å†™è€…çš„æ•°é‡ï¼Œæ€»å…±20ä½
 )
 
 // Read operations must do RWLock(true)/RWUnlock(true).
@@ -47,21 +47,21 @@ const (
 
 func (mu *fdMutex) Incref() bool {
 	for {
-		old := atomic.LoadUint64(&mu.state) // Ô­×Ó·µ»ØÀÏµÄstateÖµ
-		if old&mutexClosed != 0 {           // Èç¹ûÒÑ¾­¹Ø±Õ£¬ÎŞ·¨Ôö¼ÓÒıÓÃ¼ÆÊı
+		old := atomic.LoadUint64(&mu.state) // åŸå­è¿”å›è€çš„stateå€¼
+		if old&mutexClosed != 0 {           // å¦‚æœå·²ç»å…³é—­ï¼Œæ— æ³•å¢åŠ å¼•ç”¨è®¡æ•°
 			return false
 		}
-		new := old + mutexRef      // Ôö¼ÓÒıÓÃ¼ÆÊı£¬ÒÔmutexRefÎªµ¥Î»
-		if new&mutexRefMask == 0 { // ²»ÄÜ³¬¹ı×î´óµÄÒıÓÃ¼ÆÊı
+		new := old + mutexRef      // å¢åŠ å¼•ç”¨è®¡æ•°ï¼Œä»¥mutexRefä¸ºå•ä½
+		if new&mutexRefMask == 0 { // ä¸èƒ½è¶…è¿‡æœ€å¤§çš„å¼•ç”¨è®¡æ•°
 			panic("net: inconsistent fdMutex")
 		}
-		if atomic.CompareAndSwapUint64(&mu.state, old, new) { // ÎªÒıÓÃ¼ÆÊıÔ­×Ó¸³Öµ
+		if atomic.CompareAndSwapUint64(&mu.state, old, new) { // ä¸ºå¼•ç”¨è®¡æ•°åŸå­èµ‹å€¼
 			return true
 		}
 	}
 }
 
-func (mu *fdMutex) IncrefAndClose() bool { // Ôö¼ÓÒıÓÃ¼ÆÊı£¬Í¬Ê±±ê¼ÇfdÎª¹Ø±Õ×´Ì¬
+func (mu *fdMutex) IncrefAndClose() bool { // å¢åŠ å¼•ç”¨è®¡æ•°ï¼ŒåŒæ—¶æ ‡è®°fdä¸ºå…³é—­çŠ¶æ€
 	for {
 		old := atomic.LoadUint64(&mu.state)
 		if old&mutexClosed != 0 {
@@ -90,9 +90,9 @@ func (mu *fdMutex) IncrefAndClose() bool { // Ôö¼ÓÒıÓÃ¼ÆÊı£¬Í¬Ê±±ê¼ÇfdÎª¹Ø±Õ×´Ì¬
 	}
 }
 
-func (mu *fdMutex) Decref() bool { // ¼õÉÙÒıÓÃ¼ÆÊı
+func (mu *fdMutex) Decref() bool { // å‡å°‘å¼•ç”¨è®¡æ•°
 	for {
-		old := atomic.LoadUint64(&mu.state) // Ô­×Ó»ñÈ¡stateÖµ
+		old := atomic.LoadUint64(&mu.state) // åŸå­è·å–stateå€¼
 		if old&mutexRefMask == 0 {
 			panic("net: inconsistent fdMutex")
 		}
@@ -103,7 +103,7 @@ func (mu *fdMutex) Decref() bool { // ¼õÉÙÒıÓÃ¼ÆÊı
 	}
 }
 
-func (mu *fdMutex) RWLock(read bool) bool { // ¸ù¾İread²ÎÊı£¬¶Ôfd¼Ó¶ÁËø£¬»òÕßĞ´Ëø
+func (mu *fdMutex) RWLock(read bool) bool { // æ ¹æ®readå‚æ•°ï¼Œå¯¹fdåŠ è¯»é”ï¼Œæˆ–è€…å†™é”
 	var mutexBit, mutexWait, mutexMask uint64
 	var mutexSema *uint32
 	if read {
@@ -146,7 +146,7 @@ func (mu *fdMutex) RWLock(read bool) bool { // ¸ù¾İread²ÎÊı£¬¶Ôfd¼Ó¶ÁËø£¬»òÕßĞ´Ë
 	}
 }
 
-func (mu *fdMutex) RWUnlock(read bool) bool { // ¸ù¾İread²ÎÊı£¬¶Ôfd½â¶ÁËø»òÕßĞ´Ëø
+func (mu *fdMutex) RWUnlock(read bool) bool { // æ ¹æ®readå‚æ•°ï¼Œå¯¹fdè§£è¯»é”æˆ–è€…å†™é”
 	var mutexBit, mutexWait, mutexMask uint64
 	var mutexSema *uint32
 	if read {

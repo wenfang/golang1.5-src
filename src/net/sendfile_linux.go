@@ -12,7 +12,7 @@ import (
 
 // maxSendfileSize is the largest chunk size we ask the kernel to copy
 // at a time.
-const maxSendfileSize int = 4 << 20 // kernelÒ»´Î¿ÉÒÔ¿½±´µÄ×î´óµÄÊýÁ¿4M
+const maxSendfileSize int = 4 << 20 // kernelä¸€æ¬¡å¯ä»¥æ‹·è´çš„æœ€å¤§çš„æ•°é‡4M
 
 // sendFile copies the contents of r to c using the sendfile
 // system call to minimize copies.
@@ -21,7 +21,7 @@ const maxSendfileSize int = 4 << 20 // kernelÒ»´Î¿ÉÒÔ¿½±´µÄ×î´óµÄÊýÁ¿4M
 // non-EOF error.
 //
 // if handled == false, sendFile performed no work.
-func sendFile(c *netFD, r io.Reader) (written int64, err error, handled bool) { // Ö´ÐÐsendFile
+func sendFile(c *netFD, r io.Reader) (written int64, err error, handled bool) { // æ‰§è¡ŒsendFile
 	var remain int64 = 1 << 62 // by default, copy until EOF
 
 	lr, ok := r.(*io.LimitedReader)
@@ -31,7 +31,7 @@ func sendFile(c *netFD, r io.Reader) (written int64, err error, handled bool) { 
 			return 0, nil, true
 		}
 	}
-	f, ok := r.(*os.File) //¼ì²éio.Reader rÊÇ·ñÊÇÒ»¸öÎÄ¼þ
+	f, ok := r.(*os.File) //æ£€æŸ¥io.Reader ræ˜¯å¦æ˜¯ä¸€ä¸ªæ–‡ä»¶
 	if !ok {
 		return 0, nil, false
 	}
@@ -48,7 +48,7 @@ func sendFile(c *netFD, r io.Reader) (written int64, err error, handled bool) { 
 		if int64(n) > remain {
 			n = int(remain)
 		}
-		n, err1 := syscall.Sendfile(dst, src, nil, n) // Ö´ÐÐSendfileÏµÍ³µ÷ÓÃ
+		n, err1 := syscall.Sendfile(dst, src, nil, n) // æ‰§è¡ŒSendfileç³»ç»Ÿè°ƒç”¨
 		if n > 0 {
 			written += int64(n)
 			remain -= int64(n)

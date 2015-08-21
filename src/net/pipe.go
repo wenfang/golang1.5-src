@@ -15,14 +15,14 @@ import (
 // Reads on one end are matched with writes on the other,
 // copying data directly between the two; there is no internal
 // buffering.
-func Pipe() (Conn, Conn) { // 创建全双工的网络连接，底层是两个io.Pipe
+func Pipe() (Conn, Conn) { // 鍒涘缓鍏ㄥ弻宸ョ殑缃戠粶杩炴帴锛屽簳灞傛槸涓や釜io.Pipe
 	r1, w1 := io.Pipe()
 	r2, w2 := io.Pipe()
 
 	return &pipe{r1, w2}, &pipe{r2, w1}
 }
 
-type pipe struct { // 封装pipe，使其匹配net.Conn接口
+type pipe struct { // 灏佽pipe锛屼娇鍏跺尮閰峮et.Conn鎺ュ彛
 	*io.PipeReader
 	*io.PipeWriter
 }
@@ -37,7 +37,7 @@ func (pipeAddr) String() string {
 	return "pipe"
 }
 
-func (p *pipe) Close() error { // 关闭pipe
+func (p *pipe) Close() error { // 鍏抽棴pipe
 	err := p.PipeReader.Close()
 	err1 := p.PipeWriter.Close()
 	if err == nil {
@@ -46,11 +46,11 @@ func (p *pipe) Close() error { // 关闭pipe
 	return err
 }
 
-func (p *pipe) LocalAddr() Addr { // 返回本地地址
+func (p *pipe) LocalAddr() Addr { // 杩斿洖鏈湴鍦板潃
 	return pipeAddr(0)
 }
 
-func (p *pipe) RemoteAddr() Addr { // 返回远端地址
+func (p *pipe) RemoteAddr() Addr { // 杩斿洖杩滅鍦板潃
 	return pipeAddr(0)
 }
 

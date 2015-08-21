@@ -8,8 +8,8 @@ package net
 
 // parsePort parses port as a network service port number for both
 // TCP and UDP.
-func parsePort(net, port string) (int, error) { // 解析端口号，tcp或udp都可
-	p, i, ok := dtoi(port, 0) // 将端口号变为数字
+func parsePort(net, port string) (int, error) { // 瑙ｆ瀽绔彛鍙凤紝tcp鎴杣dp閮藉彲
+	p, i, ok := dtoi(port, 0) // 灏嗙鍙ｅ彿鍙樹负鏁板瓧
 	if !ok || i != len(port) {
 		var err error
 		p, err = LookupPort(net, port)
@@ -17,7 +17,7 @@ func parsePort(net, port string) (int, error) { // 解析端口号，tcp或udp都可
 			return 0, err
 		}
 	}
-	if p < 0 || p > 0xFFFF { // 无效的端口号
+	if p < 0 || p > 0xFFFF { // 鏃犳晥鐨勭鍙ｅ彿
 		return 0, &AddrError{Err: "invalid port", Addr: port}
 	}
 	return p, nil

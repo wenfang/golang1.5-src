@@ -252,7 +252,7 @@ func (c *UnixConn) CloseWrite() error {
 // DialUnix connects to the remote address raddr on the network net,
 // which must be "unix", "unixgram" or "unixpacket".  If laddr is not
 // nil, it is used as the local address for the connection.
-func DialUnix(net string, laddr, raddr *UnixAddr) (*UnixConn, error) { // 连接到一个Unix地址
+func DialUnix(net string, laddr, raddr *UnixAddr) (*UnixConn, error) { // 杩炴帴鍒颁竴涓猆nix鍦板潃
 	switch net {
 	case "unix", "unixgram", "unixpacket":
 	default:
@@ -279,7 +279,7 @@ type UnixListener struct {
 
 // ListenUnix announces on the Unix domain socket laddr and returns a
 // Unix listener.  The network net must be "unix" or "unixpacket".
-func ListenUnix(net string, laddr *UnixAddr) (*UnixListener, error) { // 创建一个流式的Unix监听
+func ListenUnix(net string, laddr *UnixAddr) (*UnixListener, error) { // 鍒涘缓涓�涓祦寮忕殑Unix鐩戝惉
 	switch net {
 	case "unix", "unixpacket":
 	default:
@@ -381,7 +381,7 @@ func (l *UnixListener) File() (f *os.File, err error) {
 // to the local address laddr.  The network net must be "unixgram".
 // The returned connection's ReadFrom and WriteTo methods can be used
 // to receive and send packets with per-packet addressing.
-func ListenUnixgram(net string, laddr *UnixAddr) (*UnixConn, error) { // 监听数据包式网络
+func ListenUnixgram(net string, laddr *UnixAddr) (*UnixConn, error) { // 鐩戝惉鏁版嵁鍖呭紡缃戠粶
 	switch net {
 	case "unixgram":
 	default:

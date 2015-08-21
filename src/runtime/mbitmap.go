@@ -518,8 +518,10 @@ func (h heapBits) initSpan(size, n, total uintptr) {
 // 初始化一个mspan进行checkmark，清除checkmark位，因为普通操作情况下,checkmark位为1
 // initCheckmarkSpan initializes a span for being checkmarked.
 // It clears the checkmark bits, which are set to 1 in normal operation.
+// size为每个元素的大小，n为元素的数量，total为总空间大小
 func (h heapBits) initCheckmarkSpan(size, n, total uintptr) {
 	// The ptrSize == 8 is a compile-time constant false on 32-bit and eliminates this code entirely.
+	// 如果是64位系统，并且size大小也为8个字节，也就是没有第二个word，也就没法设置checkmark位
 	if ptrSize == 8 && size == ptrSize {
 		// Checkmark bit is type bit, bottom bit of every 2-bit entry.
 		// Only possible on 64-bit system, since minimum size is 8.
@@ -532,8 +534,9 @@ func (h heapBits) initCheckmarkSpan(size, n, total uintptr) {
 		}
 		return
 	}
+	// 对其他字节大小，遍历所有的元素
 	for i := uintptr(0); i < n; i++ {
-		*h.bitp &^= bitMarked << (heapBitsShift + h.shift)
+		*h.bitp &^= bitMarked << (heapBitsShift + h.shift) // 清除该位
 		h = h.forward(size / ptrSize)
 	}
 }

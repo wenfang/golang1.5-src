@@ -157,7 +157,7 @@ func isDomainName(s string) bool {
 }
 
 // An SRV represents a single DNS SRV record.
-type SRV struct { // 代表单个DNS SRV记录
+type SRV struct { // 浠ｈ〃鍗曚釜DNS SRV璁板綍
 	Target   string
 	Port     uint16
 	Priority uint16
@@ -211,13 +211,13 @@ func (addrs byPriorityWeight) sort() {
 }
 
 // An MX represents a single DNS MX record.
-type MX struct { // 代表单个DNS MX记录
+type MX struct { // 浠ｈ〃鍗曚釜DNS MX璁板綍
 	Host string
 	Pref uint16
 }
 
 // byPref implements sort.Interface to sort MX records by preference
-type byPref []*MX // 对MX记录进行排序
+type byPref []*MX // 瀵筂X璁板綍杩涜鎺掑簭
 
 func (s byPref) Len() int           { return len(s) }
 func (s byPref) Less(i, j int) bool { return s[i].Pref < s[j].Pref }
@@ -233,6 +233,6 @@ func (s byPref) sort() {
 }
 
 // An NS represents a single DNS NS record.
-type NS struct { // 代表单个DNS NS记录
+type NS struct { // 浠ｈ〃鍗曚釜DNS NS璁板綍
 	Host string
 }

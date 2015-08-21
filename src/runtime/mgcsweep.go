@@ -24,7 +24,7 @@ type sweepdata struct { // 后台的sweep的状态
 }
 
 //go:nowritebarrier
-func finishsweep_m() {
+func finishsweep_m() { // 在world停止后，完成sweep
 	// The world is stopped so we should be able to complete the sweeps
 	// quickly.
 	for sweepone() != ^uintptr(0) {
@@ -68,6 +68,7 @@ func bgsweep(c chan int) {
 	}
 }
 
+// sweep一个span，如果当前没有要sweep的span，返回0的按位非值
 // sweeps one span
 // returns number of pages returned to heap, or ^uintptr(0) if there is nothing to sweep
 //go:nowritebarrier
@@ -76,12 +77,12 @@ func sweepone() uintptr {
 
 	// increment locks to ensure that the goroutine is not preempted
 	// in the middle of sweep thus leaving the span in an inconsistent state for next GC
-	_g_.m.locks++ // 保证该goroutine不会被抢占
-	sg := mheap_.sweepgen
+	_g_.m.locks++         // 保证该goroutine不会被抢占
+	sg := mheap_.sweepgen // 获得当前堆得sweep代数
 	for {
 		idx := xadd(&sweep.spanidx, 1) - 1
 		if idx >= uint32(len(work.spans)) {
-			mheap_.sweepdone = 1
+			mheap_.sweepdone = 1 // 一次sweep已经完成
 			_g_.m.locks--
 			return ^uintptr(0)
 		}

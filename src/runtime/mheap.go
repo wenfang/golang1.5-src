@@ -131,15 +131,15 @@ type mspan struct {
 	baseMask    uintptr  // if non-0, elemsize is a power of 2, & this will get object allocation base
 }
 
-func (s *mspan) base() uintptr {
+func (s *mspan) base() uintptr { // 获得mspan对应的起始地址
 	return uintptr(s.start << _PageShift)
 }
 
-func (s *mspan) layout() (size, n, total uintptr) {
-	total = s.npages << _PageShift
-	size = s.elemsize
+func (s *mspan) layout() (size, n, total uintptr) { // 获得可保存的元素大小，可保存的元素数量和总大小
+	total = s.npages << _PageShift // 获得该mspan所有空间大小
+	size = s.elemsize              // 获得该mspan可保存的元素大小
 	if size > 0 {
-		n = total / size
+		n = total / size // 获得可保存的元素数量
 	}
 	return
 }

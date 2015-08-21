@@ -45,8 +45,8 @@ func probeIPv4Stack() bool {
 // It returns two boolean values.  If the first boolean value is
 // true, kernel supports basic IPv6 functionality.  If the second
 // boolean value is true, kernel supports IPv6 IPv4-mapping.
-func probeIPv6Stack() (supportsIPv6, supportsIPv4map bool) { // Ì½²âipv6Ğ­ÒéÕ»£¬ÊÇ·ñÖ§³Öipv6 mapping
-	var probes = []struct { // Ì½²âÁ½¸öµØÖ·
+func probeIPv6Stack() (supportsIPv6, supportsIPv4map bool) { // æ¢æµ‹ipv6åè®®æ ˆï¼Œæ˜¯å¦æ”¯æŒipv6 mapping
+	var probes = []struct { // æ¢æµ‹ä¸¤ä¸ªåœ°å€
 		laddr TCPAddr
 		value int
 	}{
@@ -72,7 +72,7 @@ func probeIPv6Stack() (supportsIPv6, supportsIPv4map bool) { // Ì½²âipv6Ğ­ÒéÕ»£¬
 		probes = probes[:1]
 	}
 
-	for i := range probes { // ±éÀúÌ½²âµØÖ·
+	for i := range probes { // éå†æ¢æµ‹åœ°å€
 		s, err := socketFunc(syscall.AF_INET6, syscall.SOCK_STREAM, syscall.IPPROTO_TCP)
 		if err != nil {
 			continue
@@ -83,7 +83,7 @@ func probeIPv6Stack() (supportsIPv6, supportsIPv4map bool) { // Ì½²âipv6Ğ­ÒéÕ»£¬
 		if err != nil {
 			continue
 		}
-		if err := syscall.Bind(s, sa); err != nil { // °ó¶¨µØÖ·
+		if err := syscall.Bind(s, sa); err != nil { // ç»‘å®šåœ°å€
 			continue
 		}
 		supps[i] = true
@@ -128,19 +128,19 @@ func probeIPv6Stack() (supportsIPv6, supportsIPv4map bool) { // Ì½²âipv6Ğ­ÒéÕ»£¬
 //
 // Note that OpenBSD allows neither "net.inet6.ip6.v6only=1" change
 // nor IPPROTO_IPV6 level IPV6_V6ONLY socket option setting.
-func favoriteAddrFamily(net string, laddr, raddr sockaddr, mode string) (family int, ipv6only bool) { // ·µ»Ø×îºÏÊÊµÄµØÖ·ÀàĞÍ
-	switch net[len(net)-1] { // ²é¿´net×îºóÒ»Î»£¬Èç¹ûÊÇ4»òÕß6£¬·µ»ØÏìÓ¦ÆÚÍûµÄµØÖ·ÀàĞÍ
+func favoriteAddrFamily(net string, laddr, raddr sockaddr, mode string) (family int, ipv6only bool) { // è¿”å›æœ€åˆé€‚çš„åœ°å€ç±»å‹
+	switch net[len(net)-1] { // æŸ¥çœ‹netæœ€åä¸€ä½ï¼Œå¦‚æœæ˜¯4æˆ–è€…6ï¼Œè¿”å›å“åº”æœŸæœ›çš„åœ°å€ç±»å‹
 	case '4':
 		return syscall.AF_INET, false
 	case '6':
 		return syscall.AF_INET6, true
 	}
 
-	if mode == "listen" && (laddr == nil || laddr.isWildcard()) { // Èç¹ûÊÇlisten£¬µ«ÊÇÃ»ÓĞ±¾µØµØÖ·»òÕßÊÇÍ³ÅäµØÖ·
-		if supportsIPv4map { // Èç¹ûÖ§³Öipv4£¬ipv6µØÖ·µÄÓ³Éä
-			return syscall.AF_INET6, false // ·µ»Øipv6µØÖ·
+	if mode == "listen" && (laddr == nil || laddr.isWildcard()) { // å¦‚æœæ˜¯listenï¼Œä½†æ˜¯æ²¡æœ‰æœ¬åœ°åœ°å€æˆ–è€…æ˜¯ç»Ÿé…åœ°å€
+		if supportsIPv4map { // å¦‚æœæ”¯æŒipv4ï¼Œipv6åœ°å€çš„æ˜ å°„
+			return syscall.AF_INET6, false // è¿”å›ipv6åœ°å€
 		}
-		if laddr == nil { // Èç¹û±¾µØµØÖ·Îª¿Õ£¬·µ»ØAF_INET
+		if laddr == nil { // å¦‚æœæœ¬åœ°åœ°å€ä¸ºç©ºï¼Œè¿”å›AF_INET
 			return syscall.AF_INET, false
 		}
 		return laddr.family(), false
@@ -157,7 +157,7 @@ func favoriteAddrFamily(net string, laddr, raddr sockaddr, mode string) (family 
 
 func internetSocket(net string, laddr, raddr sockaddr, deadline time.Time, sotype, proto int, mode string) (fd *netFD, err error) {
 	family, ipv6only := favoriteAddrFamily(net, laddr, raddr, mode)
-	return socket(net, family, sotype, proto, ipv6only, laddr, raddr, deadline) // ´´½¨Ò»¸ösocket
+	return socket(net, family, sotype, proto, ipv6only, laddr, raddr, deadline) // åˆ›å»ºä¸€ä¸ªsocket
 }
 
 func ipToSockaddr(family int, ip IP, port int, zone string) (syscall.Sockaddr, error) {

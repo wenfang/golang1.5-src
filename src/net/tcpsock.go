@@ -5,16 +5,16 @@
 package net
 
 // TCPAddr represents the address of a TCP end point.
-type TCPAddr struct { // TCPµØÖ·½á¹¹£¬°üº¬¶Ë¿ÚºÅ£¬ÊµÏÖAddr½Ó¿Ú
+type TCPAddr struct { // TCPåœ°å€ç»“æ„ï¼ŒåŒ…å«ç«¯å£å·ï¼Œå®ç°Addræ¥å£
 	IP   IP
 	Port int
 	Zone string // IPv6 scoped addressing zone
 }
 
 // Network returns the address's network name, "tcp".
-func (a *TCPAddr) Network() string { return "tcp" } // ·µ»ØTCPµØÖ·µÄÍøÂçÃûtcp
+func (a *TCPAddr) Network() string { return "tcp" } // è¿”å›TCPåœ°å€çš„ç½‘ç»œåtcp
 
-func (a *TCPAddr) String() string { // ·µ»ØTCPAddr´ú±íµÄ×Ö·û´®
+func (a *TCPAddr) String() string { // è¿”å›TCPAddrä»£è¡¨çš„å­—ç¬¦ä¸²
 	if a == nil {
 		return "<nil>"
 	}
@@ -45,13 +45,13 @@ func (a *TCPAddr) opAddr() Addr {
 // "tcp6".  A literal address or host name for IPv6 must be enclosed
 // in square brackets, as in "[::1]:80", "[ipv6-host]:http" or
 // "[ipv6-host%zone]:80".
-func ResolveTCPAddr(net, addr string) (*TCPAddr, error) { // ½«ÍøÂçºÍµØÖ·½âÎöÎªTCPµØÖ·½á¹¹
+func ResolveTCPAddr(net, addr string) (*TCPAddr, error) { // å°†ç½‘ç»œå’Œåœ°å€è§£æä¸ºTCPåœ°å€ç»“æ„
 	switch net {
 	case "tcp", "tcp4", "tcp6":
 	case "": // a hint wildcard for Go 1.0 undocumented behavior
 		net = "tcp"
 	default:
-		return nil, UnknownNetworkError(net) // network²»ÊÇÒÔtcp´òÍ·µÄ
+		return nil, UnknownNetworkError(net) // networkä¸æ˜¯ä»¥tcpæ‰“å¤´çš„
 	}
 	addrs, err := internetAddrList(net, addr, noDeadline)
 	if err != nil {

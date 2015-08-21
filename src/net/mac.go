@@ -7,7 +7,7 @@ package net
 const hexDigit = "0123456789abcdef"
 
 // A HardwareAddr represents a physical hardware address.
-type HardwareAddr []byte // Ó²¼şµØÖ·
+type HardwareAddr []byte // ç¡¬ä»¶åœ°å€
 
 func (a HardwareAddr) String() string {
 	if len(a) == 0 {
@@ -32,7 +32,7 @@ func (a HardwareAddr) String() string {
 //   01-23-45-67-89-ab-cd-ef
 //   0123.4567.89ab
 //   0123.4567.89ab.cdef
-func ParseMAC(s string) (hw HardwareAddr, err error) { // ½âÎöMACµØÖ·
+func ParseMAC(s string) (hw HardwareAddr, err error) { // è§£æMACåœ°å€
 	if len(s) < 14 {
 		goto error
 	}

@@ -24,27 +24,27 @@ func runtime_pollReset(ctx uintptr, mode int) int
 func runtime_pollSetDeadline(ctx uintptr, d int64, mode int)
 func runtime_pollUnblock(ctx uintptr)
 
-type pollDesc struct { // ¶Ôµ×²ãPollDesc½á¹¹µÄ·â×°
+type pollDesc struct { // å¯¹åº•å±‚PollDescç»“æ„çš„å°è£…
 	runtimeCtx uintptr
 }
 
-var serverInit sync.Once // ¿ØÖÆÖ»Ö´ĞĞÒ»´Î
+var serverInit sync.Once // æ§åˆ¶åªæ‰§è¡Œä¸€æ¬¡
 
 func (pd *pollDesc) Init(fd *netFD) error {
-	serverInit.Do(runtime_pollServerInit)             // Ö´ĞĞÒ»´Îruntime_pollServerInit
-	ctx, errno := runtime_pollOpen(uintptr(fd.sysfd)) // ´ò¿ª¶ÔÓ¦µÄfd£¬·µ»Øµ×²ãµÄPollDesc½á¹¹
-	if errno != 0 {                                   // Èç¹û·µ»ØµÄerrno·ÇÁã
+	serverInit.Do(runtime_pollServerInit)             // æ‰§è¡Œä¸€æ¬¡runtime_pollServerInit
+	ctx, errno := runtime_pollOpen(uintptr(fd.sysfd)) // æ‰“å¼€å¯¹åº”çš„fdï¼Œè¿”å›åº•å±‚çš„PollDescç»“æ„
+	if errno != 0 {                                   // å¦‚æœè¿”å›çš„errnoéé›¶
 		return syscall.Errno(errno)
 	}
-	pd.runtimeCtx = ctx // ÉèÖÃ¶Ôµ×²ãPollDesc½á¹¹µÄ·â×°
+	pd.runtimeCtx = ctx // è®¾ç½®å¯¹åº•å±‚PollDescç»“æ„çš„å°è£…
 	return nil
 }
 
-func (pd *pollDesc) Close() { // ¹Ø±ÕpollDesc
+func (pd *pollDesc) Close() { // å…³é—­pollDesc
 	if pd.runtimeCtx == 0 {
 		return
 	}
-	runtime_pollClose(pd.runtimeCtx) // ¹Ø±ÕruntimeµÄPollDesc
+	runtime_pollClose(pd.runtimeCtx) // å…³é—­runtimeçš„PollDesc
 	pd.runtimeCtx = 0
 }
 
@@ -56,29 +56,29 @@ func (pd *pollDesc) Evict() {
 	runtime_pollUnblock(pd.runtimeCtx)
 }
 
-func (pd *pollDesc) Prepare(mode int) error { // °´ÕÕ¶ÁĞ´Ä£Ê½½øĞĞfdÖØÖÃ
+func (pd *pollDesc) Prepare(mode int) error { // æŒ‰ç…§è¯»å†™æ¨¡å¼è¿›è¡Œfdé‡ç½®
 	res := runtime_pollReset(pd.runtimeCtx, mode)
-	return convertErr(res) // ·µ»Ø´íÎó
+	return convertErr(res) // è¿”å›é”™è¯¯
 }
 
-func (pd *pollDesc) PrepareRead() error { // ×¼±¸¶Á
+func (pd *pollDesc) PrepareRead() error { // å‡†å¤‡è¯»
 	return pd.Prepare('r')
 }
 
-func (pd *pollDesc) PrepareWrite() error { // ×¼±¸Ğ´
+func (pd *pollDesc) PrepareWrite() error { // å‡†å¤‡å†™
 	return pd.Prepare('w')
 }
 
 func (pd *pollDesc) Wait(mode int) error {
-	res := runtime_pollWait(pd.runtimeCtx, mode) // µ÷ÓÃpollWaitµÈ´ı¶ÁĞ´
-	return convertErr(res)                       // ·µ»Ø´íÎóÀàĞÍ
+	res := runtime_pollWait(pd.runtimeCtx, mode) // è°ƒç”¨pollWaitç­‰å¾…è¯»å†™
+	return convertErr(res)                       // è¿”å›é”™è¯¯ç±»å‹
 }
 
-func (pd *pollDesc) WaitRead() error { // µÈ´ı¶Á
+func (pd *pollDesc) WaitRead() error { // ç­‰å¾…è¯»
 	return pd.Wait('r')
 }
 
-func (pd *pollDesc) WaitWrite() error { // µÈ´ıĞ´
+func (pd *pollDesc) WaitWrite() error { // ç­‰å¾…å†™
 	return pd.Wait('w')
 }
 
@@ -94,40 +94,40 @@ func (pd *pollDesc) WaitCanceledWrite() {
 	pd.WaitCanceled('w')
 }
 
-func convertErr(res int) error { // ¸ù¾İ´íÎóÀàĞÍ½øĞĞ×ª»»£¬»òÕßÎŞ´íÎó£¬»òÕßÒÑ¾­¹Ø±Õ£¬»òÕßÒÑ¾­³¬Ê±
+func convertErr(res int) error { // æ ¹æ®é”™è¯¯ç±»å‹è¿›è¡Œè½¬æ¢ï¼Œæˆ–è€…æ— é”™è¯¯ï¼Œæˆ–è€…å·²ç»å…³é—­ï¼Œæˆ–è€…å·²ç»è¶…æ—¶
 	switch res {
 	case 0:
-		return nil // ÎŞ´íÎó
+		return nil // æ— é”™è¯¯
 	case 1:
-		return errClosing // µ×²ãPollDescÒÑ¾­±»¹Ø±Õ
+		return errClosing // åº•å±‚PollDescå·²ç»è¢«å…³é—­
 	case 2:
-		return errTimeout // ³¬Ê±´íÎó
+		return errTimeout // è¶…æ—¶é”™è¯¯
 	}
 	println("unreachable: ", res)
 	panic("unreachable")
 }
 
-func (fd *netFD) setDeadline(t time.Time) error { // ÉèÖÃ¶ÁĞ´³¬Ê±DeadlineÊ±¼ä
+func (fd *netFD) setDeadline(t time.Time) error { // è®¾ç½®è¯»å†™è¶…æ—¶Deadlineæ—¶é—´
 	return setDeadlineImpl(fd, t, 'r'+'w')
 }
 
-func (fd *netFD) setReadDeadline(t time.Time) error { // ÉèÖÃ¶Á³¬Ê±Ê±¼ä
+func (fd *netFD) setReadDeadline(t time.Time) error { // è®¾ç½®è¯»è¶…æ—¶æ—¶é—´
 	return setDeadlineImpl(fd, t, 'r')
 }
 
-func (fd *netFD) setWriteDeadline(t time.Time) error { // ÉèÖÃĞ´³¬Ê±Ê±¼ä
+func (fd *netFD) setWriteDeadline(t time.Time) error { // è®¾ç½®å†™è¶…æ—¶æ—¶é—´
 	return setDeadlineImpl(fd, t, 'w')
 }
 
-func setDeadlineImpl(fd *netFD, t time.Time, mode int) error { // ×îºó¶¼ĞèÒªµ÷ÓÃµÄ³¬Ê±ÉèÖÃ
-	d := runtimeNano() + int64(t.Sub(time.Now())) // »ñµÃ³¬Ê±µÄ¾ø¶ÔÊ±¼ä
+func setDeadlineImpl(fd *netFD, t time.Time, mode int) error { // æœ€åéƒ½éœ€è¦è°ƒç”¨çš„è¶…æ—¶è®¾ç½®
+	d := runtimeNano() + int64(t.Sub(time.Now())) // è·å¾—è¶…æ—¶çš„ç»å¯¹æ—¶é—´
 	if t.IsZero() {
 		d = 0
 	}
 	if err := fd.incref(); err != nil {
 		return err
 	}
-	runtime_pollSetDeadline(fd.pd.runtimeCtx, d, mode) // ÉèÖÃ³¬Ê±´¥·¢Æ÷
+	runtime_pollSetDeadline(fd.pd.runtimeCtx, d, mode) // è®¾ç½®è¶…æ—¶è§¦å‘å™¨
 	fd.decref()
 	return nil
 }

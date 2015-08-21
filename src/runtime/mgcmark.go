@@ -8,11 +8,12 @@ package runtime
 
 import "unsafe"
 
+// scan所有的栈
 // Scan all of the stacks, greying (or graying if in America) the referents
 // but not blackening them since the mark write barrier isn't installed.
 //go:nowritebarrier
 func gcscan_m() {
-	_g_ := getg()
+	_g_ := getg() // 获取当前的goroutine
 
 	// Grab the g that called us and potentially allow rescheduling.
 	// This allows it to be scanned like other goroutines.
@@ -53,19 +54,19 @@ func gcscan_m() {
 var oneptrmask = [...]uint8{1}
 
 //go:nowritebarrier
-func markroot(desc *parfor, i uint32) {
+func markroot(desc *parfor, i uint32) { // 执行markroot
 	// TODO: Consider using getg().m.p.ptr().gcw.
 	var gcw gcWork
 
 	// Note: if you add a case here, please also update heapdump.go:dumproots.
-	switch i {
+	switch i { // 根据mark的类型
 	case _RootData:
-		for datap := &firstmoduledata; datap != nil; datap = datap.next {
+		for datap := &firstmoduledata; datap != nil; datap = datap.next { // 遍历所有模块的数据段
 			scanblock(datap.data, datap.edata-datap.data, datap.gcdatamask.bytedata, &gcw)
 		}
 
 	case _RootBss:
-		for datap := &firstmoduledata; datap != nil; datap = datap.next {
+		for datap := &firstmoduledata; datap != nil; datap = datap.next { // 遍历所有模块的bss段
 			scanblock(datap.bss, datap.ebss-datap.bss, datap.gcbssmask.bytedata, &gcw)
 		}
 
@@ -772,7 +773,7 @@ func gcDrainN(gcw *gcWork, scanWork int64) {
 // gcw.bytesMarked or gcw.scanWork.
 //
 //go:nowritebarrier
-func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) {
+func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) { // scan从b0开始到n0的区域
 	// Use local copies of original parameters, so that a stack trace
 	// due to one of the throws below shows the original block
 	// base and extent.
@@ -782,10 +783,10 @@ func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) {
 	arena_start := mheap_.arena_start
 	arena_used := mheap_.arena_used
 
-	for i := uintptr(0); i < n; {
+	for i := uintptr(0); i < n; { // 查找每个word的bit
 		// Find bits for the next word.
 		bits := uint32(*addb(ptrmask, i/(ptrSize*8)))
-		if bits == 0 {
+		if bits == 0 { // 如果bits全为0，查找下一个word
 			i += ptrSize * 8
 			continue
 		}

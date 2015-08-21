@@ -32,12 +32,12 @@ var hosts struct {
 	sync.Mutex
 	byName map[string][]string
 	byAddr map[string][]string
-	expire time.Time // ¹ıÆÚÊ±¼ä
+	expire time.Time // è¿‡æœŸæ—¶é—´
 	path   string
 }
 
-func readHosts() { // ¶ÁÖ÷»úÁĞ±í
-	now := time.Now() // »ñÈ¡µ±Ç°Ê±¼ä
+func readHosts() { // è¯»ä¸»æœºåˆ—è¡¨
+	now := time.Now() // è·å–å½“å‰æ—¶é—´
 	hp := testHookHostsPath
 	if len(hosts.byName) == 0 || now.After(hosts.expire) || hosts.path != hp {
 		hs := make(map[string][]string)
@@ -75,7 +75,7 @@ func readHosts() { // ¶ÁÖ÷»úÁĞ±í
 }
 
 // lookupStaticHost looks up the addresses for the given host from /etc/hosts.
-func lookupStaticHost(host string) []string { // ¸ù¾İÖ÷»úÃû£¬²éÕÒµØÖ·
+func lookupStaticHost(host string) []string { // æ ¹æ®ä¸»æœºåï¼ŒæŸ¥æ‰¾åœ°å€
 	hosts.Lock()
 	defer hosts.Unlock()
 	readHosts()
@@ -88,7 +88,7 @@ func lookupStaticHost(host string) []string { // ¸ù¾İÖ÷»úÃû£¬²éÕÒµØÖ·
 }
 
 // lookupStaticAddr looks up the hosts for the given address from /etc/hosts.
-func lookupStaticAddr(addr string) []string { // ¸ù¾İµØÖ·²éÕÒÖ÷»úÃû
+func lookupStaticAddr(addr string) []string { // æ ¹æ®åœ°å€æŸ¥æ‰¾ä¸»æœºå
 	hosts.Lock()
 	defer hosts.Unlock()
 	readHosts()

@@ -23,14 +23,14 @@ func sockaddrToTCP(sa syscall.Sockaddr) Addr {
 	return nil
 }
 
-func (a *TCPAddr) family() int { // ·µ»ØTCPµØÖ·µÄfamilyÀàĞÍ
-	if a == nil || len(a.IP) <= IPv4len { // Èç¹û±¾ÉíÊÇipv4µØÖ·£¬·µ»ØINET
+func (a *TCPAddr) family() int { // è¿”å›TCPåœ°å€çš„familyç±»å‹
+	if a == nil || len(a.IP) <= IPv4len { // å¦‚æœæœ¬èº«æ˜¯ipv4åœ°å€ï¼Œè¿”å›INET
 		return syscall.AF_INET
 	}
-	if a.IP.To4() != nil { // Èç¹ûÄÜ×ª»»ÎªIPv4µØÖ·£¬·µ»ØINET
+	if a.IP.To4() != nil { // å¦‚æœèƒ½è½¬æ¢ä¸ºIPv4åœ°å€ï¼Œè¿”å›INET
 		return syscall.AF_INET
 	}
-	return syscall.AF_INET6 // ·ñÔòÔòÊÇIPv6µØÖ·
+	return syscall.AF_INET6 // å¦åˆ™åˆ™æ˜¯IPv6åœ°å€
 }
 
 func (a *TCPAddr) sockaddr(family int) (syscall.Sockaddr, error) {
@@ -42,18 +42,18 @@ func (a *TCPAddr) sockaddr(family int) (syscall.Sockaddr, error) {
 
 // TCPConn is an implementation of the Conn interface for TCP network
 // connections.
-type TCPConn struct { // tcp Á¬½Ó£¬°ü×°conn½á¹¹
+type TCPConn struct { // tcp è¿æ¥ï¼ŒåŒ…è£…connç»“æ„
 	conn
 }
 
-func newTCPConn(fd *netFD) *TCPConn { // ¸ù¾İnetFD·µ»ØÒ»¸öĞÂµÄTCPConn½á¹¹
-	c := &TCPConn{conn{fd}} // ÄÚ²¿°üº¬Ò»¸öconn½á¹¹
+func newTCPConn(fd *netFD) *TCPConn { // æ ¹æ®netFDè¿”å›ä¸€ä¸ªæ–°çš„TCPConnç»“æ„
+	c := &TCPConn{conn{fd}} // å†…éƒ¨åŒ…å«ä¸€ä¸ªconnç»“æ„
 	setNoDelay(c.fd, true)
 	return c
 }
 
 // ReadFrom implements the io.ReaderFrom ReadFrom method.
-func (c *TCPConn) ReadFrom(r io.Reader) (int64, error) { // ´Óio.Reader¶ÁÊı¾İ£¬²¢·¢ËÍµ½¶Ë¿ÚÉÏ
+func (c *TCPConn) ReadFrom(r io.Reader) (int64, error) { // ä»io.Readerè¯»æ•°æ®ï¼Œå¹¶å‘é€åˆ°ç«¯å£ä¸Š
 	if n, err, handled := sendFile(c.fd, r); handled {
 		if err != nil && err != io.EOF {
 			err = &OpError{Op: "read", Net: c.fd.net, Source: c.fd.laddr, Addr: c.fd.raddr, Err: err}
@@ -69,7 +69,7 @@ func (c *TCPConn) ReadFrom(r io.Reader) (int64, error) { // ´Óio.Reader¶ÁÊı¾İ£¬²
 
 // CloseRead shuts down the reading side of the TCP connection.
 // Most callers should just use Close.
-func (c *TCPConn) CloseRead() error { // ¹Ø±Õ¶Á¶Ë
+func (c *TCPConn) CloseRead() error { // å…³é—­è¯»ç«¯
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -82,7 +82,7 @@ func (c *TCPConn) CloseRead() error { // ¹Ø±Õ¶Á¶Ë
 
 // CloseWrite shuts down the writing side of the TCP connection.
 // Most callers should just use Close.
-func (c *TCPConn) CloseWrite() error { // ¹Ø±ÕĞ´¶Ë
+func (c *TCPConn) CloseWrite() error { // å…³é—­å†™ç«¯
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -105,7 +105,7 @@ func (c *TCPConn) CloseWrite() error { // ¹Ø±ÕĞ´¶Ë
 // If sec > 0, the data is sent in the background as with sec < 0. On
 // some operating systems after sec seconds have elapsed any remaining
 // unsent data may be discarded.
-func (c *TCPConn) SetLinger(sec int) error { // ÉèÖÃLinger±êÖ¾£¬µ÷ÓÃsetLingerÉèÖÃ
+func (c *TCPConn) SetLinger(sec int) error { // è®¾ç½®Lingeræ ‡å¿—ï¼Œè°ƒç”¨setLingerè®¾ç½®
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -117,7 +117,7 @@ func (c *TCPConn) SetLinger(sec int) error { // ÉèÖÃLinger±êÖ¾£¬µ÷ÓÃsetLingerÉèÖ
 
 // SetKeepAlive sets whether the operating system should send
 // keepalive messages on the connection.
-func (c *TCPConn) SetKeepAlive(keepalive bool) error { // ÉèÖÃtcpÁ¬½ÓµÄkeepalive
+func (c *TCPConn) SetKeepAlive(keepalive bool) error { // è®¾ç½®tcpè¿æ¥çš„keepalive
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -128,7 +128,7 @@ func (c *TCPConn) SetKeepAlive(keepalive bool) error { // ÉèÖÃtcpÁ¬½ÓµÄkeepalive
 }
 
 // SetKeepAlivePeriod sets period between keep alives.
-func (c *TCPConn) SetKeepAlivePeriod(d time.Duration) error { // ÉèÖÃKeepAliveÖÜÆÚ
+func (c *TCPConn) SetKeepAlivePeriod(d time.Duration) error { // è®¾ç½®KeepAliveå‘¨æœŸ
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -142,7 +142,7 @@ func (c *TCPConn) SetKeepAlivePeriod(d time.Duration) error { // ÉèÖÃKeepAliveÖÜ
 // packet transmission in hopes of sending fewer packets (Nagle's
 // algorithm).  The default is true (no delay), meaning that data is
 // sent as soon as possible after a Write.
-func (c *TCPConn) SetNoDelay(noDelay bool) error { // ÉèÖÃNoDelay
+func (c *TCPConn) SetNoDelay(noDelay bool) error { // è®¾ç½®NoDelay
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -155,7 +155,7 @@ func (c *TCPConn) SetNoDelay(noDelay bool) error { // ÉèÖÃNoDelay
 // DialTCP connects to the remote address raddr on the network net,
 // which must be "tcp", "tcp4", or "tcp6".  If laddr is not nil, it is
 // used as the local address for the connection.
-func DialTCP(net string, laddr, raddr *TCPAddr) (*TCPConn, error) { // Á¬½ÓÒ»¸öTCP¶Ë¿Ú
+func DialTCP(net string, laddr, raddr *TCPAddr) (*TCPConn, error) { // è¿æ¥ä¸€ä¸ªTCPç«¯å£
 	switch net {
 	case "tcp", "tcp4", "tcp6":
 	default:
@@ -241,13 +241,13 @@ func spuriousENOTAVAIL(err error) bool {
 
 // TCPListener is a TCP network listener.  Clients should typically
 // use variables of type Listener instead of assuming TCP.
-type TCPListener struct { // ´´½¨Ò»¸öTCPListener£¬ÊµÏÖÁËListener½Ó¿Ú
+type TCPListener struct { // åˆ›å»ºä¸€ä¸ªTCPListenerï¼Œå®ç°äº†Listeneræ¥å£
 	fd *netFD
 }
 
 // AcceptTCP accepts the next incoming call and returns the new
 // connection.
-func (l *TCPListener) AcceptTCP() (*TCPConn, error) { // »ñµÃÒ»¸öTCPÁ¬½Ó
+func (l *TCPListener) AcceptTCP() (*TCPConn, error) { // è·å¾—ä¸€ä¸ªTCPè¿æ¥
 	if l == nil || l.fd == nil {
 		return nil, syscall.EINVAL
 	}
@@ -260,8 +260,8 @@ func (l *TCPListener) AcceptTCP() (*TCPConn, error) { // »ñµÃÒ»¸öTCPÁ¬½Ó
 
 // Accept implements the Accept method in the Listener interface; it
 // waits for the next call and returns a generic Conn.
-func (l *TCPListener) Accept() (Conn, error) { // Ö´ĞĞAccept·µ»ØÒ»¸öĞÂµÄConn½á¹¹£¬ÊÇ¶ÔAcceptTCPµÄ·â×°
-	c, err := l.AcceptTCP() // µ÷ÓÃAcceptTCP
+func (l *TCPListener) Accept() (Conn, error) { // æ‰§è¡ŒAcceptè¿”å›ä¸€ä¸ªæ–°çš„Connç»“æ„ï¼Œæ˜¯å¯¹AcceptTCPçš„å°è£…
+	c, err := l.AcceptTCP() // è°ƒç”¨AcceptTCP
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (l *TCPListener) Accept() (Conn, error) { // Ö´ĞĞAccept·µ»ØÒ»¸öĞÂµÄConn½á¹¹
 
 // Close stops listening on the TCP address.
 // Already Accepted connections are not closed.
-func (l *TCPListener) Close() error { // ¹Ø±ÕÒ»¸öListener
+func (l *TCPListener) Close() error { // å…³é—­ä¸€ä¸ªListener
 	if l == nil || l.fd == nil {
 		return syscall.EINVAL
 	}
@@ -284,11 +284,11 @@ func (l *TCPListener) Close() error { // ¹Ø±ÕÒ»¸öListener
 // Addr returns the listener's network address, a *TCPAddr.
 // The Addr returned is shared by all invocations of Addr, so
 // do not modify it.
-func (l *TCPListener) Addr() Addr { return l.fd.laddr } // È¡³öListenerµÄ±¾µØµØÖ·
+func (l *TCPListener) Addr() Addr { return l.fd.laddr } // å–å‡ºListenerçš„æœ¬åœ°åœ°å€
 
 // SetDeadline sets the deadline associated with the listener.
 // A zero time value disables the deadline.
-func (l *TCPListener) SetDeadline(t time.Time) error { // ÉèÖÃfdµÄdeadline
+func (l *TCPListener) SetDeadline(t time.Time) error { // è®¾ç½®fdçš„deadline
 	if l == nil || l.fd == nil {
 		return syscall.EINVAL
 	}
@@ -317,14 +317,14 @@ func (l *TCPListener) File() (f *os.File, err error) {
 // listener.  Net must be "tcp", "tcp4", or "tcp6".  If laddr has a
 // port of 0, ListenTCP will choose an available port.  The caller can
 // use the Addr method of TCPListener to retrieve the chosen address.
-func ListenTCP(net string, laddr *TCPAddr) (*TCPListener, error) { // ¼àÌıTCPµØÖ·£¬·µ»ØTCPListener
+func ListenTCP(net string, laddr *TCPAddr) (*TCPListener, error) { // ç›‘å¬TCPåœ°å€ï¼Œè¿”å›TCPListener
 	switch net {
-	case "tcp", "tcp4", "tcp6": // ÍøÂç±ØĞëÎªtcp
+	case "tcp", "tcp4", "tcp6": // ç½‘ç»œå¿…é¡»ä¸ºtcp
 	default:
 		return nil, &OpError{Op: "listen", Net: net, Source: nil, Addr: laddr.opAddr(), Err: UnknownNetworkError(net)}
 	}
 	if laddr == nil {
-		laddr = &TCPAddr{} // ÉèÖÃÒ»¸öTCPAddr½á¹¹
+		laddr = &TCPAddr{} // è®¾ç½®ä¸€ä¸ªTCPAddrç»“æ„
 	}
 	fd, err := internetSocket(net, laddr, nil, noDeadline, syscall.SOCK_STREAM, 0, "listen")
 	if err != nil {

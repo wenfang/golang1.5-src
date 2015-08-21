@@ -109,7 +109,7 @@ func ipv6only(addr IPAddr) bool {
 // ipv6-host%zone and port.  A literal address or host name for IPv6
 // must be enclosed in square brackets, as in "[::1]:80",
 // "[ipv6-host]:http" or "[ipv6-host%zone]:80".
-func SplitHostPort(hostport string) (host, port string, err error) { // ·Ö¸îhostºÍport
+func SplitHostPort(hostport string) (host, port string, err error) { // åˆ†å‰²hostå’Œport
 	j, k := 0, 0
 
 	// The port starts after the last colon.
@@ -189,7 +189,7 @@ func splitHostZone(s string) (host, zone string) {
 // JoinHostPort combines host and port into a network address of the
 // form "host:port" or, if host contains a colon or a percent sign,
 // "[host]:port".
-func JoinHostPort(host, port string) string { // Éú³Éhost:portµÄĞÎÊ½£¬Èç¹ûhostÖĞ°üº¬:»ò%£¬Éú³É[host]:portµÄĞÎÊ½
+func JoinHostPort(host, port string) string { // ç”Ÿæˆhost:portçš„å½¢å¼ï¼Œå¦‚æœhostä¸­åŒ…å«:æˆ–%ï¼Œç”Ÿæˆ[host]:portçš„å½¢å¼
 	// If host has colons or a percent sign, have to bracket it.
 	if byteIndex(host, ':') >= 0 || byteIndex(host, '%') >= 0 {
 		return "[" + host + "]:" + port
@@ -207,13 +207,13 @@ func internetAddrList(net, addr string, deadline time.Time) (addrList, error) {
 		host, port string
 		portnum    int
 	)
-	switch net { // ¸ù¾İÍøÂçµÄÀàĞÍ£¬·Ö¸î³öÖ÷»úºÍ¶Ë¿ÚºÅ
+	switch net { // æ ¹æ®ç½‘ç»œçš„ç±»å‹ï¼Œåˆ†å‰²å‡ºä¸»æœºå’Œç«¯å£å·
 	case "tcp", "tcp4", "tcp6", "udp", "udp4", "udp6":
 		if addr != "" {
-			if host, port, err = SplitHostPort(addr); err != nil { // ·ÖÁÑ³ÉÖ÷»úºÍ¶Ë¿ÚºÅ
+			if host, port, err = SplitHostPort(addr); err != nil { // åˆ†è£‚æˆä¸»æœºå’Œç«¯å£å·
 				return nil, err
 			}
-			if portnum, err = parsePort(net, port); err != nil { // »ñµÃ¶Ë¿ÚºÅ
+			if portnum, err = parsePort(net, port); err != nil { // è·å¾—ç«¯å£å·
 				return nil, err
 			}
 		}

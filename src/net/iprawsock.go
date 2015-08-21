@@ -5,15 +5,15 @@
 package net
 
 // IPAddr represents the address of an IP end point.
-type IPAddr struct { // raw ip µØÖ·½á¹¹£¬ÊµÏÖAddr½Ó¿Ú
+type IPAddr struct { // raw ip åœ°å€ç»“æ„ï¼Œå®ç°Addræ¥å£
 	IP   IP
 	Zone string // IPv6 scoped addressing zone
 }
 
 // Network returns the address's network name, "ip".
-func (a *IPAddr) Network() string { return "ip" } // ·µ»ØipµØÖ·ÍøÂçÃûip
+func (a *IPAddr) Network() string { return "ip" } // è¿”å›ipåœ°å€ç½‘ç»œåip
 
-func (a *IPAddr) String() string { // ½«ipµØÖ·±äÎª×Ö·û´®
+func (a *IPAddr) String() string { // å°†ipåœ°å€å˜ä¸ºå­—ç¬¦ä¸²
 	if a == nil {
 		return "<nil>"
 	}
@@ -41,7 +41,7 @@ func (a *IPAddr) opAddr() Addr {
 // ResolveIPAddr parses addr as an IP address of the form "host" or
 // "ipv6-host%zone" and resolves the domain name on the network net,
 // which must be "ip", "ip4" or "ip6".
-func ResolveIPAddr(net, addr string) (*IPAddr, error) { // Í¨¹ı×Ö·û´®½âÎö³öIPµØÖ·
+func ResolveIPAddr(net, addr string) (*IPAddr, error) { // é€šè¿‡å­—ç¬¦ä¸²è§£æå‡ºIPåœ°å€
 	if net == "" { // a hint wildcard for Go 1.0 undocumented behavior
 		net = "ip"
 	}

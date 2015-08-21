@@ -16,7 +16,7 @@ import (
 )
 
 // Network file descriptor.
-type netFD struct { // ÍøÂç¾ä±úÃèÊö·û
+type netFD struct { // ç½‘ç»œå¥æŸ„æè¿°ç¬¦
 	// locking/lifetime of sysfd + serialize access to Read and Write methods
 	fdmu fdMutex
 
@@ -26,8 +26,8 @@ type netFD struct { // ÍøÂç¾ä±úÃèÊö·û
 	sotype      int
 	isConnected bool
 	net         string
-	laddr       Addr // ±¾µØµØÖ·
-	raddr       Addr // Ô¶¶ËµØÖ·
+	laddr       Addr // æœ¬åœ°åœ°å€
+	raddr       Addr // è¿œç«¯åœ°å€
 
 	// wait server
 	pd pollDesc
@@ -36,25 +36,25 @@ type netFD struct { // ÍøÂç¾ä±úÃèÊö·û
 func sysInit() {
 }
 
-func dial(network string, ra Addr, dialer func(time.Time) (Conn, error), deadline time.Time) (Conn, error) { // Ö´ĞĞdialÁ¬½Ó
+func dial(network string, ra Addr, dialer func(time.Time) (Conn, error), deadline time.Time) (Conn, error) { // æ‰§è¡Œdialè¿æ¥
 	return dialer(deadline)
 }
 
-func newFD(sysfd, family, sotype int, net string) (*netFD, error) { // ĞÂ´´½¨Ò»¸önetFD½á¹¹
+func newFD(sysfd, family, sotype int, net string) (*netFD, error) { // æ–°åˆ›å»ºä¸€ä¸ªnetFDç»“æ„
 	return &netFD{sysfd: sysfd, family: family, sotype: sotype, net: net}, nil
 }
 
-func (fd *netFD) init() error { // ³õÊ¼»¯£¬Ö´ĞĞpollDescµÄInit
+func (fd *netFD) init() error { // åˆå§‹åŒ–ï¼Œæ‰§è¡ŒpollDescçš„Init
 	if err := fd.pd.Init(fd); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (fd *netFD) setAddr(laddr, raddr Addr) { // ÉèÖÃnetFDµÄ±¾µØµØÖ·ºÍÔ¶³ÌµØÖ·
+func (fd *netFD) setAddr(laddr, raddr Addr) { // è®¾ç½®netFDçš„æœ¬åœ°åœ°å€å’Œè¿œç¨‹åœ°å€
 	fd.laddr = laddr
 	fd.raddr = raddr
-	runtime.SetFinalizer(fd, (*netFD).Close) // ÉèÖÃfinalizerÔËĞĞClose
+	runtime.SetFinalizer(fd, (*netFD).Close) // è®¾ç½®finalizerè¿è¡ŒClose
 }
 
 func (fd *netFD) name() string {
@@ -139,7 +139,7 @@ func (fd *netFD) destroy() {
 
 // Add a reference to this fd.
 // Returns an error if the fd cannot be used.
-func (fd *netFD) incref() error { // Ôö¼Ó¶ÔfdµÄÒıÓÃ¼ÆÊı
+func (fd *netFD) incref() error { // å¢åŠ å¯¹fdçš„å¼•ç”¨è®¡æ•°
 	if !fd.fdmu.Incref() {
 		return errClosing
 	}
@@ -148,7 +148,7 @@ func (fd *netFD) incref() error { // Ôö¼Ó¶ÔfdµÄÒıÓÃ¼ÆÊı
 
 // Remove a reference to this FD and close if we've been asked to do so
 // (and there are no references left).
-func (fd *netFD) decref() { // ¼õÉÙ¶ÔfdµÄÒıÓÃ¼ÆÊı
+func (fd *netFD) decref() { // å‡å°‘å¯¹fdçš„å¼•ç”¨è®¡æ•°
 	if fd.fdmu.Decref() {
 		fd.destroy()
 	}
@@ -201,41 +201,41 @@ func (fd *netFD) Close() error {
 }
 
 func (fd *netFD) shutdown(how int) error {
-	if err := fd.incref(); err != nil { // ÏÈÔö¼ÓfdµÄÒıÓÃ¼ÆÊı
+	if err := fd.incref(); err != nil { // å…ˆå¢åŠ fdçš„å¼•ç”¨è®¡æ•°
 		return err
 	}
-	defer fd.decref() // deferµÄÊ±ºò¼õÉÙÒıÓÃ¼ÆÊı
+	defer fd.decref() // deferçš„æ—¶å€™å‡å°‘å¼•ç”¨è®¡æ•°
 	return os.NewSyscallError("shutdown", syscall.Shutdown(fd.sysfd, how))
 }
 
-func (fd *netFD) closeRead() error { // ¹Ø±Õ¶Á¶Ë
+func (fd *netFD) closeRead() error { // å…³é—­è¯»ç«¯
 	return fd.shutdown(syscall.SHUT_RD)
 }
 
-func (fd *netFD) closeWrite() error { // ¹Ø±ÕĞ´¶Ë
+func (fd *netFD) closeWrite() error { // å…³é—­å†™ç«¯
 	return fd.shutdown(syscall.SHUT_WR)
 }
 
-func (fd *netFD) Read(p []byte) (n int, err error) { // Ã¿¸ö¶ÁĞ´¶¼±»¼ÓËø£¬Òò´Ë¿ÉÒÔĞòÁĞ»¯ÔËĞĞ
-	if err := fd.readLock(); err != nil { // ¶ÔÃ¿¸öfdµÄ¶Á¶¼ĞòÁĞ»¯
+func (fd *netFD) Read(p []byte) (n int, err error) { // æ¯ä¸ªè¯»å†™éƒ½è¢«åŠ é”ï¼Œå› æ­¤å¯ä»¥åºåˆ—åŒ–è¿è¡Œ
+	if err := fd.readLock(); err != nil { // å¯¹æ¯ä¸ªfdçš„è¯»éƒ½åºåˆ—åŒ–
 		return 0, err
 	}
-	defer fd.readUnlock()                       // ÔÚÍË³öÊ±½âËø
-	if err := fd.pd.PrepareRead(); err != nil { // Èç¹û¶Á´íÎó£¬·µ»Ø
+	defer fd.readUnlock()                       // åœ¨é€€å‡ºæ—¶è§£é”
+	if err := fd.pd.PrepareRead(); err != nil { // å¦‚æœè¯»é”™è¯¯ï¼Œè¿”å›
 		return 0, err
 	}
 	for {
 		n, err = syscall.Read(fd.sysfd, p)
-		if err != nil {                         // Èç¹û¶Á³öÏÖ´íÎó
+		if err != nil { // å¦‚æœè¯»å‡ºç°é”™è¯¯
 			n = 0
-			if err == syscall.EAGAIN { // Èç¹ûÊÇEAGAINµ÷ÓÃWaitRead£¬µÈ´ı¶ÁÊÂ¼ş
-				if err = fd.pd.WaitRead(); err == nil { // ÊÂ¼ş³öÏÖºó·µ»Ø£¬Òì²½±äÎªÍ¬²½²Ù×÷
+			if err == syscall.EAGAIN { // å¦‚æœæ˜¯EAGAINè°ƒç”¨WaitReadï¼Œç­‰å¾…è¯»äº‹ä»¶
+				if err = fd.pd.WaitRead(); err == nil { // äº‹ä»¶å‡ºç°åè¿”å›ï¼Œå¼‚æ­¥å˜ä¸ºåŒæ­¥æ“ä½œ
 					continue
 				}
 			}
 		}
 		err = fd.eofError(n, err)
-		break                        // Ìø³öÑ­»·
+		break // è·³å‡ºå¾ªç¯
 	}
 	if _, ok := err.(syscall.Errno); ok {
 		err = os.NewSyscallError("read", err)
@@ -297,8 +297,8 @@ func (fd *netFD) readMsg(p []byte, oob []byte) (n, oobn, flags int, sa syscall.S
 	return
 }
 
-func (fd *netFD) Write(p []byte) (nn int, err error) { // Ğ´Ê±¼ÓĞ´Ëø
-	if err := fd.writeLock(); err != nil { // ¶ÔÃ¿¸öfdµÄĞ´½øĞĞĞòÁĞ»¯
+func (fd *netFD) Write(p []byte) (nn int, err error) { // å†™æ—¶åŠ å†™é”
+	if err := fd.writeLock(); err != nil { // å¯¹æ¯ä¸ªfdçš„å†™è¿›è¡Œåºåˆ—åŒ–
 		return 0, err
 	}
 	defer fd.writeUnlock()

@@ -13,18 +13,18 @@ import (
 // If the ifindex is zero, interfaceTable returns mappings of all
 // network interfaces.  Otherwise it returns a mapping of a specific
 // interface.
-func interfaceTable(ifindex int) ([]Interface, error) { // Èç¹ûifindexÎª0£¬·µ»ØËùÓĞÍøÂç½Ó¿Ú
-	tab, err := syscall.NetlinkRIB(syscall.RTM_GETLINK, syscall.AF_UNSPEC) // »ñµÃnetlink rib
+func interfaceTable(ifindex int) ([]Interface, error) { // å¦‚æœifindexä¸º0ï¼Œè¿”å›æ‰€æœ‰ç½‘ç»œæ¥å£
+	tab, err := syscall.NetlinkRIB(syscall.RTM_GETLINK, syscall.AF_UNSPEC) // è·å¾—netlink rib
 	if err != nil {
 		return nil, os.NewSyscallError("netlinkrib", err)
 	}
-	msgs, err := syscall.ParseNetlinkMessage(tab) // ½âÎönetlinkĞÅÏ¢
+	msgs, err := syscall.ParseNetlinkMessage(tab) // è§£ænetlinkä¿¡æ¯
 	if err != nil {
 		return nil, os.NewSyscallError("parsenetlinkmessage", err)
 	}
 	var ift []Interface
 loop:
-	for _, m := range msgs { // ±éÀú»ñÈ¡µÄnetlinkĞÅÏ¢
+	for _, m := range msgs { // éå†è·å–çš„netlinkä¿¡æ¯
 		switch m.Header.Type {
 		case syscall.NLMSG_DONE:
 			break loop
@@ -35,7 +35,7 @@ loop:
 				if err != nil {
 					return nil, os.NewSyscallError("parsenetlinkrouteattr", err)
 				}
-				ift = append(ift, *newLink(ifim, attrs)) // ¼ÓÈëµ½Interface SliceÖĞ
+				ift = append(ift, *newLink(ifim, attrs)) // åŠ å…¥åˆ°Interface Sliceä¸­
 				if ifindex == int(ifim.Index) {
 					break loop
 				}
@@ -56,7 +56,7 @@ const (
 )
 
 func newLink(ifim *syscall.IfInfomsg, attrs []syscall.NetlinkRouteAttr) *Interface {
-	ifi := &Interface{Index: int(ifim.Index), Flags: linkFlags(ifim.Flags)} // ´´½¨Ò»¸öInterface½á¹¹
+	ifi := &Interface{Index: int(ifim.Index), Flags: linkFlags(ifim.Flags)} // åˆ›å»ºä¸€ä¸ªInterfaceç»“æ„
 	for _, a := range attrs {
 		switch a.Attr.Type {
 		case syscall.IFLA_ADDRESS:

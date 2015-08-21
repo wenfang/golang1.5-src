@@ -14,7 +14,7 @@ import (
 // The zero value for each field is equivalent to dialing
 // without that option. Dialing with the zero value of Dialer
 // is therefore equivalent to just calling the Dial function.
-// Dialer½á¹¹°üº¬Á¬½Óµ½Ò»¸öµØÖ·µÄÑ¡Ïî£¬Èç¹û¶ÔÓ¦µÄÓòµÄÖµÎª0,±íÃ÷Ã»ÓĞÕâ¸öÑ¡Ïî
+// Dialerç»“æ„åŒ…å«è¿æ¥åˆ°ä¸€ä¸ªåœ°å€çš„é€‰é¡¹ï¼Œå¦‚æœå¯¹åº”çš„åŸŸçš„å€¼ä¸º0,è¡¨æ˜æ²¡æœ‰è¿™ä¸ªé€‰é¡¹
 type Dialer struct {
 	// Timeout is the maximum amount of time a dial will wait for
 	// a connect to complete. If Deadline is also set, it may fail
@@ -28,19 +28,19 @@ type Dialer struct {
 	// With or without a timeout, the operating system may impose
 	// its own earlier timeout. For instance, TCP timeouts are
 	// often around 3 minutes.
-	Timeout time.Duration // Á¬½Ó³¬Ê±ÉèÖÃ£¬µÈ´ıconnectµÄ×î³¤Ê±¼ä
+	Timeout time.Duration // è¿æ¥è¶…æ—¶è®¾ç½®ï¼Œç­‰å¾…connectçš„æœ€é•¿æ—¶é—´
 
 	// Deadline is the absolute point in time after which dials
 	// will fail. If Timeout is set, it may fail earlier.
 	// Zero means no deadline, or dependent on the operating system
 	// as with the Timeout option.
-	Deadline time.Time // Á¬½ÓµÄdeadline£¬¾ø¶ÔÊ±¼ä
+	Deadline time.Time // è¿æ¥çš„deadlineï¼Œç»å¯¹æ—¶é—´
 
 	// LocalAddr is the local address to use when dialing an
 	// address. The address must be of a compatible type for the
 	// network being dialed.
 	// If nil, a local address is automatically chosen.
-	LocalAddr Addr // ±¾µØµØÖ·
+	LocalAddr Addr // æœ¬åœ°åœ°å€
 
 	// DualStack enables RFC 6555-compliant "Happy Eyeballs" dialing
 	// when the network is "tcp" and the destination is a host name
@@ -57,17 +57,17 @@ type Dialer struct {
 	// network connection.
 	// If zero, keep-alives are not enabled. Network protocols
 	// that do not support keep-alives ignore this field.
-	KeepAlive time.Duration // Ö¸¶¨Á¬½ÓµÄkeepaliveÖÜÆÚ
+	KeepAlive time.Duration // æŒ‡å®šè¿æ¥çš„keepaliveå‘¨æœŸ
 }
 
 // Return either now+Timeout or Deadline, whichever comes first.
 // Or zero, if neither is set.
 func (d *Dialer) deadline(now time.Time) time.Time {
-	if d.Timeout == 0 { // Èç¹ûÃ»ÓĞÉè¶¨³¬Ê±£¬Ö±½Ó·µ»ØDeadline
+	if d.Timeout == 0 { // å¦‚æœæ²¡æœ‰è®¾å®šè¶…æ—¶ï¼Œç›´æ¥è¿”å›Deadline
 		return d.Deadline
 	}
 	timeoutDeadline := now.Add(d.Timeout)
-	if d.Deadline.IsZero() || timeoutDeadline.Before(d.Deadline) { // ºÍd.Deadline½øĞĞ±È½Ï£¬·µ»Ø×î½üµÄÊ±¼ä
+	if d.Deadline.IsZero() || timeoutDeadline.Before(d.Deadline) { // å’Œd.Deadlineè¿›è¡Œæ¯”è¾ƒï¼Œè¿”å›æœ€è¿‘çš„æ—¶é—´
 		return timeoutDeadline
 	} else {
 		return d.Deadline
@@ -106,45 +106,45 @@ func (d *Dialer) fallbackDelay() time.Duration {
 	}
 }
 
-func parseNetwork(net string) (afnet string, proto int, err error) { // ½âÎöÍøÂçÀàĞÍ£¬·µ»ØafnetºÍĞ­Òé
-	i := last(net, ':') // ÕÒµ½×îºóÒ»¸öÃ°ºÅµÄÎ»ÖÃ
-	if i < 0 {          // no colon Èç¹ûÃ»ÓĞÃ°ºÅ
-		switch net { // ¼ì²éÊÇ·ñÎªÓĞĞ§µÄÍøÂçÀàĞÍ
+func parseNetwork(net string) (afnet string, proto int, err error) { // è§£æç½‘ç»œç±»å‹ï¼Œè¿”å›afnetå’Œåè®®
+	i := last(net, ':') // æ‰¾åˆ°æœ€åä¸€ä¸ªå†’å·çš„ä½ç½®
+	if i < 0 {          // no colon å¦‚æœæ²¡æœ‰å†’å·
+		switch net { // æ£€æŸ¥æ˜¯å¦ä¸ºæœ‰æ•ˆçš„ç½‘ç»œç±»å‹
 		case "tcp", "tcp4", "tcp6":
 		case "udp", "udp4", "udp6":
 		case "ip", "ip4", "ip6":
 		case "unix", "unixgram", "unixpacket":
-		default: // ²»ÔÚÓĞĞ§µÄÍøÂç·¶Î§Ö®ÄÚ
+		default: // ä¸åœ¨æœ‰æ•ˆçš„ç½‘ç»œèŒƒå›´ä¹‹å†…
 			return "", 0, UnknownNetworkError(net)
 		}
-		return net, 0, nil // ÔÚÓĞĞ§µÄÍøÂçÖ®ÖĞ£¬·µ»ØÍøÂçÀàĞÍ
+		return net, 0, nil // åœ¨æœ‰æ•ˆçš„ç½‘ç»œä¹‹ä¸­ï¼Œè¿”å›ç½‘ç»œç±»å‹
 	}
-	afnet = net[:i] // Èç¹ûÓĞÃ°ºÅ£¬È¡Ã°ºÅÇ°µÄ²¿·Ö
+	afnet = net[:i] // å¦‚æœæœ‰å†’å·ï¼Œå–å†’å·å‰çš„éƒ¨åˆ†
 	switch afnet {
-	case "ip", "ip4", "ip6": // Èç¹ûÓĞÃ°ºÅºó±ß²¿·Ö±ØĞëÎªipÀà
-		protostr := net[i+1:]             // È¡µ½£ººóµÄ²¿·Ö£¬Ğ­Òé×Ö·û´®
-		proto, i, ok := dtoi(protostr, 0) // ·µ»ØĞ­ÒéºÅ
+	case "ip", "ip4", "ip6": // å¦‚æœæœ‰å†’å·åè¾¹éƒ¨åˆ†å¿…é¡»ä¸ºipç±»
+		protostr := net[i+1:]             // å–åˆ°ï¼šåçš„éƒ¨åˆ†ï¼Œåè®®å­—ç¬¦ä¸²
+		proto, i, ok := dtoi(protostr, 0) // è¿”å›åè®®å·
 		if !ok || i != len(protostr) {
-			proto, err = lookupProtocol(protostr) // ¸ù¾İĞ­ÒéÃû·µ»ØĞ­ÒéºÅ
+			proto, err = lookupProtocol(protostr) // æ ¹æ®åè®®åè¿”å›åè®®å·
 			if err != nil {
 				return "", 0, err
 			}
 		}
-		return afnet, proto, nil // ·µ»ØÍøÂçÃû¼°Ğ­ÒéºÅ£¬¶ÔipĞ­Òé
+		return afnet, proto, nil // è¿”å›ç½‘ç»œååŠåè®®å·ï¼Œå¯¹ipåè®®
 	}
-	return "", 0, UnknownNetworkError(net) // ÍøÂç±íÊ¾³ö´í
+	return "", 0, UnknownNetworkError(net) // ç½‘ç»œè¡¨ç¤ºå‡ºé”™
 }
 
-// deadlineÎª³¬Ê±Ê±¼ä
+// deadlineä¸ºè¶…æ—¶æ—¶é—´
 func resolveAddrList(op, net, addr string, deadline time.Time) (addrList, error) {
-	afnet, _, err := parseNetwork(net) // ½âÎöÍøÂçÀàĞÍ£¬·µ»ØÍøÂçÀàĞÍ£¬ºöÂÔproto£¬Ò²¾ÍÊÇºöÂÔipĞ­ÒéµÄ´¦Àí
-	if err != nil {                    // ½âÎö´íÎó
+	afnet, _, err := parseNetwork(net) // è§£æç½‘ç»œç±»å‹ï¼Œè¿”å›ç½‘ç»œç±»å‹ï¼Œå¿½ç•¥protoï¼Œä¹Ÿå°±æ˜¯å¿½ç•¥ipåè®®çš„å¤„ç†
+	if err != nil {                    // è§£æé”™è¯¯
 		return nil, err
 	}
-	if op == "dial" && addr == "" { // Èç¹û²Ù×÷ÀàĞÍÊ±dial£¬µ«ÊÇÄ¿±êµØÖ·Îª¿Õ£¬·µ»Ø´íÎó
+	if op == "dial" && addr == "" { // å¦‚æœæ“ä½œç±»å‹æ—¶dialï¼Œä½†æ˜¯ç›®æ ‡åœ°å€ä¸ºç©ºï¼Œè¿”å›é”™è¯¯
 		return nil, errMissingAddress
 	}
-	switch afnet { // ¸ù¾İÍøÂçÀàĞÍ½âÎöµØÖ·
+	switch afnet { // æ ¹æ®ç½‘ç»œç±»å‹è§£æåœ°å€
 	case "unix", "unixgram", "unixpacket":
 		addr, err := ResolveUnixAddr(afnet, addr)
 		if err != nil {
@@ -183,16 +183,16 @@ func resolveAddrList(op, net, addr string, deadline time.Time) (addrList, error)
 //	Dial("ip6:ospf", "::1")
 //
 // For Unix networks, the address must be a file system path.
-func Dial(network, address string) (Conn, error) { // Á¬½ÓÖ¸¶¨µÄµØÖ·
+func Dial(network, address string) (Conn, error) { // è¿æ¥æŒ‡å®šçš„åœ°å€
 	var d Dialer
-	return d.Dial(network, address) // ÄÚ²¿´´½¨Ò»¸öDialer½øĞĞDial
+	return d.Dial(network, address) // å†…éƒ¨åˆ›å»ºä¸€ä¸ªDialerè¿›è¡ŒDial
 }
 
 // DialTimeout acts like Dial but takes a timeout.
 // The timeout includes name resolution, if required.
-func DialTimeout(network, address string, timeout time.Duration) (Conn, error) { // ¾ßÓĞ³¬Ê±ÉèÖÃµÄDial
-	d := Dialer{Timeout: timeout}   // ÉèÖÃ³¬Ê±Timeout
-	return d.Dial(network, address) // Ö´ĞĞDialÁ¬½Ó
+func DialTimeout(network, address string, timeout time.Duration) (Conn, error) { // å…·æœ‰è¶…æ—¶è®¾ç½®çš„Dial
+	d := Dialer{Timeout: timeout}   // è®¾ç½®è¶…æ—¶Timeout
+	return d.Dial(network, address) // æ‰§è¡ŒDialè¿æ¥
 }
 
 // dialContext holds common state for all dial operations.
@@ -206,7 +206,7 @@ type dialContext struct {
 //
 // See func Dial for a description of the network and address
 // parameters.
-func (d *Dialer) Dial(network, address string) (Conn, error) { // Á¬½Óµ½Ö¸¶¨µØÖ·£¬·µ»ØConnÁ¬½Ó½á¹¹
+func (d *Dialer) Dial(network, address string) (Conn, error) { // è¿æ¥åˆ°æŒ‡å®šåœ°å€ï¼Œè¿”å›Connè¿æ¥ç»“æ„
 	finalDeadline := d.deadline(time.Now())
 	addrs, err := resolveAddrList("dial", network, address, finalDeadline)
 	if err != nil {
@@ -360,7 +360,7 @@ func dialSingle(ctx *dialContext, ra Addr, deadline time.Time) (c Conn, err erro
 	if la != nil && la.Network() != ra.Network() {
 		return nil, &OpError{Op: "dial", Net: ctx.network, Source: la, Addr: ra, Err: errors.New("mismatched local address type " + la.Network())}
 	}
-	switch ra := ra.(type) { // ¸ù¾İµØÖ·µÄÀàĞÍ´´½¨²»Í¬ÀàĞÍµÄÁ¬½Ó
+	switch ra := ra.(type) { // æ ¹æ®åœ°å€çš„ç±»å‹åˆ›å»ºä¸åŒç±»å‹çš„è¿æ¥
 	case *TCPAddr:
 		la, _ := la.(*TCPAddr)
 		c, err = testHookDialTCP(ctx.network, la, ra, deadline)
@@ -386,7 +386,7 @@ func dialSingle(ctx *dialContext, ra Addr, deadline time.Time) (c Conn, err erro
 // The network net must be a stream-oriented network: "tcp", "tcp4",
 // "tcp6", "unix" or "unixpacket".
 // See Dial for the syntax of laddr.
-func Listen(net, laddr string) (Listener, error) { // ÔÚÒ»¸öµØÖ·ÉÏ¼àÌı£¬·µ»ØListener½Ó¿Ú
+func Listen(net, laddr string) (Listener, error) { // åœ¨ä¸€ä¸ªåœ°å€ä¸Šç›‘å¬ï¼Œè¿”å›Listeneræ¥å£
 	addrs, err := resolveAddrList("listen", net, laddr, noDeadline)
 	if err != nil {
 		return nil, &OpError{Op: "listen", Net: net, Source: nil, Addr: nil, Err: err}
@@ -394,13 +394,13 @@ func Listen(net, laddr string) (Listener, error) { // ÔÚÒ»¸öµØÖ·ÉÏ¼àÌı£¬·µ»ØList
 	var l Listener
 	switch la := addrs.first(isIPv4).(type) {
 	case *TCPAddr:
-		l, err = ListenTCP(net, la) // ÔÚTCPµØÖ·ÉÏListen
+		l, err = ListenTCP(net, la) // åœ¨TCPåœ°å€ä¸ŠListen
 	case *UnixAddr:
-		l, err = ListenUnix(net, la) // ÔÚUnixÓòµØÖ·ÉÏListen
+		l, err = ListenUnix(net, la) // åœ¨UnixåŸŸåœ°å€ä¸ŠListen
 	default:
 		return nil, &OpError{Op: "listen", Net: net, Source: nil, Addr: la, Err: &AddrError{Err: "unexpected address type", Addr: laddr}}
 	}
-	if err != nil { // listen´íÎó
+	if err != nil { // listené”™è¯¯
 		return nil, err // l is non-nil interface containing nil pointer
 	}
 	return l, nil
@@ -410,7 +410,7 @@ func Listen(net, laddr string) (Listener, error) { // ÔÚÒ»¸öµØÖ·ÉÏ¼àÌı£¬·µ»ØList
 // The network net must be a packet-oriented network: "udp", "udp4",
 // "udp6", "ip", "ip4", "ip6" or "unixgram".
 // See Dial for the syntax of laddr.
-func ListenPacket(net, laddr string) (PacketConn, error) { // ´´½¨ÃæÏòPacketµÄÁ¬½Ó
+func ListenPacket(net, laddr string) (PacketConn, error) { // åˆ›å»ºé¢å‘Packetçš„è¿æ¥
 	addrs, err := resolveAddrList("listen", net, laddr, noDeadline)
 	if err != nil {
 		return nil, &OpError{Op: "listen", Net: net, Source: nil, Addr: nil, Err: err}

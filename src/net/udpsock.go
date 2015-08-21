@@ -5,7 +5,7 @@
 package net
 
 // UDPAddr represents the address of a UDP end point.
-type UDPAddr struct { // udp 地址结构，实现Addr接口
+type UDPAddr struct { // udp 鍦板潃缁撴瀯锛屽疄鐜癆ddr鎺ュ彛
 	IP   IP
 	Port int
 	Zone string // IPv6 scoped addressing zone
@@ -45,11 +45,11 @@ func (a *UDPAddr) opAddr() Addr {
 // "udp6".  A literal address or host name for IPv6 must be enclosed
 // in square brackets, as in "[::1]:80", "[ipv6-host]:http" or
 // "[ipv6-host%zone]:80".
-func ResolveUDPAddr(net, addr string) (*UDPAddr, error) { // 解析UDP地址，生成UDPAddr结构
+func ResolveUDPAddr(net, addr string) (*UDPAddr, error) { // 瑙ｆ瀽UDP鍦板潃锛岀敓鎴怳DPAddr缁撴瀯
 	switch net {
-	case "udp", "udp4", "udp6": // 前缀必须为udp
+	case "udp", "udp4", "udp6": // 鍓嶇紑蹇呴』涓簎dp
 	case "": // a hint wildcard for Go 1.0 undocumented behavior
-		net = "udp" // 默认为udp
+		net = "udp" // 榛樿涓簎dp
 	default:
 		return nil, UnknownNetworkError(net)
 	}

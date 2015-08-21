@@ -7,6 +7,7 @@
 
 // Garbage collector (GC).
 //
+// gc使用写屏障进行并发的mark和sweep
 // The GC runs concurrently with mutator threads, is type accurate (aka precise), allows multiple
 // GC thread to run in parallel. It is a concurrent mark and sweep that uses a write barrier. It is
 // non-generational and non-compacting. Allocation is done using size segregated per P allocation
@@ -24,14 +25,19 @@
 // Hudson, R., and Moss, J.E.B. Copying Garbage Collection without stopping the world.
 // Concurrency and Computation: Practice and Experience 15(3-5), 2003.
 //
+//  0. 设置阶段从GCOff到GCscan
 //  0. Set phase = GCscan from GCoff.
+//  1. 等待所有的P同意该阶段，这时所有的goroutine越过一个gc安全点，正式进入gcscan阶段
 //  1. Wait for all P's to acknowledge phase change.
 //         At this point all goroutines have passed through a GC safepoint and
 //         know we are in the GCscan phase.
+//  2. gc scan所有goroutine的栈,标记并且排队所有碰到的指针(标记避免大部分重复排队)
 //  2. GC scans all goroutine stacks, mark and enqueues all encountered pointers
 //       (marking avoids most duplicate enqueuing but races may produce benign duplication).
 //       Preempted goroutines are scanned before P schedules next goroutine.
+//  3. 设置进入GCmark阶段
 //  3. Set phase = GCmark.
+//  4. 等待所有的P确认该阶段
 //  4. Wait for all P's to acknowledge phase change.
 //  5. Now write barrier marks and enqueues black, grey, or white to white pointers.
 //       Malloc still allocates white (non-marked) objects.
@@ -110,6 +116,9 @@
 // The finalizer goroutine is kicked off only when all spans are swept.
 // When the next GC starts, it sweeps all not-yet-swept spans (if any).
 
+// GC速率
+// 在分配正比于当前使用内存大小的内存后，开始启动下次gc。这个比例由GOGC环境变量控制，缺省值
+// 为100。
 // GC rate.
 // Next GC is after we've allocated an extra amount of memory proportional to
 // the amount already in use. The proportion is controlled by GOGC environment variable
@@ -152,9 +161,13 @@ const (
 	sweepMinHeapDistance = 1024 * 1024
 )
 
+// heapminimum是触发GC的最小的堆得大小，对于小堆，这个值覆盖了普通的GC
+// 设置规则。
 // heapminimum is the minimum heap size at which to trigger GC.
 // For small heaps, this overrides the usual GOGC*live set rule.
 //
+// 如果live集合比较小，但是分配了很多，当越过该值时会导致许多的gc循环
+// 和每gc的负担。
 // When there is a very small live set but a lot of allocation, simply
 // collecting when the heap reaches GOGC*live results in many GC
 // cycles and high total per-GC overhead. This minimum amortizes this
@@ -167,13 +180,13 @@ const (
 var heapminimum uint64 = defaultHeapMinimum
 
 // defaultHeapMinimum is the value of heapminimum for GOGC==100.
-const defaultHeapMinimum = 4 << 20
+const defaultHeapMinimum = 4 << 20 // 缺省的最小的堆，4M
 
 // Initialized from $GOGC.  GOGC=off means no GC.
 var gcpercent int32
 
 func gcinit() {
-	if unsafe.Sizeof(workbuf{}) != _WorkbufSize {
+	if unsafe.Sizeof(workbuf{}) != _WorkbufSize { // workbuf的大小不正确，抛出异常
 		throw("size of Workbuf is suboptimal")
 	}
 
@@ -187,14 +200,14 @@ func gcinit() {
 }
 
 func readgogc() int32 {
-	p := gogetenv("GOGC")
-	if p == "" {
+	p := gogetenv("GOGC") // 获取GOGC环境变量
+	if p == "" {          // 如果为空，返回100
 		return 100
 	}
 	if p == "off" {
 		return -1
 	}
-	return int32(atoi(p))
+	return int32(atoi(p)) // 否则返回GOGC的数量值
 }
 
 // gcenable is called after the bulk of the runtime initialization,
@@ -207,21 +220,21 @@ func gcenable() { // 在启动用户代码执行前执行，开启gc
 	memstats.enablegc = true // now that runtime is initialized, GC is okay
 }
 
-func setGCPercent(in int32) (out int32) {
-	lock(&mheap_.lock)
-	out = gcpercent
+func setGCPercent(in int32) (out int32) { // 设置gc的百分比
+	lock(&mheap_.lock) // 先将堆加锁
+	out = gcpercent    // 获取当前的gcpercent
 	if in < 0 {
 		in = -1
 	}
-	gcpercent = in
-	heapminimum = defaultHeapMinimum * uint64(gcpercent) / 100
+	gcpercent = in                                             // 设置新的gcpercent
+	heapminimum = defaultHeapMinimum * uint64(gcpercent) / 100 // 根据gcpercent设置新的heapminimum
 	unlock(&mheap_.lock)
 	return out
 }
 
 // Garbage collector phase.
 // Indicates to write barrier and sychronization task to preform.
-var gcphase uint32
+var gcphase uint32           // gc的当前阶段
 var writeBarrierEnabled bool // compiler emits references to this in write barriers
 
 // gcBlackenEnabled is 1 if mutator assists and background mark
@@ -245,10 +258,10 @@ var gcBlackenEnabled uint32
 var gcBlackenPromptly bool
 
 const (
-	_GCoff             = iota // GC not running; sweeping in background, write barrier disabled
+	_GCoff             = iota // GC not running; sweeping in background, write barrier disabled gc没有运行,在后台进行sweeping，写屏障被disabled掉
 	_GCstw                    // unused state
-	_GCscan                   // GC collecting roots into workbufs, write barrier ENABLED
-	_GCmark                   // GC marking from workbufs, write barrier ENABLED
+	_GCscan                   // GC collecting roots into workbufs, write barrier ENABLED gc收集根到workbufs中，启动写屏障
+	_GCmark                   // GC marking from workbufs, write barrier ENABLED gc mark workbufs，写屏障enable
 	_GCmarktermination        // GC mark termination: allocate black, P's help GC, write barrier ENABLED
 )
 
@@ -807,6 +820,7 @@ var work struct {
 	initialHeapLive uint64
 }
 
+// 启动垃圾收集，直到垃圾收集完成，也可能会阻塞整个程序
 // GC runs a garbage collection and blocks the caller until the
 // garbage collection is complete. It may also block the entire
 // program.
@@ -820,6 +834,9 @@ const (
 	gcForceBlockMode        // stop-the-world GC now and wait for sweep
 )
 
+// startGC启动一次GC周期。如果是gcBackgroundMode，将会在后台启动gc，然后返回
+// 否则该gc将会阻塞，直到下一次gc周期启动且完成。如果forceTrigger是true
+// 表明gc将被启动而不管当前堆大小是多少
 // startGC starts a GC cycle. If mode is gcBackgroundMode, this will
 // start GC in the background and return. Otherwise, this will block
 // until the new GC cycle is started and finishes. If forceTrigger is
@@ -831,7 +848,7 @@ func startGC(mode int, forceTrigger bool) {
 	// holding locks. To avoid deadlocks during stop-the-world, don't bother
 	// trying to run gc while holding a lock. The next mallocgc without a lock
 	// will do the gc instead.
-	mp := acquirem()
+	mp := acquirem() // 获取当前的m
 	if gp := getg(); gp == mp.g0 || mp.locks > 1 || mp.preemptoff != "" || !memstats.enablegc || panicking != 0 || gcpercent < 0 {
 		releasem(mp)
 		return
@@ -845,7 +862,7 @@ func startGC(mode int, forceTrigger bool) {
 		mode = gcForceBlockMode
 	}
 
-	if mode != gcBackgroundMode {
+	if mode != gcBackgroundMode { // 如果不是后台gc模式，直接调用gc
 		// special synchronous cases
 		gc(mode)
 		return
@@ -900,7 +917,7 @@ func backgroundgc() {
 	}
 }
 
-func gc(mode int) {
+func gc(mode int) { // 开始执行gc
 	// Timing/utilization tracking
 	var stwprocs, maxprocs int32
 	var tSweepTerm, tScan, tInstallWB, tMark, tMarkTerm int64
@@ -912,7 +929,7 @@ func gc(mode int) {
 	var now, pauseStart, pauseNS int64
 
 	// Ok, we're doing it!  Stop everybody else
-	semacquire(&worldsema, false)
+	semacquire(&worldsema, false) // 获得worldsema
 
 	// Pick up the remaining unswept/not being swept spans concurrently
 	//
@@ -932,14 +949,14 @@ func gc(mode int) {
 	if mode == gcBackgroundMode {
 		gcBgMarkStartWorkers()
 	}
-	now = nanotime()
-	stwprocs, maxprocs = gcprocs(), gomaxprocs
+	now = nanotime()                           // 获取当前的时间
+	stwprocs, maxprocs = gcprocs(), gomaxprocs // 获得可用于gc的p的数量和最大的p的数量
 	tSweepTerm = now
 	heap0 = memstats.heap_live
 
-	pauseStart = now
-	systemstack(stopTheWorldWithSema)
-	systemstack(finishsweep_m) // finish sweep before we start concurrent scan.
+	pauseStart = now                  // 设置停止启动时间
+	systemstack(stopTheWorldWithSema) // 在系统栈上执行stoptheWorldWithSema，将所有的P设置为gcstop状态
+	systemstack(finishsweep_m)        // finish sweep before we start concurrent scan. 在启动并发scan前，完成上一次sweep
 	// clearpools before we start the GC. If we wait they memory will not be
 	// reclaimed until the next GC cycle.
 	clearpools()
@@ -1052,10 +1069,12 @@ func gc(mode int) {
 
 		gcController.endCycle()
 	} else {
+		// 对非并发的gc模式，也就是模式非gcBackgroundMode
+		// g的栈已经被scan了，因此清除g的状态，标记mark termination
 		// For non-concurrent GC (mode != gcBackgroundMode)
 		// The g stacks have not been scanned so clear g state
 		// such that mark termination scans all stacks.
-		gcResetGState()
+		gcResetGState() // 重置所有goroutine的gc状态
 
 		t := nanotime()
 		tScan, tInstallWB, tMark, tMarkTerm = t, t, t, t
@@ -1606,11 +1625,11 @@ func gcCopySpans() {
 
 // gcResetGState resets the GC state of all G's and returns the length
 // of allgs.
-func gcResetGState() (numgs int) {
+func gcResetGState() (numgs int) { // 重置所有goroutine的gc状态，返回allg的长度
 	// This may be called during a concurrent phase, so make sure
 	// allgs doesn't change.
 	lock(&allglock)
-	for _, gp := range allgs {
+	for _, gp := range allgs { // 遍历所有的goroutine
 		gp.gcscandone = false  // set to true in gcphasework
 		gp.gcscanvalid = false // stack has not been scanned
 		gp.gcalloc = 0

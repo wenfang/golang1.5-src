@@ -101,7 +101,7 @@ func init() {
 }
 
 // Addr represents a network end point address.
-type Addr interface { // Addr½Ó¿Ú·µ»ØÍøÂçÃûºÍµØÖ·Ãû
+type Addr interface { // Addræ¥å£è¿”å›ç½‘ç»œåå’Œåœ°å€å
 	Network() string // name of the network
 	String() string  // string form of address
 }
@@ -109,26 +109,26 @@ type Addr interface { // Addr½Ó¿Ú·µ»ØÍøÂçÃûºÍµØÖ·Ãû
 // Conn is a generic stream-oriented network connection.
 //
 // Multiple goroutines may invoke methods on a Conn simultaneously.
-type Conn interface { // ÃæÏòÁ÷µÄÍøÂç½Ó¿Ú
+type Conn interface { // é¢å‘æµçš„ç½‘ç»œæ¥å£
 	// Read reads data from the connection.
 	// Read can be made to time out and return a Error with Timeout() == true
 	// after a fixed time limit; see SetDeadline and SetReadDeadline.
-	Read(b []byte) (n int, err error) // Êı¾İ¶Á½Ó¿Ú
+	Read(b []byte) (n int, err error) // æ•°æ®è¯»æ¥å£
 
 	// Write writes data to the connection.
 	// Write can be made to time out and return a Error with Timeout() == true
 	// after a fixed time limit; see SetDeadline and SetWriteDeadline.
-	Write(b []byte) (n int, err error) // Êı¾İĞ´½Ó¿Ú
+	Write(b []byte) (n int, err error) // æ•°æ®å†™æ¥å£
 
 	// Close closes the connection.
 	// Any blocked Read or Write operations will be unblocked and return errors.
-	Close() error // Á´½Ó¹Ø±Õ½Ó¿Ú
+	Close() error // é“¾æ¥å…³é—­æ¥å£
 
 	// LocalAddr returns the local network address.
-	LocalAddr() Addr // ·µ»ØconnµÄ±¾µØµØÖ·
+	LocalAddr() Addr // è¿”å›connçš„æœ¬åœ°åœ°å€
 
 	// RemoteAddr returns the remote network address.
-	RemoteAddr() Addr // ·µ»ØconnµÄÔ¶³ÌµØÖ·
+	RemoteAddr() Addr // è¿”å›connçš„è¿œç¨‹åœ°å€
 
 	// SetDeadline sets the read and write deadlines associated
 	// with the connection. It is equivalent to calling both
@@ -143,29 +143,29 @@ type Conn interface { // ÃæÏòÁ÷µÄÍøÂç½Ó¿Ú
 	// the deadline after successful Read or Write calls.
 	//
 	// A zero value for t means I/O operations will not time out.
-	SetDeadline(t time.Time) error // ÉèÖÃ³¬Ê±
+	SetDeadline(t time.Time) error // è®¾ç½®è¶…æ—¶
 
 	// SetReadDeadline sets the deadline for future Read calls.
 	// A zero value for t means Read will not time out.
-	SetReadDeadline(t time.Time) error // ÉèÖÃ¶Á³¬Ê±
+	SetReadDeadline(t time.Time) error // è®¾ç½®è¯»è¶…æ—¶
 
 	// SetWriteDeadline sets the deadline for future Write calls.
 	// Even if write times out, it may return n > 0, indicating that
 	// some of the data was successfully written.
 	// A zero value for t means Write will not time out.
-	SetWriteDeadline(t time.Time) error // ÉèÖÃĞ´³¬Ê±
+	SetWriteDeadline(t time.Time) error // è®¾ç½®å†™è¶…æ—¶
 }
 
-type conn struct { // ´ú±íÍøÂçÁ¬½Ó
+type conn struct { // ä»£è¡¨ç½‘ç»œè¿æ¥
 	fd *netFD
 }
 
-func (c *conn) ok() bool { return c != nil && c.fd != nil } // ·µ»ØÍøÂçÁ¬½ÓÊÇ·ñÓĞĞ§
+func (c *conn) ok() bool { return c != nil && c.fd != nil } // è¿”å›ç½‘ç»œè¿æ¥æ˜¯å¦æœ‰æ•ˆ
 
 // Implementation of the Conn interface.
 
 // Read implements the Conn Read method.
-func (c *conn) Read(b []byte) (int, error) { // ´ÓÁ¬½ÓÖĞ¶ÁÊı¾İÄÚÈİ
+func (c *conn) Read(b []byte) (int, error) { // ä»è¿æ¥ä¸­è¯»æ•°æ®å†…å®¹
 	if !c.ok() {
 		return 0, syscall.EINVAL
 	}
@@ -177,7 +177,7 @@ func (c *conn) Read(b []byte) (int, error) { // ´ÓÁ¬½ÓÖĞ¶ÁÊı¾İÄÚÈİ
 }
 
 // Write implements the Conn Write method.
-func (c *conn) Write(b []byte) (int, error) { // ÏòÁ¬½ÓÖĞĞ´Êı¾İ
+func (c *conn) Write(b []byte) (int, error) { // å‘è¿æ¥ä¸­å†™æ•°æ®
 	if !c.ok() {
 		return 0, syscall.EINVAL
 	}
@@ -189,7 +189,7 @@ func (c *conn) Write(b []byte) (int, error) { // ÏòÁ¬½ÓÖĞĞ´Êı¾İ
 }
 
 // Close closes the connection.
-func (c *conn) Close() error { // ¹Ø±ÕÁ¬½Ó
+func (c *conn) Close() error { // å…³é—­è¿æ¥
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -203,7 +203,7 @@ func (c *conn) Close() error { // ¹Ø±ÕÁ¬½Ó
 // LocalAddr returns the local network address.
 // The Addr returned is shared by all invocations of LocalAddr, so
 // do not modify it.
-func (c *conn) LocalAddr() Addr { // ·µ»Ø±¾µØµØÖ·
+func (c *conn) LocalAddr() Addr { // è¿”å›æœ¬åœ°åœ°å€
 	if !c.ok() {
 		return nil
 	}
@@ -213,7 +213,7 @@ func (c *conn) LocalAddr() Addr { // ·µ»Ø±¾µØµØÖ·
 // RemoteAddr returns the remote network address.
 // The Addr returned is shared by all invocations of RemoteAddr, so
 // do not modify it.
-func (c *conn) RemoteAddr() Addr { // ·µ»ØÔ¶³ÌµØÖ·
+func (c *conn) RemoteAddr() Addr { // è¿”å›è¿œç¨‹åœ°å€
 	if !c.ok() {
 		return nil
 	}
@@ -221,7 +221,7 @@ func (c *conn) RemoteAddr() Addr { // ·µ»ØÔ¶³ÌµØÖ·
 }
 
 // SetDeadline implements the Conn SetDeadline method.
-func (c *conn) SetDeadline(t time.Time) error { // ÉèÖÃ³¬Ê±Ê±¼ä
+func (c *conn) SetDeadline(t time.Time) error { // è®¾ç½®è¶…æ—¶æ—¶é—´
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -232,7 +232,7 @@ func (c *conn) SetDeadline(t time.Time) error { // ÉèÖÃ³¬Ê±Ê±¼ä
 }
 
 // SetReadDeadline implements the Conn SetReadDeadline method.
-func (c *conn) SetReadDeadline(t time.Time) error { // ÉèÖÃ¶Á³¬Ê±Ê±¼ä
+func (c *conn) SetReadDeadline(t time.Time) error { // è®¾ç½®è¯»è¶…æ—¶æ—¶é—´
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -243,7 +243,7 @@ func (c *conn) SetReadDeadline(t time.Time) error { // ÉèÖÃ¶Á³¬Ê±Ê±¼ä
 }
 
 // SetWriteDeadline implements the Conn SetWriteDeadline method.
-func (c *conn) SetWriteDeadline(t time.Time) error { // ÉèÖÃĞ´³¬Ê±Ê±¼ä
+func (c *conn) SetWriteDeadline(t time.Time) error { // è®¾ç½®å†™è¶…æ—¶æ—¶é—´
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -255,7 +255,7 @@ func (c *conn) SetWriteDeadline(t time.Time) error { // ÉèÖÃĞ´³¬Ê±Ê±¼ä
 
 // SetReadBuffer sets the size of the operating system's
 // receive buffer associated with the connection.
-func (c *conn) SetReadBuffer(bytes int) error { // ÉèÖÃ¶ÁBuffer
+func (c *conn) SetReadBuffer(bytes int) error { // è®¾ç½®è¯»Buffer
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -267,7 +267,7 @@ func (c *conn) SetReadBuffer(bytes int) error { // ÉèÖÃ¶ÁBuffer
 
 // SetWriteBuffer sets the size of the operating system's
 // transmit buffer associated with the connection.
-func (c *conn) SetWriteBuffer(bytes int) error { // ÉèÖÃĞ´Buffer
+func (c *conn) SetWriteBuffer(bytes int) error { // è®¾ç½®å†™Buffer
 	if !c.ok() {
 		return syscall.EINVAL
 	}
@@ -295,7 +295,7 @@ func (c *conn) File() (f *os.File, err error) {
 // PacketConn is a generic packet-oriented network connection.
 //
 // Multiple goroutines may invoke methods on a PacketConn simultaneously.
-type PacketConn interface { // ÃæÏò°üµÄÁ¬½Ó½Ó¿Ú
+type PacketConn interface { // é¢å‘åŒ…çš„è¿æ¥æ¥å£
 	// ReadFrom reads a packet from the connection,
 	// copying the payload into b.  It returns the number of
 	// bytes copied into b and the return address that
@@ -303,31 +303,31 @@ type PacketConn interface { // ÃæÏò°üµÄÁ¬½Ó½Ó¿Ú
 	// ReadFrom can be made to time out and return
 	// an error with Timeout() == true after a fixed time limit;
 	// see SetDeadline and SetReadDeadline.
-	ReadFrom(b []byte) (n int, addr Addr, err error) // ´Óconn¶ÁÊı¾İ£¬°ÑÊı¾İ¿½±´µ½bÖĞ£¬·µ»Ø¿½±´µÄÊı¾İ´óĞ¡ºÍµØÖ·
+	ReadFrom(b []byte) (n int, addr Addr, err error) // ä»connè¯»æ•°æ®ï¼ŒæŠŠæ•°æ®æ‹·è´åˆ°bä¸­ï¼Œè¿”å›æ‹·è´çš„æ•°æ®å¤§å°å’Œåœ°å€
 
 	// WriteTo writes a packet with payload b to addr.
 	// WriteTo can be made to time out and return
 	// an error with Timeout() == true after a fixed time limit;
 	// see SetDeadline and SetWriteDeadline.
 	// On packet-oriented connections, write timeouts are rare.
-	WriteTo(b []byte, addr Addr) (n int, err error) // Ğ´ÏòÄÄ¸öµØÖ·
+	WriteTo(b []byte, addr Addr) (n int, err error) // å†™å‘å“ªä¸ªåœ°å€
 
 	// Close closes the connection.
 	// Any blocked ReadFrom or WriteTo operations will be unblocked and return errors.
-	Close() error // ¹Ø±Õ½Ó¿Ú
+	Close() error // å…³é—­æ¥å£
 
 	// LocalAddr returns the local network address.
-	LocalAddr() Addr // ·µ»Ø±¾µØµØÖ·
+	LocalAddr() Addr // è¿”å›æœ¬åœ°åœ°å€
 
 	// SetDeadline sets the read and write deadlines associated
 	// with the connection.
-	SetDeadline(t time.Time) error // ÉèÖÃ¶ÁĞ´³¬Ê±Ê±¼ä
+	SetDeadline(t time.Time) error // è®¾ç½®è¯»å†™è¶…æ—¶æ—¶é—´
 
 	// SetReadDeadline sets the deadline for future Read calls.
 	// If the deadline is reached, Read will fail with a timeout
 	// (see type Error) instead of blocking.
 	// A zero value for t means Read will not time out.
-	SetReadDeadline(t time.Time) error // ÉèÖÃ¶Á³¬Ê±Ê±¼ä
+	SetReadDeadline(t time.Time) error // è®¾ç½®è¯»è¶…æ—¶æ—¶é—´
 
 	// SetWriteDeadline sets the deadline for future Write calls.
 	// If the deadline is reached, Write will fail with a timeout
@@ -335,21 +335,21 @@ type PacketConn interface { // ÃæÏò°üµÄÁ¬½Ó½Ó¿Ú
 	// A zero value for t means Write will not time out.
 	// Even if write times out, it may return n > 0, indicating that
 	// some of the data was successfully written.
-	SetWriteDeadline(t time.Time) error // ÉèÖÃĞ´³¬Ê±Ê±¼ä
+	SetWriteDeadline(t time.Time) error // è®¾ç½®å†™è¶…æ—¶æ—¶é—´
 }
 
-var listenerBacklog = maxListenerBacklog() // ÉèÖÃlistenerµÄbacklog
+var listenerBacklog = maxListenerBacklog() // è®¾ç½®listenerçš„backlog
 
 // A Listener is a generic network listener for stream-oriented protocols.
 //
 // Multiple goroutines may invoke methods on a Listener simultaneously.
-type Listener interface { // Listener½Ó¿Ú£¬ÊµÏÖAccept,CloseºÍAddrÈı¸ö·½·¨
+type Listener interface { // Listeneræ¥å£ï¼Œå®ç°Accept,Closeå’ŒAddrä¸‰ä¸ªæ–¹æ³•
 	// Accept waits for and returns the next connection to the listener.
-	Accept() (c Conn, err error) // AcceptĞÂÁ¬½Ó£¬·µ»ØÃæÏòÁ÷µÄ½Ó¿Ú
+	Accept() (c Conn, err error) // Acceptæ–°è¿æ¥ï¼Œè¿”å›é¢å‘æµçš„æ¥å£
 
 	// Close closes the listener.
 	// Any blocked Accept operations will be unblocked and return errors.
-	Close() error // ¹Ø±Õ¸ÃListener
+	Close() error // å…³é—­è¯¥Listener
 
 	// Addr returns the listener's network address.
 	Addr() Addr
@@ -368,7 +368,7 @@ var (
 	errMissingAddress = errors.New("missing address")
 
 	// For both read and write operations.
-	errTimeout          error = &timeoutError{} // ³¬Ê±´íÎó
+	errTimeout          error = &timeoutError{} // è¶…æ—¶é”™è¯¯
 	errCanceled               = errors.New("operation was canceled")
 	errClosing                = errors.New("use of closed network connection")
 	ErrWriteToConnected       = errors.New("use of WriteTo with pre-connected connection")

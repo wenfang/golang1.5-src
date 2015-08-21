@@ -14,7 +14,7 @@ import (
 // protocol numbers.
 //
 // See http://www.iana.org/assignments/protocol-numbers
-var protocols = map[string]int{ // ´ÓĞ­ÒéÃûµ½ÊıÖµµÄÓ³Éä
+var protocols = map[string]int{ // ä»åè®®ååˆ°æ•°å€¼çš„æ˜ å°„
 	"icmp": 1, "ICMP": 1,
 	"igmp": 2, "IGMP": 2,
 	"tcp": 6, "TCP": 6,
@@ -24,7 +24,7 @@ var protocols = map[string]int{ // ´ÓĞ­ÒéÃûµ½ÊıÖµµÄÓ³Éä
 
 // LookupHost looks up the given host using the local resolver.
 // It returns an array of that host's addresses.
-func LookupHost(host string) (addrs []string, err error) { // ½øĞĞÖ÷»ú²éÕÒ£¬²éÕÒipµØÖ·£¬·µ»ØIPµØÖ·ÁĞ±í
+func LookupHost(host string) (addrs []string, err error) { // è¿›è¡Œä¸»æœºæŸ¥æ‰¾ï¼ŒæŸ¥æ‰¾ipåœ°å€ï¼Œè¿”å›IPåœ°å€åˆ—è¡¨
 	// Make sure that no matter what we do later, host=="" is rejected.
 	// ParseIP, for example, does accept empty strings.
 	if host == "" {
@@ -122,7 +122,7 @@ func lookupIPDeadline(host string, deadline time.Time) (addrs []IPAddr, err erro
 }
 
 // LookupPort looks up the port for the given network and service.
-func LookupPort(network, service string) (port int, err error) { // ¸ù¾İÍøÂçºÍ·şÎñ²éÕÒ·şÎñ¶ÔÓ¦µÄ¶Ë¿ÚºÅ
+func LookupPort(network, service string) (port int, err error) { // æ ¹æ®ç½‘ç»œå’ŒæœåŠ¡æŸ¥æ‰¾æœåŠ¡å¯¹åº”çš„ç«¯å£å·
 	return lookupPort(network, service)
 }
 
@@ -130,7 +130,7 @@ func LookupPort(network, service string) (port int, err error) { // ¸ù¾İÍøÂçºÍ·ş
 // Callers that do not care about the canonical name can call
 // LookupHost or LookupIP directly; both take care of resolving
 // the canonical name as part of the lookup.
-func LookupCNAME(name string) (cname string, err error) { // ²éÕÒ¶ÔÓ¦nameµÄcname
+func LookupCNAME(name string) (cname string, err error) { // æŸ¥æ‰¾å¯¹åº”nameçš„cname
 	return lookupCNAME(name)
 }
 

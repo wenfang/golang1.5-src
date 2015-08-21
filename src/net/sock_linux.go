@@ -7,24 +7,24 @@ package net
 import "syscall"
 
 func maxListenerBacklog() int {
-	fd, err := open("/proc/sys/net/core/somaxconn") // ´ò¿ªsomaxconnÎÄ¼þ
-	if err != nil {                                 // Èç¹û´ò¿ªÎÄ¼þ´íÎó£¬·µ»ØSOMAXCONN
+	fd, err := open("/proc/sys/net/core/somaxconn") // æ‰“å¼€somaxconnæ–‡ä»¶
+	if err != nil {                                 // å¦‚æžœæ‰“å¼€æ–‡ä»¶é”™è¯¯ï¼Œè¿”å›žSOMAXCONN
 		return syscall.SOMAXCONN
 	}
 	defer fd.close()
-	l, ok := fd.readLine() // ¶ÁÒ»ÐÐÊý¾Ý
+	l, ok := fd.readLine() // è¯»ä¸€è¡Œæ•°æ®
 	if !ok {
 		return syscall.SOMAXCONN
 	}
 	f := getFields(l)
-	n, _, ok := dtoi(f[0], 0) // ×ª»»ÎªÊý×Ö
+	n, _, ok := dtoi(f[0], 0) // è½¬æ¢ä¸ºæ•°å­—
 	if n == 0 || !ok {
 		return syscall.SOMAXCONN
 	}
 	// Linux stores the backlog in a uint16.
 	// Truncate number to avoid wrapping.
 	// See issue 5030.
-	if n > 1<<16-1 { // ÏÞÖÆ²»ÄÜ¹ý´ó
+	if n > 1<<16-1 { // é™åˆ¶ä¸èƒ½è¿‡å¤§
 		n = 1<<16 - 1
 	}
 	return n
