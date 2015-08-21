@@ -59,6 +59,10 @@
 //
 // Checkmarks
 //
+// 在并发垃圾收集的过程中，担心由于没有写屏障或者收集器的实现bug导致mark
+// 活跃对象失败。gc有一个checkmark位来进行有效性检查。
+// 在checkmode模式，在堆的位图中，对象第二个word对应bit的高位为checkmark位
+// 当不在checkmark模式时，该位被设置为1
 // In a concurrent garbage collector, one worries about failing to mark
 // a live object due to mutations without write barriers or bugs in the
 // collector implementation. As a sanity check, the GC has a 'checkmark'
@@ -84,8 +88,8 @@ package runtime
 import "unsafe"
 
 const (
-	bitPointer = 1 << 0
-	bitMarked  = 1 << 4
+	bitPointer = 1 << 0 // 指针位，一个字节的低四位
+	bitMarked  = 1 << 4 // Mark位，一个字节的高四位
 
 	heapBitsShift   = 1                 // shift offset between successive bitPointer or bitMarked entries
 	heapBitmapScale = ptrSize * (8 / 2) // number of data bytes described by one heap bitmap byte
@@ -511,6 +515,7 @@ func (h heapBits) initSpan(size, n, total uintptr) {
 	memclr(unsafe.Pointer(subtractb(h.bitp, nbyte-1)), nbyte)
 }
 
+// 初始化一个mspan进行checkmark，清除checkmark位，因为普通操作情况下,checkmark位为1
 // initCheckmarkSpan initializes a span for being checkmarked.
 // It clears the checkmark bits, which are set to 1 in normal operation.
 func (h heapBits) initCheckmarkSpan(size, n, total uintptr) {

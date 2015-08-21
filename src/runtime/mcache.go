@@ -16,6 +16,7 @@ type mcache struct {
 	next_sample      int32   // trigger heap sample after allocating this many bytes
 	local_cachealloc uintptr // bytes allocated from cache since last lock of heap
 	local_scan       uintptr // bytes of scannable heap allocated
+	// 分配小对象时使用
 	// Allocator cache for tiny objects w/o pointers.
 	// See "Tiny allocator" comment in malloc.go.
 	tiny             unsafe.Pointer
@@ -34,6 +35,9 @@ type mcache struct {
 	local_nsmallfree [_NumSizeClasses]uintptr // number of frees for small objects (<=maxsmallsize)
 }
 
+// gclink是在块的连接列表中的一个节点,像mlink，但是对gc不透明。
+// gc工作的时候不会坚持gclinkptr指针，对gclinkptr的值编译器也不会发出写屏障
+// 代码应该存储到gclinks结构的引用，而不是使用指针
 // A gclink is a node in a linked list of blocks, like mlink,
 // but it is opaque to the garbage collector.
 // The GC does not trace the pointers during collection,
@@ -44,10 +48,12 @@ type gclink struct {
 	next gclinkptr
 }
 
+// 是到gclink结构的指针，但是对垃圾收集不透明
 // A gclinkptr is a pointer to a gclink, but it is opaque
 // to the garbage collector.
 type gclinkptr uintptr
 
+// ptr返回p代表的gclink的指针，返回的结果应该被用来访问域，而不是存储进其他数据结构中
 // ptr returns the *gclink form of p.
 // The result should be used for accessing fields, not stored
 // in other data structures.
@@ -60,7 +66,7 @@ type stackfreelist struct {
 	size uintptr   // total size of stacks in list
 }
 
-// dummy MSpan that contains no free objects.
+// dummy MSpan that contains no free objects. 不包含空闲对象的dummy mspan
 var emptymspan mspan
 
 func allocmcache() *mcache { // 分配出mcache结构
@@ -69,7 +75,7 @@ func allocmcache() *mcache { // 分配出mcache结构
 	unlock(&mheap_.lock)                               // 分配完结构后就给mheap解锁
 	memclr(unsafe.Pointer(c), unsafe.Sizeof(*c))       // 清除mcache结构
 	for i := 0; i < _NumSizeClasses; i++ {             // 对67个class的每个class，都设置为emptymspan
-		c.alloc[i] = &emptymspan
+		c.alloc[i] = &emptymspan // 设置为不包含空闲对象的dummy mspan
 	}
 
 	// Set first allocation sample size.
@@ -84,7 +90,7 @@ func allocmcache() *mcache { // 分配出mcache结构
 	return c // 返回分配出的mcache结构
 }
 
-func freemcache(c *mcache) {
+func freemcache(c *mcache) { // 释放mcache
 	systemstack(func() {
 		mCache_ReleaseAll(c)
 		stackcache_clear(c)
@@ -96,7 +102,7 @@ func freemcache(c *mcache) {
 
 		lock(&mheap_.lock)
 		purgecachedstats(c)
-		fixAlloc_Free(&mheap_.cachealloc, unsafe.Pointer(c))
+		fixAlloc_Free(&mheap_.cachealloc, unsafe.Pointer(c)) // 归还mcache结构到fixalloc
 		unlock(&mheap_.lock)
 	})
 }
@@ -110,10 +116,10 @@ func mCache_Refill(c *mcache, sizeclass int32) *mspan {
 	_g_.m.locks++ // 为当前goroutine的m加锁
 	// Return the current cached span to the central lists.
 	s := c.alloc[sizeclass]      // 获得用于分配该class的mspan
-	if s.freelist.ptr() != nil { // 如果是个非空mspan，抛出异常
+	if s.freelist.ptr() != nil { // 如果是个非空mspan，抛出异常，已经有数据了，不用再fill
 		throw("refill on a nonempty span")
 	}
-	if s != &emptymspan {
+	if s != &emptymspan { // 到这里时这个mspan的空间已经分配完了，如果它不是mspan，将incache设置为false
 		s.incache = false
 	}
 
@@ -131,12 +137,12 @@ func mCache_Refill(c *mcache, sizeclass int32) *mspan {
 	return s
 }
 
-func mCache_ReleaseAll(c *mcache) {
+func mCache_ReleaseAll(c *mcache) { // 释放mcache中所有对应class的mspan
 	for i := 0; i < _NumSizeClasses; i++ {
 		s := c.alloc[i]
 		if s != &emptymspan {
-			mCentral_UncacheSpan(&mheap_.central[i].mcentral, s)
-			c.alloc[i] = &emptymspan
+			mCentral_UncacheSpan(&mheap_.central[i].mcentral, s) // 将mspan归还到mcentral
+			c.alloc[i] = &emptymspan                             // 重新将mcache对应的每个类别的span设置为emptymspan
 		}
 	}
 }

@@ -8,6 +8,7 @@
 
 // NOTE: Windows externalthreadhandler expects memclr to preserve DX.
 
+// 清空内存
 // void runtime·memclr(void*, uintptr)
 TEXT runtime·memclr(SB), NOSPLIT, $0-16
 	MOVQ	ptr+0(FP), DI

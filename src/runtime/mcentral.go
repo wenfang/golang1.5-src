@@ -52,10 +52,10 @@ retry:
 		mSpanList_Remove(s)               // 从列表中获取s
 		mSpanList_InsertBack(&c.empty, s) // 将s加入empty列表
 		unlock(&c.lock)
-		goto havespan
+		goto havespan // 查找到了mspan，放到了s中，掉转到havespan
 	}
 
-	for s = c.empty.next; s != &c.empty; s = s.next {
+	for s = c.empty.next; s != &c.empty; s = s.next { // 遍历所有empty也就是没有空闲空间的mspan
 		if s.sweepgen == sg-2 && cas(&s.sweepgen, sg-2, sg-1) {
 			// we have an empty span that requires sweeping,
 			// sweep it and see if we can free some space in it
@@ -82,6 +82,7 @@ retry:
 	}
 	unlock(&c.lock)
 
+	// 如果到这里还没有发现mspan，需要重新进行mcentral_grow了
 	// Replenish central list if empty.
 	s = mCentral_Grow(c)
 	if s == nil {
@@ -91,26 +92,27 @@ retry:
 	mSpanList_InsertBack(&c.empty, s)
 	unlock(&c.lock)
 
+	// 到这里时，s是一个非空的mspan
 	// At this point s is a non-empty span, queued at the end of the empty list,
 	// c is unlocked.
 havespan:
-	cap := int32((s.npages << _PageShift) / s.elemsize)
+	cap := int32((s.npages << _PageShift) / s.elemsize) // 获得该mspan可保持多少对象
 	n := cap - int32(s.ref)
-	if n == 0 {
+	if n == 0 { // 保存的对象为0，这是一个空的mspan，抛出异常
 		throw("empty span")
 	}
 	if s.freelist.ptr() == nil {
 		throw("freelist empty")
 	}
-	s.incache = true
-	return s // 返回找到的mspan
+	s.incache = true // 从mcentral中获取了一个mspan，将要被加到mcache中，设置incache为true
+	return s         // 返回找到的mspan
 }
 
 // Return span from an MCache.
 func mCentral_UncacheSpan(c *mcentral, s *mspan) { // 从mcache中归还mspan到mcentral
 	lock(&c.lock)
 
-	s.incache = false
+	s.incache = false // mspan已经不在mcache中了
 
 	if s.ref == 0 {
 		throw("uncaching full span")
@@ -182,22 +184,22 @@ func mCentral_FreeSpan(c *mcentral, s *mspan, n int32, start gclinkptr, end gcli
 }
 
 // Fetch a new span from the heap and carve into objects for the free list.
-func mCentral_Grow(c *mcentral) *mspan {
-	npages := uintptr(class_to_allocnpages[c.sizeclass])
-	size := uintptr(class_to_size[c.sizeclass])
-	n := (npages << _PageShift) / size
+func mCentral_Grow(c *mcentral) *mspan { // 从堆中获得新的mspan
+	npages := uintptr(class_to_allocnpages[c.sizeclass]) // 获得要分配多少页面
+	size := uintptr(class_to_size[c.sizeclass])          // 获得一次分配多少空间
+	n := (npages << _PageShift) / size                   // 获得可以分配多少元素
 
-	s := mHeap_Alloc(&mheap_, npages, c.sizeclass, false, true)
+	s := mHeap_Alloc(&mheap_, npages, c.sizeclass, false, true) // 从mheap中获取mspan
 	if s == nil {
 		return nil
 	}
 
-	p := uintptr(s.start << _PageShift)
-	s.limit = p + size*n
+	p := uintptr(s.start << _PageShift) // 获得mspan的起始页面号
+	s.limit = p + size*n                // 获得mspan结束位置
 	head := gclinkptr(p)
 	tail := gclinkptr(p)
 	// i==0 iteration already done
-	for i := uintptr(1); i < n; i++ {
+	for i := uintptr(1); i < n; i++ { // 作为gclinkptr串起来
 		p += size
 		tail.ptr().next = gclinkptr(p)
 		tail = gclinkptr(p)
@@ -206,7 +208,7 @@ func mCentral_Grow(c *mcentral) *mspan {
 		throw("freelist not empty")
 	}
 	tail.ptr().next = 0
-	s.freelist = head
+	s.freelist = head // 加入到freelist列表中
 	heapBitsForSpan(s.base()).initSpan(s.layout())
 	return s
 }

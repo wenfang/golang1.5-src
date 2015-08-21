@@ -50,7 +50,7 @@ type mheap struct { // 主malloc的堆
 	// the padding makes sure that the MCentrals are
 	// spaced CacheLineSize bytes apart, so that each MCentral.lock
 	// gets its own cache line.
-	central [_NumSizeClasses]struct {
+	central [_NumSizeClasses]struct { // 初始化67个类别的mcentral
 		mcentral mcentral
 		pad      [_CacheLineSize]byte
 	}
@@ -101,9 +101,12 @@ const (
 type mspan struct {
 	next     *mspan    // in a span linked list mspan的双向列表
 	prev     *mspan    // in a span linked list
-	start    pageID    // starting page number
-	npages   uintptr   // number of pages in span
+	start    pageID    // starting page number 其实页面号
+	npages   uintptr   // number of pages in span 在该mspan中页面的数量
 	freelist gclinkptr // list of free objects 空闲对象的列表
+	// sweep 代
+	// 如果sweepgen == 堆的sweepgen-2，该span需要进行sweeping
+	// 如果sweepgen ==
 	// sweep generation:
 	// if sweepgen == h->sweepgen - 2, the span needs sweeping
 	// if sweepgen == h->sweepgen - 1, the span is currently being swept
@@ -284,7 +287,7 @@ func mHeap_Init(h *mheap, spans_size uintptr) { // 初始化memory的堆
 
 	mSpanList_Init(&h.freelarge) // 初始化freelarge MSpan
 	mSpanList_Init(&h.busylarge) // 初始化busylarge MSpan
-	for i := range h.central {
+	for i := range h.central {   // 初始化mcentral
 		mCentral_Init(&h.central[i].mcentral, int32(i))
 	}
 
