@@ -6,19 +6,19 @@ package time
 
 // Sleep pauses the current goroutine for at least the duration d.
 // A negative or zero duration causes Sleep to return immediately.
-func Sleep(d Duration) // Ë¯ÃßÖ¸¶¨µÄÊ±¼ä
+func Sleep(d Duration) // ç¡çœ æŒ‡å®šçš„æ—¶é—´
 
 // runtimeNano returns the current value of the runtime clock in nanoseconds.
-func runtimeNano() int64 // ÒÔÄÉÃëµÄĞÎÊ½·µ»Øµ±Ç°µÄÔËĞĞÊ±Ê±ÖÓ
+func runtimeNano() int64 // ä»¥çº³ç§’çš„å½¢å¼è¿”å›å½“å‰çš„è¿è¡Œæ—¶æ—¶é’Ÿ
 
 // Interface to timers implemented in package runtime.
 // Must be in sync with ../runtime/runtime.h:/^struct.Timer$
-type runtimeTimer struct { // ´´½¨Ò»¸öÔËĞĞÊ±timer½á¹¹£¬ºÍruntimeÖĞµÄTimer½á¹¹ÏàÍ¬
+type runtimeTimer struct { // åˆ›å»ºä¸€ä¸ªè¿è¡Œæ—¶timerç»“æ„ï¼Œå’Œruntimeä¸­çš„Timerç»“æ„ç›¸åŒ
 	i      int
-	when   int64                      // timerºÎÊ±µ½ÆÚ
-	period int64                      // ¼ä¸ô¶à³¤Ê±¼ä£¬ÖÜÆÚĞÔ
+	when   int64                      // timerä½•æ—¶åˆ°æœŸ
+	period int64                      // é—´éš”å¤šé•¿æ—¶é—´ï¼Œå‘¨æœŸæ€§
 	f      func(interface{}, uintptr) // NOTE: must not be closure
-	arg    interface{}                // µ½ÆÚÖ´ĞĞº¯ÊıµÄ²ÎÊı
+	arg    interface{}                // åˆ°æœŸæ‰§è¡Œå‡½æ•°çš„å‚æ•°
 	seq    uintptr
 }
 
@@ -26,8 +26,8 @@ type runtimeTimer struct { // ´´½¨Ò»¸öÔËĞĞÊ±timer½á¹¹£¬ºÍruntimeÖĞµÄTimer½á¹¹ÏàÍ
 // It returns what the time will be, in nanoseconds, Duration d in the future.
 // If d is negative, it is ignored.  If the returned value would be less than
 // zero because of an overflow, MaxInt64 is returned.
-func when(d Duration) int64 { // ·µ»ØdÊ±¼äÒÔºó¶ÔÓ¦µÄÄÉÃëÊ±¼ä
-	if d <= 0 { // Èç¹ûdĞ¡ÓÚµÈÓÚ0£¬·µ»Øµ±Ç°Ê±¼ä
+func when(d Duration) int64 { // è¿”å›dæ—¶é—´ä»¥åå¯¹åº”çš„çº³ç§’æ—¶é—´
+	if d <= 0 { // å¦‚æœdå°äºç­‰äº0ï¼Œè¿”å›å½“å‰æ—¶é—´
 		return runtimeNano()
 	}
 	t := runtimeNano() + int64(d)
@@ -44,9 +44,9 @@ func stopTimer(*runtimeTimer) bool
 // When the Timer expires, the current time will be sent on C,
 // unless the Timer was created by AfterFunc.
 // A Timer must be created with NewTimer or AfterFunc.
-type Timer struct { // ¶¨Ê±Æ÷½á¹¹
-	C <-chan Time  // ·¢ËÍÍ¨ÖªµÄchan£¬·¢ËÍµÄÄÚÈİÎªTime
-	r runtimeTimer // °üº¬Ò»¸öruntimeTimer½á¹¹
+type Timer struct { // å®šæ—¶å™¨ç»“æ„
+	C <-chan Time  // å‘é€é€šçŸ¥çš„chanï¼Œå‘é€çš„å†…å®¹ä¸ºTime
+	r runtimeTimer // åŒ…å«ä¸€ä¸ªruntimeTimerç»“æ„
 }
 
 // Stop prevents the Timer from firing.
@@ -63,30 +63,30 @@ func (t *Timer) Stop() bool {
 
 // NewTimer creates a new Timer that will send
 // the current time on its channel after at least duration d.
-func NewTimer(d Duration) *Timer { // ´´½¨Ò»¸öĞÂµÄ¶¨Ê±Æ÷£¬µ½ÆÚºóÏòchan·¢ËÍÊ±¼ä£¬Ö»Ö´ĞĞÒ»´Î
-	c := make(chan Time, 1) // ´´½¨chan
-	t := &Timer{            // ´´½¨Timer
+func NewTimer(d Duration) *Timer { // åˆ›å»ºä¸€ä¸ªæ–°çš„å®šæ—¶å™¨ï¼Œåˆ°æœŸåå‘chanå‘é€æ—¶é—´ï¼Œåªæ‰§è¡Œä¸€æ¬¡
+	c := make(chan Time, 1) // åˆ›å»ºchan
+	t := &Timer{            // åˆ›å»ºTimer
 		C: c,
 		r: runtimeTimer{
-			when: when(d),  // ºÎÊ±µ½ÆÚ
-			f:    sendTime, // µ½ÆÚºóÖ´ĞĞµÄº¯Êı£¬µ½ÆÚºóÏòchanÖĞ·¢ËÍµ±Ç°Ê±¼ä
-			arg:  c,        // Ö´ĞĞº¯ÊıµÄ²ÎÊı
+			when: when(d),  // ä½•æ—¶åˆ°æœŸ
+			f:    sendTime, // åˆ°æœŸåæ‰§è¡Œçš„å‡½æ•°ï¼Œåˆ°æœŸåå‘chanä¸­å‘é€å½“å‰æ—¶é—´
+			arg:  c,        // æ‰§è¡Œå‡½æ•°çš„å‚æ•°
 		},
 	}
-	startTimer(&t.r) // ¼ÓÈë¶¨Ê±Æ÷
+	startTimer(&t.r) // åŠ å…¥å®šæ—¶å™¨
 	return t
 }
 
 // Reset changes the timer to expire after duration d.
 // It returns true if the timer had been active, false if the timer had
 // expired or been stopped.
-func (t *Timer) Reset(d Duration) bool { // ÖØÖÃ¶¨Ê±Æ÷£¬dÊ±¼äºóÉúĞ§
+func (t *Timer) Reset(d Duration) bool { // é‡ç½®å®šæ—¶å™¨ï¼Œdæ—¶é—´åç”Ÿæ•ˆ
 	if t.r.f == nil {
 		panic("time: Reset called on uninitialized Timer")
 	}
 	w := when(d)
 	active := stopTimer(&t.r)
-	t.r.when = w // ÉèÖÃĞÂÊ±¼ä
+	t.r.when = w // è®¾ç½®æ–°æ—¶é—´
 	startTimer(&t.r)
 	return active
 }
@@ -98,7 +98,7 @@ func sendTime(c interface{}, seq uintptr) {
 	// the desired behavior when the reader gets behind,
 	// because the sends are periodic.
 	select {
-	case c.(chan Time) <- Now(): // ½«µ±Ç°µÄÊ±¼ä·¢ËÍ¸øchan£¬Èç¹û×èÈûÔò²»·¢ËÍ
+	case c.(chan Time) <- Now(): // å°†å½“å‰çš„æ—¶é—´å‘é€ç»™chanï¼Œå¦‚æœé˜»å¡åˆ™ä¸å‘é€
 	default:
 	}
 }
@@ -106,22 +106,22 @@ func sendTime(c interface{}, seq uintptr) {
 // After waits for the duration to elapse and then sends the current time
 // on the returned channel.
 // It is equivalent to NewTimer(d).C.
-func After(d Duration) <-chan Time { // ĞÂ´´½¨Ò»¸ö¶¨Ê±Æ÷£¬·µ»ØÆächan£¬µÈ´ıdÊ±¼äºó·¢ËÍµ±Ç°Ê±¼äµ½chanÖĞ
-	return NewTimer(d).C // ĞÂ½¨Ò»¸ötimer£¬·µ»Øchan
+func After(d Duration) <-chan Time { // æ–°åˆ›å»ºä¸€ä¸ªå®šæ—¶å™¨ï¼Œè¿”å›å…¶chanï¼Œç­‰å¾…dæ—¶é—´åå‘é€å½“å‰æ—¶é—´åˆ°chanä¸­
+	return NewTimer(d).C // æ–°å»ºä¸€ä¸ªtimerï¼Œè¿”å›chan
 }
 
 // AfterFunc waits for the duration to elapse and then calls f
 // in its own goroutine. It returns a Timer that can
 // be used to cancel the call using its Stop method.
-func AfterFunc(d Duration, f func()) *Timer { // µ½Ê±¼äºóÖ´ĞĞº¯Êıf
-	t := &Timer{ // ĞÂ´´½¨Ò»¸öTimer
+func AfterFunc(d Duration, f func()) *Timer { // åˆ°æ—¶é—´åæ‰§è¡Œå‡½æ•°f
+	t := &Timer{ // æ–°åˆ›å»ºä¸€ä¸ªTimer
 		r: runtimeTimer{
 			when: when(d),
-			f:    goFunc, // µ½Ê±ºóÖ´ĞĞgoFunc£¬²ÎÊıÎªf
+			f:    goFunc, // åˆ°æ—¶åæ‰§è¡ŒgoFuncï¼Œå‚æ•°ä¸ºf
 			arg:  f,
 		},
 	}
-	startTimer(&t.r) // Ö´ĞĞ¸ÃTimer
+	startTimer(&t.r) // æ‰§è¡Œè¯¥Timer
 	return t
 }
 

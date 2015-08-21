@@ -607,9 +607,9 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 				sizeclass = size_to_class128[(size-1024+127)>>7]
 			}
 			size = uintptr(class_to_size[sizeclass]) // 根据class获得对齐后实际分配的内存大小
-			s = c.alloc[sizeclass]
-			v := s.freelist
-			if v.ptr() == nil {
+			s = c.alloc[sizeclass]                   // 获得mcache中对应class的mspan
+			v := s.freelist                          // 从空闲列表中获得一块内存
+			if v.ptr() == nil {                      // 如果分配的为空
 				systemstack(func() {
 					mCache_Refill(c, int32(sizeclass))
 				})
@@ -617,20 +617,20 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 				s = c.alloc[sizeclass]
 				v = s.freelist
 			}
-			s.freelist = v.ptr().next
+			s.freelist = v.ptr().next // 分配的不为空，从freelist中摘除
 			s.ref++
 			// prefetchnta offers best performance, see change list message.
 			prefetchnta(uintptr(v.ptr().next))
 			x = unsafe.Pointer(v)
-			if flags&flagNoZero == 0 {
+			if flags&flagNoZero == 0 { // 如果数据需要清0
 				v.ptr().next = 0
 				if size > 2*ptrSize && ((*[2]uintptr)(x))[1] != 0 {
-					memclr(unsafe.Pointer(v), size)
+					memclr(unsafe.Pointer(v), size) // 将size大小的数据清0
 				}
 			}
 		}
-		c.local_cachealloc += size
-	} else {
+		c.local_cachealloc += size // 本地cache分配的数据大小增加
+	} else { // 如果分配大于32K的内存
 		var s *mspan
 		shouldhelpgc = true
 		systemstack(func() {
@@ -640,7 +640,7 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 		size = uintptr(s.elemsize)
 	}
 
-	if flags&flagNoScan != 0 {
+	if flags&flagNoScan != 0 { // 所有对象预设就为NOSCAN，不需要操作
 		// All objects are pre-marked as noscan. Nothing to do.
 	} else {
 		// If allocating a defer+arg block, now that we've picked a malloc size
@@ -755,10 +755,10 @@ func largeAlloc(size uintptr, flag uint32) *mspan {
 }
 
 // implementation of new builtin
-func newobject(typ *_type) unsafe.Pointer {
+func newobject(typ *_type) unsafe.Pointer { // 创建一个新对象，实现内建的new函数
 	flags := uint32(0)
-	if typ.kind&kindNoPointers != 0 {
-		flags |= flagNoScan
+	if typ.kind&kindNoPointers != 0 { // 如果类型内不包含指针
+		flags |= flagNoScan // 设置不需要进行scan
 	}
 	return mallocgc(uintptr(typ.size), typ, flags)
 }

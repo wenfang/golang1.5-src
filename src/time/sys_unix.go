@@ -19,8 +19,8 @@ func interrupt() {
 // readFile reads and returns the content of the named file.
 // It is a trivial implementation of ioutil.ReadFile, reimplemented
 // here to avoid depending on io/ioutil or os.
-// ¶ÁÎÄ¼şÄÚÈİ£¬ÊÇ¶Ôioutil.ReadFileµÄÖØĞÂÊµÏÖ£¬Ö÷ÒªÎªÁË±ÜÃâ¶Ôio/ioutilµÄÒÀÀµ
-func readFile(name string) ([]byte, error) { // 4KÎªµ¥Î»¶ÁÎÄ¼şÄÚÈİ²¢·µ»Ø
+// è¯»æ–‡ä»¶å†…å®¹ï¼Œæ˜¯å¯¹ioutil.ReadFileçš„é‡æ–°å®ç°ï¼Œä¸»è¦ä¸ºäº†é¿å…å¯¹io/ioutilçš„ä¾èµ–
+func readFile(name string) ([]byte, error) { // 4Kä¸ºå•ä½è¯»æ–‡ä»¶å†…å®¹å¹¶è¿”å›
 	f, err := syscall.Open(name, syscall.O_RDONLY, 0)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func readFile(name string) ([]byte, error) { // 4KÎªµ¥Î»¶ÁÎÄ¼şÄÚÈİ²¢·µ»Ø
 	return ret, err
 }
 
-func open(name string) (uintptr, error) { // ´ò¿ªÎÄ¼ş
+func open(name string) (uintptr, error) { // æ‰“å¼€æ–‡ä»¶
 	fd, err := syscall.Open(name, syscall.O_RDONLY, 0)
 	if err != nil {
 		return 0, err
@@ -55,7 +55,7 @@ func closefd(fd uintptr) {
 	syscall.Close(int(fd))
 }
 
-func preadn(fd uintptr, buf []byte, off int) error { // ´Óoff¿ªË®£¬¶ÁÈ¡buf´óĞ¡µÄÊı¾İ
+func preadn(fd uintptr, buf []byte, off int) error { // ä»offå¼€æ°´ï¼Œè¯»å–bufå¤§å°çš„æ•°æ®
 	whence := 0
 	if off < 0 {
 		whence = 2

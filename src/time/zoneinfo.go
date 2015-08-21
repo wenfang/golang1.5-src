@@ -12,8 +12,8 @@ import (
 // A Location maps time instants to the zone in use at that time.
 // Typically, the Location represents the collection of time offsets
 // in use in a geographical area, such as CEST and CET for central Europe.
-type Location struct { // Ê±¼älocationÓ³Éä
-	name string // LocationµÄÃû³Æ
+type Location struct { // æ—¶é—´locationæ˜ å°„
+	name string // Locationçš„åç§°
 	zone []zone
 	tx   []zoneTrans
 
@@ -53,7 +53,7 @@ const (
 )
 
 // UTC represents Universal Coordinated Time (UTC).
-var UTC *Location = &utcLoc // ´ú±íUTC Location
+var UTC *Location = &utcLoc // ä»£è¡¨UTC Location
 
 // utcLoc is separate so that get can refer to &utcLoc
 // and ensure that it never returns a nil *Location,
@@ -61,14 +61,14 @@ var UTC *Location = &utcLoc // ´ú±íUTC Location
 var utcLoc = Location{name: "UTC"}
 
 // Local represents the system's local time zone.
-var Local *Location = &localLoc // ´ú±íÏµÍ³±¾µØÊ±Çø
+var Local *Location = &localLoc // ä»£è¡¨ç³»ç»Ÿæœ¬åœ°æ—¶åŒº
 
 // localLoc is separate so that initLocal can initialize
 // it even if a client has changed Local.
 var localLoc Location
 var localOnce sync.Once
 
-func (l *Location) get() *Location { // ·µ»ØLocation
+func (l *Location) get() *Location { // è¿”å›Location
 	if l == nil {
 		return &utcLoc
 	}
@@ -80,7 +80,7 @@ func (l *Location) get() *Location { // ·µ»ØLocation
 
 // String returns a descriptive name for the time zone information,
 // corresponding to the argument to LoadLocation.
-func (l *Location) String() string { // »ñµÃLocationµÄÃû³Æ
+func (l *Location) String() string { // è·å¾—Locationçš„åç§°
 	return l.get().name
 }
 
@@ -254,7 +254,7 @@ func (l *Location) lookupName(name string, unix int64) (offset int, isDST bool, 
 // NOTE(rsc): Eventually we will need to accept the POSIX TZ environment
 // syntax too, but I don't feel like implementing it today.
 
-var zoneinfo, _ = syscall.Getenv("ZONEINFO") // »ñµÃZONEINFO»·¾³±äÁ¿
+var zoneinfo, _ = syscall.Getenv("ZONEINFO") // è·å¾—ZONEINFOç¯å¢ƒå˜é‡
 
 // LoadLocation returns the Location with the given name.
 //
@@ -270,14 +270,14 @@ var zoneinfo, _ = syscall.Getenv("ZONEINFO") // »ñµÃZONEINFO»·¾³±äÁ¿
 // named by the ZONEINFO environment variable, if any, then looks in
 // known installation locations on Unix systems,
 // and finally looks in $GOROOT/lib/time/zoneinfo.zip.
-func LoadLocation(name string) (*Location, error) { // ¼ÓÔØ·µ»ØÖ¸¶¨Ãû³ÆµÄLocation
-	if name == "" || name == "UTC" { // Èç¹ûnameÎª¿Õ»òÕßÎªUTC·µ»ØUTC Location
+func LoadLocation(name string) (*Location, error) { // åŠ è½½è¿”å›æŒ‡å®šåç§°çš„Location
+	if name == "" || name == "UTC" { // å¦‚æœnameä¸ºç©ºæˆ–è€…ä¸ºUTCè¿”å›UTC Location
 		return UTC, nil
 	}
 	if name == "Local" {
 		return Local, nil
 	}
-	if zoneinfo != "" { // ÓĞzoneinfo»·¾³±äÁ¿µÄ»°£¬×°ÔØzoneinfoÎÄ¼ş
+	if zoneinfo != "" { // æœ‰zoneinfoç¯å¢ƒå˜é‡çš„è¯ï¼Œè£…è½½zoneinfoæ–‡ä»¶
 		if z, err := loadZoneFile(zoneinfo, name); err == nil {
 			z.name = name
 			return z, nil

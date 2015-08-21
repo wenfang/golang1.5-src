@@ -58,17 +58,17 @@ func byteString(p []byte) string {
 
 var badData = errors.New("malformed time zone information")
 
-func loadZoneData(bytes []byte) (l *Location, err error) { // ´ÓbytesÖĞ½âÎözoneµÄÊı¾İ
+func loadZoneData(bytes []byte) (l *Location, err error) { // ä»bytesä¸­è§£æzoneçš„æ•°æ®
 	d := data{bytes, false}
 
 	// 4-byte magic "TZif"
-	if magic := d.read(4); string(magic) != "TZif" { // ¶ÁÈ¡Ç°4¸ö×Ö½Ú£¬±ØĞëÎªTZif
+	if magic := d.read(4); string(magic) != "TZif" { // è¯»å–å‰4ä¸ªå­—èŠ‚ï¼Œå¿…é¡»ä¸ºTZif
 		return nil, badData
 	}
 
 	// 1-byte version, then 15 bytes of padding
 	var p []byte
-	if p = d.read(16); len(p) != 16 || p[0] != 0 && p[0] != '2' && p[0] != '3' { // Ò»¸ö×Ö½ÚµÄ°æ±¾ºÅ15¸ö×Ö½ÚµÄpadding
+	if p = d.read(16); len(p) != 16 || p[0] != 0 && p[0] != '2' && p[0] != '3' { // ä¸€ä¸ªå­—èŠ‚çš„ç‰ˆæœ¬å·15ä¸ªå­—èŠ‚çš„padding
 		return nil, badData
 	}
 
@@ -196,18 +196,18 @@ func loadZoneData(bytes []byte) (l *Location, err error) { // ´ÓbytesÖĞ½âÎözoneµ
 	return l, nil
 }
 
-func loadZoneFile(dir, name string) (l *Location, err error) { // ´ÓÄ¿Â¼ÖĞ×°ÔØZoneÎÄ¼ş
-	if len(dir) > 4 && dir[len(dir)-4:] == ".zip" { // Èç¹ûÊÇzipÎÄ¼ş£¬Ôò×°ÔØzipÎÄ¼ş
-		return loadZoneZip(dir, name) // ×°ÔØzipÎÄ¼ş
+func loadZoneFile(dir, name string) (l *Location, err error) { // ä»ç›®å½•ä¸­è£…è½½Zoneæ–‡ä»¶
+	if len(dir) > 4 && dir[len(dir)-4:] == ".zip" { // å¦‚æœæ˜¯zipæ–‡ä»¶ï¼Œåˆ™è£…è½½zipæ–‡ä»¶
+		return loadZoneZip(dir, name) // è£…è½½zipæ–‡ä»¶
 	}
-	if dir != "" { // ºÏ²¢Ä¿Â¼Ãû
+	if dir != "" { // åˆå¹¶ç›®å½•å
 		name = dir + "/" + name
 	}
-	buf, err := readFile(name) // ¶ÁÎÄ¼şµÄÊı¾İµ½bufÖĞ
+	buf, err := readFile(name) // è¯»æ–‡ä»¶çš„æ•°æ®åˆ°bufä¸­
 	if err != nil {
 		return
 	}
-	return loadZoneData(buf) // ×°ÔØzoneÊı¾İ
+	return loadZoneData(buf) // è£…è½½zoneæ•°æ®
 }
 
 // There are 500+ zoneinfo files.  Rather than distribute them all
@@ -234,8 +234,8 @@ func get2(b []byte) int {
 	return int(b[0]) | int(b[1])<<8
 }
 
-func loadZoneZip(zipfile, name string) (l *Location, err error) { // ×°ÔØzipÎÄ¼ş
-	fd, err := open(zipfile) // ´ò¿ªzipÎÄ¼ş
+func loadZoneZip(zipfile, name string) (l *Location, err error) { // è£…è½½zipæ–‡ä»¶
+	fd, err := open(zipfile) // æ‰“å¼€zipæ–‡ä»¶
 	if err != nil {
 		return nil, errors.New("open " + zipfile + ": " + err.Error())
 	}

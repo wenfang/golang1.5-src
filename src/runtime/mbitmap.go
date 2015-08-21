@@ -4,15 +4,23 @@
 
 // Garbage collector: type and heap bitmaps.
 //
+// 栈，数据和bss位图
 // Stack, data, and bss bitmaps
 //
+// 在数据段和bss段中的栈帧和全局变量由1bit的位图描述，0表示不感兴趣，1表示活跃指针
+// 需要在gc时检查。在每个字节中bit的消耗从低到高
 // Stack frames and global variables in the data and bss sections are described
 // by 1-bit bitmaps in which 0 means uninteresting and 1 means live pointer
 // to be visited during GC. The bits in each byte are consumed starting with
 // the low bit: 1<<0, 1<<1, and so on.
 //
+// 堆位图
 // Heap bitmap
 //
+// 分配的堆内存来自于一段内存的子集[start, used)，对每个指针大小的word，堆位图中
+// 对应2个bit，存储在start位置之前。也就是说在地址start-1的字节，保存了从start到
+// start+3*ptrSize内存的情况,start-2的字节保存start+4*ptrSize到start+7*ptrSize的内存
+// 情况
 // The allocated heap comes from a subset of the memory in the range [start, used),
 // where start == mheap_.arena_start and used == mheap_.arena_used.
 // The heap bitmap comprises 2 bits for each pointer-sized word in that range,
@@ -21,6 +29,12 @@
 // start through start+3*ptrSize, the byte at start-2 holds the entries for
 // start+4*ptrSize through start+7*ptrSize, and so on.
 //
+// 对应每个2bit项，低位bit的信息和1bit位图相同，0表示不感兴趣，1表示保存有活跃指针
+// 需要在gc时进行检查。高位bit的含义依赖于该word在对应分配对象中的位置。如果是对象
+// 的第一个word，高位bit是GC的marked位。在第二个word，高位bit是gc的checkmarked位
+// 在第三个及后面的word中，高位bit指示该对象仍然被描述（仍然是该对象的一部分)
+// 在这些word中，如果一个高位bit为0，对应的地位bit也是0，那么对象描述结束。
+// 00也被称作dead编码，它提示下面word对gc无意义。
 // In each 2-bit entry, the lower bit holds the same information as in the 1-bit
 // bitmaps: 0 means uninteresting and 1 means live pointer to be visited during GC.
 // The meaning of the high bit depends on the position of the word being described
@@ -32,6 +46,7 @@
 // This 00 is called the ``dead'' encoding: it signals that the rest of the words
 // in the object are uninteresting to the garbage collector.
 //
+// 当写入字节时这个2bit的项被分割，一个字节中的前4位时mark位，后4位时指针位
 // The 2-bit entries are split when written into the byte, so that the top half
 // of the byte contains 4 mark bits and the bottom half contains 4 pointer bits.
 // This form allows a copy from the 1-bit to the 4-bit form to keep the

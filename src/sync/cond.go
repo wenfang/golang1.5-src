@@ -19,17 +19,17 @@ import (
 //
 // A Cond can be created as part of other structures.
 // A Cond must not be copied after first use.
-type Cond struct { // Ìõ¼ş½á¹¹
+type Cond struct { // æ¡ä»¶ç»“æ„
 	// L is held while observing or changing the condition
-	L Locker // ¶ÔÓ¦Ìõ¼şµÄËø£¬ºÍ¸ÃËøÒ»Æğ£¬¹¹³É¶Ô×ÊÔ´Ê¹ÓÃµÄ±£»¤
+	L Locker // å¯¹åº”æ¡ä»¶çš„é”ï¼Œå’Œè¯¥é”ä¸€èµ·ï¼Œæ„æˆå¯¹èµ„æºä½¿ç”¨çš„ä¿æŠ¤
 
 	sema    syncSema
-	waiters uint32      // number of waiters µÈ´ıÕßµÄÊıÁ¿
-	checker copyChecker // Ö¸Ïòchecker×ÔÉíµÄÒ»¸öÖ¸Õë£¬ÓÃ×÷ÅĞ¶ÏcondÊÇ·ñ±»¿½±´¹ı
+	waiters uint32      // number of waiters ç­‰å¾…è€…çš„æ•°é‡
+	checker copyChecker // æŒ‡å‘checkerè‡ªèº«çš„ä¸€ä¸ªæŒ‡é’ˆï¼Œç”¨ä½œåˆ¤æ–­condæ˜¯å¦è¢«æ‹·è´è¿‡
 }
 
 // NewCond returns a new Cond with Locker l.
-func NewCond(l Locker) *Cond { // ´´½¨ĞÂµÄÌõ¼ş±äÁ¿£¬¸ù¾İLock
+func NewCond(l Locker) *Cond { // åˆ›å»ºæ–°çš„æ¡ä»¶å˜é‡ï¼Œæ ¹æ®Lock
 	return &Cond{L: l}
 }
 
@@ -49,18 +49,18 @@ func NewCond(l Locker) *Cond { // ´´½¨ĞÂµÄÌõ¼ş±äÁ¿£¬¸ù¾İLock
 //    ... make use of condition ...
 //    c.L.Unlock()
 //
-// ÊÍ·ÅËø£¬µÈ´ıÖ´ĞĞ£¬Èç¹ûÌõ¼şÂú×ã£¬º¯Êı·µ»ØÊ±ÒÑ¼ÓÉÏËø
-func (c *Cond) Wait() { // µÈ´ıÌõ¼şÂú×ã
-	c.checker.check() // ¼ì²éCondÃ»ÓĞ±»¿½±´
+// é‡Šæ”¾é”ï¼Œç­‰å¾…æ‰§è¡Œï¼Œå¦‚æœæ¡ä»¶æ»¡è¶³ï¼Œå‡½æ•°è¿”å›æ—¶å·²åŠ ä¸Šé”
+func (c *Cond) Wait() { // ç­‰å¾…æ¡ä»¶æ»¡è¶³
+	c.checker.check() // æ£€æŸ¥Condæ²¡æœ‰è¢«æ‹·è´
 	if raceenabled {
 		raceDisable()
 	}
-	atomic.AddUint32(&c.waiters, 1) // µÈ´ıÕßµÄÊıÁ¿Ôö¼Ó
+	atomic.AddUint32(&c.waiters, 1) // ç­‰å¾…è€…çš„æ•°é‡å¢åŠ 
 	if raceenabled {
 		raceEnable()
 	}
-	c.L.Unlock()                    // ÏÈ½âËø
-	runtime_Syncsemacquire(&c.sema) // µÈ´ıÔÚsemaÉÏ
+	c.L.Unlock()                    // å…ˆè§£é”
+	runtime_Syncsemacquire(&c.sema) // ç­‰å¾…åœ¨semaä¸Š
 	c.L.Lock()
 }
 
@@ -68,7 +68,7 @@ func (c *Cond) Wait() { // µÈ´ıÌõ¼şÂú×ã
 //
 // It is allowed but not required for the caller to hold c.L
 // during the call.
-// Í¨ÖªÌõ¼şµÄÒ»¸öµÈ´ıÕß£¬Ìõ¼şÒÑÂú×ã
+// é€šçŸ¥æ¡ä»¶çš„ä¸€ä¸ªç­‰å¾…è€…ï¼Œæ¡ä»¶å·²æ»¡è¶³
 func (c *Cond) Signal() {
 	c.signalImpl(false)
 }
@@ -77,19 +77,19 @@ func (c *Cond) Signal() {
 //
 // It is allowed but not required for the caller to hold c.L
 // during the call.
-// Í¨ÖªÌõ¼şµÄËùÓĞµÈ´ıÕß£¬Ìõ¼şÒÑÂú×ã
+// é€šçŸ¥æ¡ä»¶çš„æ‰€æœ‰ç­‰å¾…è€…ï¼Œæ¡ä»¶å·²æ»¡è¶³
 func (c *Cond) Broadcast() {
 	c.signalImpl(true)
 }
 
-func (c *Cond) signalImpl(all bool) { // Í¨ÖªµÄ¾ßÌåÊµÏÖ£¬all±íÊ¾ÊÇ·ñÍ¨ÖªËùÓĞµÄµÈ´ıÕß
-	c.checker.check() // ¼ì²éCondÃ»ÓĞ±»¿½±´
+func (c *Cond) signalImpl(all bool) { // é€šçŸ¥çš„å…·ä½“å®ç°ï¼Œallè¡¨ç¤ºæ˜¯å¦é€šçŸ¥æ‰€æœ‰çš„ç­‰å¾…è€…
+	c.checker.check() // æ£€æŸ¥Condæ²¡æœ‰è¢«æ‹·è´
 	if raceenabled {
 		raceDisable()
 	}
 	for {
-		old := atomic.LoadUint32(&c.waiters) // ²é¿´ÓĞ¶àÉÙÈËÔÚµÈ´ı¸ÃÌõ¼ş
-		if old == 0 {                        // Èç¹ûÃ»ÈËµÈ´ı£¬Ö±½Ó·µ»Ø
+		old := atomic.LoadUint32(&c.waiters) // æŸ¥çœ‹æœ‰å¤šå°‘äººåœ¨ç­‰å¾…è¯¥æ¡ä»¶
+		if old == 0 {                        // å¦‚æœæ²¡äººç­‰å¾…ï¼Œç›´æ¥è¿”å›
 			if raceenabled {
 				raceEnable()
 			}
@@ -103,19 +103,19 @@ func (c *Cond) signalImpl(all bool) { // Í¨ÖªµÄ¾ßÌåÊµÏÖ£¬all±íÊ¾ÊÇ·ñÍ¨ÖªËùÓĞµÄµÈ
 			if raceenabled {
 				raceEnable()
 			}
-			runtime_Syncsemrelease(&c.sema, old-new) // ÉèÖÃ»½ĞÑ¶àÉÙ¸ö
+			runtime_Syncsemrelease(&c.sema, old-new) // è®¾ç½®å”¤é†’å¤šå°‘ä¸ª
 			return
 		}
 	}
 }
 
 // copyChecker holds back pointer to itself to detect object copying.
-type copyChecker uintptr // copyChecker±£´æÖ¸Ïò×Ô¼ºµÄÖ¸Õë£¬ÓÃÀ´¼ì²â¶ÔÏó¿½±´
+type copyChecker uintptr // copyCheckerä¿å­˜æŒ‡å‘è‡ªå·±çš„æŒ‡é’ˆï¼Œç”¨æ¥æ£€æµ‹å¯¹è±¡æ‹·è´
 
 func (c *copyChecker) check() {
 	if uintptr(*c) != uintptr(unsafe.Pointer(c)) &&
 		!atomic.CompareAndSwapUintptr((*uintptr)(c), 0, uintptr(unsafe.Pointer(c))) &&
-		uintptr(*c) != uintptr(unsafe.Pointer(c)) { // Èç¹ûc²»Ö¸Ïò×ÔÉíÁË£¬»òÕßc±¾ÉíÎª¿Õ(³õÊ¼»¯µÄÇé¿ö£¬ÕâÊ±¸øc¸³Öµ)£¬
-		panic("sync.Cond is copied") // Èç¹û³õÊ¼»¯Ê§°Ü£¬»òÕß²»Ö¸Ïò×ÔÉíÁË£¬panic
+		uintptr(*c) != uintptr(unsafe.Pointer(c)) { // å¦‚æœcä¸æŒ‡å‘è‡ªèº«äº†ï¼Œæˆ–è€…cæœ¬èº«ä¸ºç©º(åˆå§‹åŒ–çš„æƒ…å†µï¼Œè¿™æ—¶ç»™cèµ‹å€¼)ï¼Œ
+		panic("sync.Cond is copied") // å¦‚æœåˆå§‹åŒ–å¤±è´¥ï¼Œæˆ–è€…ä¸æŒ‡å‘è‡ªèº«äº†ï¼Œpanic
 	}
 }

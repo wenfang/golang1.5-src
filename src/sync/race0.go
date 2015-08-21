@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build !race ²»¼ÓÈëraceÊ±Á¬½ÓÕâ¸öÎÄ¼ş
+// +build !race ä¸åŠ å…¥raceæ—¶è¿æ¥è¿™ä¸ªæ–‡ä»¶
 
 package sync
 

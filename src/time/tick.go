@@ -8,10 +8,10 @@ import "errors"
 
 // A Ticker holds a channel that delivers `ticks' of a clock
 // at intervals.
-// TickerÖĞ°üº¬Ò»¸öchannel
+// Tickerä¸­åŒ…å«ä¸€ä¸ªchannel
 type Ticker struct {
-	C <-chan Time // The channel on which the ticks are delivered.
-	r runtimeTimer // ÄÚ²¿°üº¬Ò»¸öruntimeTimer½á¹¹
+	C <-chan Time  // The channel on which the ticks are delivered.
+	r runtimeTimer // å†…éƒ¨åŒ…å«ä¸€ä¸ªruntimeTimerç»“æ„
 }
 
 // NewTicker returns a new Ticker containing a channel that will send the
@@ -19,31 +19,31 @@ type Ticker struct {
 // It adjusts the intervals or drops ticks to make up for slow receivers.
 // The duration d must be greater than zero; if not, NewTicker will panic.
 // Stop the ticker to release associated resources.
-func NewTicker(d Duration) *Ticker { // ĞÂ´´½¨Ò»¸öTicker
-	if d <= 0 { // ¼ä¸ôÊ±¼ä´íÎó£¬´òÓ¡´íÎó×Ö·û´®
+func NewTicker(d Duration) *Ticker { // æ–°åˆ›å»ºä¸€ä¸ªTicker
+	if d <= 0 { // é—´éš”æ—¶é—´é”™è¯¯ï¼Œæ‰“å°é”™è¯¯å­—ç¬¦ä¸²
 		panic(errors.New("non-positive interval for NewTicker"))
 	}
 	// Give the channel a 1-element time buffer.
 	// If the client falls behind while reading, we drop ticks
 	// on the floor until the client catches up.
-	c := make(chan Time, 1) // Éú³ÉTime½á¹¹µÄchan
-	t := &Ticker{           // ´´½¨Ò»¸öTicker
-		C: c, // ´´½¨Ò»¸öÀàĞÍÎªTimeµÄchan
-		r: runtimeTimer{ // ³õÊ¼»¯runtimeTimer½á¹¹
+	c := make(chan Time, 1) // ç”ŸæˆTimeç»“æ„çš„chan
+	t := &Ticker{           // åˆ›å»ºä¸€ä¸ªTicker
+		C: c, // åˆ›å»ºä¸€ä¸ªç±»å‹ä¸ºTimeçš„chan
+		r: runtimeTimer{ // åˆå§‹åŒ–runtimeTimerç»“æ„
 			when:   when(d),
-			period: int64(d), // ÖÜÆÚĞÔÔËĞĞ
+			period: int64(d), // å‘¨æœŸæ€§è¿è¡Œ
 			f:      sendTime,
 			arg:    c,
 		},
 	}
 	startTimer(&t.r)
-	return t // ·µ»ØÒ»¸öTicker½á¹¹
+	return t // è¿”å›ä¸€ä¸ªTickerç»“æ„
 }
 
 // Stop turns off a ticker.  After Stop, no more ticks will be sent.
 // Stop does not close the channel, to prevent a read from the channel succeeding
 // incorrectly.
-func (t *Ticker) Stop() { // Í£Ö¹Ticker£¬Ö»ÓĞNewTicker³öµÄTicker²ÅÄÜ±»Stop
+func (t *Ticker) Stop() { // åœæ­¢Tickerï¼Œåªæœ‰NewTickerå‡ºçš„Tickeræ‰èƒ½è¢«Stop
 	stopTimer(&t.r)
 }
 
@@ -51,9 +51,9 @@ func (t *Ticker) Stop() { // Í£Ö¹Ticker£¬Ö»ÓĞNewTicker³öµÄTicker²ÅÄÜ±»Stop
 // channel only. While Tick is useful for clients that have no need to shut down
 // the Ticker, be aware that without a way to shut it down the underlying
 // Ticker cannot be recovered by the garbage collector; it "leaks".
-func Tick(d Duration) <-chan Time { // Ö±½Ó·µ»ØÒ»¸öTimerµÄchan
+func Tick(d Duration) <-chan Time { // ç›´æ¥è¿”å›ä¸€ä¸ªTimerçš„chan
 	if d <= 0 {
 		return nil
 	}
-	return NewTicker(d).C // ·µ»Ø°ü×°ºóµÄTimer chan
+	return NewTicker(d).C // è¿”å›åŒ…è£…åçš„Timer chan
 }

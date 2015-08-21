@@ -44,7 +44,7 @@ func (wg *WaitGroup) state() *uint64 {
 // If a WaitGroup is reused to wait for several independent sets of events,
 // new Add calls must happen after all previous Wait calls have returned.
 // See the WaitGroup example.
-func (wg *WaitGroup) Add(delta int) { // ÉèÖÃÒªµÈ´ıµÄgoroutineµÄÊıÁ¿
+func (wg *WaitGroup) Add(delta int) { // è®¾ç½®è¦ç­‰å¾…çš„goroutineçš„æ•°é‡
 	statep := wg.state()
 	if raceenabled {
 		_ = *statep // trigger nil deref early
@@ -96,7 +96,7 @@ func (wg *WaitGroup) Done() {
 }
 
 // Wait blocks until the WaitGroup counter is zero.
-func (wg *WaitGroup) Wait() { // Wait×èÈûµÈ´ı£¬Ö±µ½WaitGroupµÄ¼ÆÊıÆ÷¹éÁã
+func (wg *WaitGroup) Wait() { // Waité˜»å¡ç­‰å¾…ï¼Œç›´åˆ°WaitGroupçš„è®¡æ•°å™¨å½’é›¶
 	statep := wg.state()
 	if raceenabled {
 		_ = *statep // trigger nil deref early

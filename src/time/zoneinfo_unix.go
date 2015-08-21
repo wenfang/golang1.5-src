@@ -28,7 +28,7 @@ func initTestingZone() {
 
 // Many systems use /usr/share/zoneinfo, Solaris 2 has
 // /usr/share/lib/zoneinfo, IRIX 6 has /usr/lib/locale/TZ.
-var zoneDirs = []string{ // zone ±éÀúÄ¿Â¼
+var zoneDirs = []string{ // zone éå†ç›®å½•
 	"/usr/share/zoneinfo/",
 	"/usr/share/lib/zoneinfo/",
 	"/usr/lib/locale/TZ/",
@@ -47,22 +47,22 @@ func forceZipFileForTesting(zipOnly bool) {
 	}
 }
 
-func initLocal() { // ³õÊ¼»¯location
+func initLocal() { // åˆå§‹åŒ–location
 	// consult $TZ to find the time zone to use.
 	// no $TZ means use the system default /etc/localtime.
 	// $TZ="" means use UTC.
 	// $TZ="foo" means use /usr/share/zoneinfo/foo.
 
-	tz, ok := syscall.Getenv("TZ") // ²éÑ¯TZ±äÁ¿
+	tz, ok := syscall.Getenv("TZ") // æŸ¥è¯¢TZå˜é‡
 	switch {
-	case !ok: // Èç¹û²»´æÔÚTZ±äÁ¿
-		z, err := loadZoneFile("", "/etc/localtime") // ´ÓetcÔØÈëlocaltimeÎÄ¼ş
-		if err == nil {                              // Èç¹ûÃ»ÓĞ´íÎó
-			localLoc = *z           // ÉèÖÃlocalLoc
-			localLoc.name = "Local" // ÉèÖÃlocationÃû
+	case !ok: // å¦‚æœä¸å­˜åœ¨TZå˜é‡
+		z, err := loadZoneFile("", "/etc/localtime") // ä»etcè½½å…¥localtimeæ–‡ä»¶
+		if err == nil {                              // å¦‚æœæ²¡æœ‰é”™è¯¯
+			localLoc = *z           // è®¾ç½®localLoc
+			localLoc.name = "Local" // è®¾ç½®locationå
 			return
 		}
-	case tz != "" && tz != "UTC": // ´æÔÚtz±äÁ¿£¬²¢ÇÒ²»µÈÓÚ¿ÕºÍUTC
+	case tz != "" && tz != "UTC": // å­˜åœ¨tzå˜é‡ï¼Œå¹¶ä¸”ä¸ç­‰äºç©ºå’ŒUTC
 		if z, err := loadLocation(tz); err == nil {
 			localLoc = *z
 			return
@@ -70,13 +70,13 @@ func initLocal() { // ³õÊ¼»¯location
 	}
 
 	// Fall back to UTC.
-	localLoc.name = "UTC" // ÉèÖÃlocationÎªUTC
+	localLoc.name = "UTC" // è®¾ç½®locationä¸ºUTC
 }
 
-func loadLocation(name string) (*Location, error) { // ×°ÔØLocationĞÅÏ¢
+func loadLocation(name string) (*Location, error) { // è£…è½½Locationä¿¡æ¯
 	var firstErr error
-	for _, zoneDir := range zoneDirs { // ±éÀúzoneÄ¿Â¼
-		if z, err := loadZoneFile(zoneDir, name); err == nil { // ×°ÔØZoneÎÄ¼ş
+	for _, zoneDir := range zoneDirs { // éå†zoneç›®å½•
+		if z, err := loadZoneFile(zoneDir, name); err == nil { // è£…è½½Zoneæ–‡ä»¶
 			z.name = name
 			return z, nil
 		} else if firstErr == nil && !isNotExist(err) {

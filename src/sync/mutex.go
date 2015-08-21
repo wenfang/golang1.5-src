@@ -18,36 +18,36 @@ import (
 // A Mutex is a mutual exclusion lock.
 // Mutexes can be created as part of other structures;
 // the zero value for a Mutex is an unlocked mutex.
-type Mutex struct { //MutexÅÅËûËø
-	state int32  // ±íÃ÷ËøµÄ×´Ì¬ĞÅÏ¢£¬×îºóÒ»Î»Îª1±íÃ÷±»Ëø¶¨£¬µ¹ÊıµÚ2Îª±íÃ÷ÊÇ·ñ¸Õ±»»½ĞÑ£¬È»ºóÇ°ÃæµÄÎ»±íÃ÷µÈ´ıÕßµÄÊıÁ¿
-	sema  uint32 // µÈ´ıË¯ÃßµÄsema
+type Mutex struct { //Mutexæ’ä»–é”
+	state int32  // è¡¨æ˜é”çš„çŠ¶æ€ä¿¡æ¯ï¼Œæœ€åä¸€ä½ä¸º1è¡¨æ˜è¢«é”å®šï¼Œå€’æ•°ç¬¬2ä¸ºè¡¨æ˜æ˜¯å¦åˆšè¢«å”¤é†’ï¼Œç„¶åå‰é¢çš„ä½è¡¨æ˜ç­‰å¾…è€…çš„æ•°é‡
+	sema  uint32 // ç­‰å¾…ç¡çœ çš„sema
 }
 
 // A Locker represents an object that can be locked and unlocked.
-type Locker interface { // Ëø½Ó¿Ú£¬±íÃ÷Ò»¸ö¶ÔÏó¿ÉÒÔ±»¼Ó½âËø
+type Locker interface { // é”æ¥å£ï¼Œè¡¨æ˜ä¸€ä¸ªå¯¹è±¡å¯ä»¥è¢«åŠ è§£é”
 	Lock()
 	Unlock()
 }
 
-const ( // ËøµÄ×´Ì¬
-	mutexLocked      = 1 << iota // mutex is locked ±»Ëø¶¨£¬µÚÒ»Î»±íÃ÷ÊÇ·ñ±»Ëø¶¨
-	mutexWoken                   // µÚ¶şÎ»±íÃ÷ÊÇ·ñ¸Õ±»»½ĞÑ
-	mutexWaiterShift = iota      // µÈ´ıÕßÆğÊ¼µÄÎ»Êı£¬µÚÈıÎ»
+const ( // é”çš„çŠ¶æ€
+	mutexLocked      = 1 << iota // mutex is locked è¢«é”å®šï¼Œç¬¬ä¸€ä½è¡¨æ˜æ˜¯å¦è¢«é”å®š
+	mutexWoken                   // ç¬¬äºŒä½è¡¨æ˜æ˜¯å¦åˆšè¢«å”¤é†’
+	mutexWaiterShift = iota      // ç­‰å¾…è€…èµ·å§‹çš„ä½æ•°ï¼Œç¬¬ä¸‰ä½
 )
 
 // Lock locks m.
 // If the lock is already in use, the calling goroutine
 // blocks until the mutex is available.
-func (m *Mutex) Lock() { // ÅÅËûËø¼ÓËø
+func (m *Mutex) Lock() { // æ’ä»–é”åŠ é”
 	// Fast path: grab unlocked mutex.
-	if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) { // CAS²Ù×÷¼ÓËø£¬Èç¹ûÔ­ÖµÎª0£¬±äÎª1£¬±íÃ÷¼ÓËø³É¹¦
+	if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) { // CASæ“ä½œåŠ é”ï¼Œå¦‚æœåŸå€¼ä¸º0ï¼Œå˜ä¸º1ï¼Œè¡¨æ˜åŠ é”æˆåŠŸ
 		if raceenabled {
 			raceAcquire(unsafe.Pointer(m))
 		}
-		return // ¼ÓËø³É¹¦
+		return // åŠ é”æˆåŠŸ
 	}
-	// Èç¹û¼ÓËø²»³É¹¦
-	awoke := false // ³õÖµÎªµ±Ç°µÄgoroutineÎ´±»»½ĞÑ
+	// å¦‚æœåŠ é”ä¸æˆåŠŸ
+	awoke := false // åˆå€¼ä¸ºå½“å‰çš„goroutineæœªè¢«å”¤é†’
 	iter := 0
 	for {
 		old := m.state
@@ -67,25 +67,25 @@ func (m *Mutex) Lock() { // ÅÅËûËø¼ÓËø
 			}
 			new = old + 1<<mutexWaiterShift
 		}
-		if awoke { // µ±Ç°µÄgoroutine´ÓË¯ÃßÖĞ±»»½ĞÑ£¬
+		if awoke { // å½“å‰çš„goroutineä»ç¡çœ ä¸­è¢«å”¤é†’ï¼Œ
 			// The goroutine has been woken from sleep,
 			// so we need to reset the flag in either case.
 			if new&mutexWoken == 0 {
 				panic("sync: inconsistent mutex state")
 			}
-			new &^= mutexWoken // ½«WokenÎ»Çå0
+			new &^= mutexWoken // å°†Wokenä½æ¸…0
 		}
-		if atomic.CompareAndSwapInt32(&m.state, old, new) { // ×´Ì¬Î´±ä£¬½«ĞÂ×´Ì¬¸³¸øÀÏ×´Ì¬£¬¶àÁËÒ»¸öµÈ´ıÕß£¬·ñÔò¼ÌĞøµ½forÀ´Ò»±é
-			if old&mutexLocked == 0 { // Èç¹ûËø±»ÊÍ·ÅÁË£¬Ö±½ÓÌø³ö
+		if atomic.CompareAndSwapInt32(&m.state, old, new) { // çŠ¶æ€æœªå˜ï¼Œå°†æ–°çŠ¶æ€èµ‹ç»™è€çŠ¶æ€ï¼Œå¤šäº†ä¸€ä¸ªç­‰å¾…è€…ï¼Œå¦åˆ™ç»§ç»­åˆ°foræ¥ä¸€é
+			if old&mutexLocked == 0 { // å¦‚æœé”è¢«é‡Šæ”¾äº†ï¼Œç›´æ¥è·³å‡º
 				break
 			}
-			runtime_Semacquire(&m.sema) // µ±Ç°µÄgoroutine×èÈûµÈ´ı±»»½ĞÑ
-			awoke = true                // µ±Ç°µÄgoroutine±»»½ĞÑ£¬ÖØĞÂÖ´ĞĞÒ»±éforÑ­»·
+			runtime_Semacquire(&m.sema) // å½“å‰çš„goroutineé˜»å¡ç­‰å¾…è¢«å”¤é†’
+			awoke = true                // å½“å‰çš„goroutineè¢«å”¤é†’ï¼Œé‡æ–°æ‰§è¡Œä¸€éforå¾ªç¯
 			iter = 0
 		}
 	}
 
-	if raceenabled { // ¾ºÕùÌõ¼ş¼ì²é
+	if raceenabled { // ç«äº‰æ¡ä»¶æ£€æŸ¥
 		raceAcquire(unsafe.Pointer(m))
 	}
 }
@@ -96,29 +96,29 @@ func (m *Mutex) Lock() { // ÅÅËûËø¼ÓËø
 // A locked Mutex is not associated with a particular goroutine.
 // It is allowed for one goroutine to lock a Mutex and then
 // arrange for another goroutine to unlock it.
-func (m *Mutex) Unlock() { // ÅÅËûËø½âËø
+func (m *Mutex) Unlock() { // æ’ä»–é”è§£é”
 	if raceenabled {
 		_ = m.state
 		raceRelease(unsafe.Pointer(m))
 	}
 
 	// Fast path: drop lock bit.
-	new := atomic.AddInt32(&m.state, -mutexLocked) // ¼õÈ¥mutexLockedÎ»£¬Ïàµ±ÓÚ½âËø
-	if (new+mutexLocked)&mutexLocked == 0 {        // Èç¹ûÖØ¸´½âËøÁË£¬panic
+	new := atomic.AddInt32(&m.state, -mutexLocked) // å‡å»mutexLockedä½ï¼Œç›¸å½“äºè§£é”
+	if (new+mutexLocked)&mutexLocked == 0 {        // å¦‚æœé‡å¤è§£é”äº†ï¼Œpanic
 		panic("sync: unlock of unlocked mutex")
 	}
-	// ÏÂÃæ¾ÍÓĞ¿ÉÄÜÔÚ¶à¸ögoroutine¼äÕùÓÃÁË
+	// ä¸‹é¢å°±æœ‰å¯èƒ½åœ¨å¤šä¸ªgoroutineé—´äº‰ç”¨äº†
 	old := new
 	for {
 		// If there are no waiters or a goroutine has already
 		// been woken or grabbed the lock, no need to wake anyone.
-		if old>>mutexWaiterShift == 0 || old&(mutexLocked|mutexWoken) != 0 { // Ã»ÓĞÈËµÈ´ı£¬»òÕßÓĞÒ»¸öÒÑ¾­»½ĞÑÁË£¬Ö±½Ó·µ»Ø
+		if old>>mutexWaiterShift == 0 || old&(mutexLocked|mutexWoken) != 0 { // æ²¡æœ‰äººç­‰å¾…ï¼Œæˆ–è€…æœ‰ä¸€ä¸ªå·²ç»å”¤é†’äº†ï¼Œç›´æ¥è¿”å›
 			return
 		}
 		// Grab the right to wake someone.
-		new = (old - 1<<mutexWaiterShift) | mutexWoken      // ÉèÖÃ»½ĞÑÒ»¸ö
-		if atomic.CompareAndSwapInt32(&m.state, old, new) { // ³¢ÊÔ»½ĞÑÒ»´Î
-			runtime_Semrelease(&m.sema) // »½ĞÑµÈ´ıÕß
+		new = (old - 1<<mutexWaiterShift) | mutexWoken      // è®¾ç½®å”¤é†’ä¸€ä¸ª
+		if atomic.CompareAndSwapInt32(&m.state, old, new) { // å°è¯•å”¤é†’ä¸€æ¬¡
+			runtime_Semrelease(&m.sema) // å”¤é†’ç­‰å¾…è€…
 			return
 		}
 		old = m.state

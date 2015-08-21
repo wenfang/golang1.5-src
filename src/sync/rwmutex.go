@@ -15,7 +15,7 @@ import (
 // RWMutexes can be created as part of other
 // structures; the zero value for a RWMutex is
 // an unlocked mutex.
-type RWMutex struct { // ¶ÁĞ´Ëø
+type RWMutex struct { // è¯»å†™é”
 	w           Mutex  // held if there are pending writers
 	writerSem   uint32 // semaphore for writers to wait for completing readers
 	readerSem   uint32 // semaphore for readers to wait for completing writers
@@ -26,7 +26,7 @@ type RWMutex struct { // ¶ÁĞ´Ëø
 const rwmutexMaxReaders = 1 << 30
 
 // RLock locks rw for reading.
-func (rw *RWMutex) RLock() { // ¶Á¼ÓËø
+func (rw *RWMutex) RLock() { // è¯»åŠ é”
 	if raceenabled {
 		_ = rw.w.state
 		raceDisable()
@@ -45,7 +45,7 @@ func (rw *RWMutex) RLock() { // ¶Á¼ÓËø
 // it does not affect other simultaneous readers.
 // It is a run-time error if rw is not locked for reading
 // on entry to RUnlock.
-func (rw *RWMutex) RUnlock() { // ¶Á½âËø
+func (rw *RWMutex) RUnlock() { // è¯»è§£é”
 	if raceenabled {
 		_ = rw.w.state
 		raceReleaseMerge(unsafe.Pointer(&rw.writerSem))
@@ -73,7 +73,7 @@ func (rw *RWMutex) RUnlock() { // ¶Á½âËø
 // To ensure that the lock eventually becomes available,
 // a blocked Lock call excludes new readers from acquiring
 // the lock.
-func (rw *RWMutex) Lock() { // ¶ÁĞ´Ëø¼ÓĞ´Ëø
+func (rw *RWMutex) Lock() { // è¯»å†™é”åŠ å†™é”
 	if raceenabled {
 		_ = rw.w.state
 		raceDisable()
@@ -99,7 +99,7 @@ func (rw *RWMutex) Lock() { // ¶ÁĞ´Ëø¼ÓĞ´Ëø
 // As with Mutexes, a locked RWMutex is not associated with a particular
 // goroutine.  One goroutine may RLock (Lock) an RWMutex and then
 // arrange for another goroutine to RUnlock (Unlock) it.
-func (rw *RWMutex) Unlock() { // ¶ÁĞ´Ëø½âËø
+func (rw *RWMutex) Unlock() { // è¯»å†™é”è§£é”
 	if raceenabled {
 		_ = rw.w.state
 		raceRelease(unsafe.Pointer(&rw.readerSem))

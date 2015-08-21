@@ -40,36 +40,36 @@ import (
 // free list.
 //
 type Pool struct {
-	local     unsafe.Pointer // local fixed-size per-P pool, actual type is [P]poolLocal ÕæÊµÀàÐÍÎªpoolLocalµÄÊý×é
-	localSize uintptr        // size of the local array local arrayµÄ´óÐ¡
+	local     unsafe.Pointer // local fixed-size per-P pool, actual type is [P]poolLocal çœŸå®žç±»åž‹ä¸ºpoolLocalçš„æ•°ç»„
+	localSize uintptr        // size of the local array local arrayçš„å¤§å°
 
 	// New optionally specifies a function to generate
 	// a value when Get would otherwise return nil.
 	// It may not be changed concurrently with calls to Get.
-	New func() interface{} // µ±µ÷ÓÃGet´ÓPoolÖÐ»ñÈ¡²»µ½Ê±£¬µ÷ÓÃNewÉú³ÉÒ»¸öÐÂ¶ÔÏó
+	New func() interface{} // å½“è°ƒç”¨Getä»ŽPoolä¸­èŽ·å–ä¸åˆ°æ—¶ï¼Œè°ƒç”¨Newç”Ÿæˆä¸€ä¸ªæ–°å¯¹è±¡
 }
 
 // Local per-P Pool appendix.
-type poolLocal struct { // ¶ÔÓ¦Ã¿¸öPµÄpoolLocal£¬Ã¿¸öPool¶ÔÓ¦Ã¿¸öP¶¼ÓÐÒ»¸öpoolLocal
-	private interface{}   // Can be used only by the respective P. // Ö»ÄÜ±»µ±Ç°µÄPÊ¹ÓÃ
-	shared  []interface{} // Can be used by any P. // ¿ÉÒÔ±»ÈÎºÎµÄPÊ¹ÓÃ
-	Mutex                 // Protects shared. // ±£»¤¹²ÏíÊý¾Ý
+type poolLocal struct { // å¯¹åº”æ¯ä¸ªPçš„poolLocalï¼Œæ¯ä¸ªPoolå¯¹åº”æ¯ä¸ªPéƒ½æœ‰ä¸€ä¸ªpoolLocal
+	private interface{}   // Can be used only by the respective P. // åªèƒ½è¢«å½“å‰çš„Pä½¿ç”¨
+	shared  []interface{} // Can be used by any P. // å¯ä»¥è¢«ä»»ä½•çš„Pä½¿ç”¨
+	Mutex                 // Protects shared. // ä¿æŠ¤å…±äº«æ•°æ®
 	pad     [128]byte     // Prevents false sharing.
 }
 
 // Put adds x to the pool.
-func (p *Pool) Put(x interface{}) { // ½«¶ÔÏó¼ÓÈëpoolÖÐ
+func (p *Pool) Put(x interface{}) { // å°†å¯¹è±¡åŠ å…¥poolä¸­
 	if raceenabled {
 		// Under race detector the Pool degenerates into no-op.
 		// It's conforming, simple and does not introduce excessive
 		// happens-before edges between unrelated goroutines.
 		return
 	}
-	if x == nil { // Òª¼ÓÈëµÄ¶ÔÏóÎª¿Õ£¬Ö±½Ó·µ»Ø
+	if x == nil { // è¦åŠ å…¥çš„å¯¹è±¡ä¸ºç©ºï¼Œç›´æŽ¥è¿”å›ž
 		return
 	}
 	l := p.pin()
-	if l.private == nil { // ÏÈ³¢ÊÔ¼ÓÈëprivate²¿·Ö
+	if l.private == nil { // å…ˆå°è¯•åŠ å…¥privateéƒ¨åˆ†
 		l.private = x
 		x = nil
 	}
@@ -78,7 +78,7 @@ func (p *Pool) Put(x interface{}) { // ½«¶ÔÏó¼ÓÈëpoolÖÐ
 		return
 	}
 	l.Lock()
-	l.shared = append(l.shared, x) // ³¢ÊÔ¼ÓÈëshared²¿·Ö
+	l.shared = append(l.shared, x) // å°è¯•åŠ å…¥sharedéƒ¨åˆ†
 	l.Unlock()
 }
 
@@ -90,22 +90,22 @@ func (p *Pool) Put(x interface{}) { // ½«¶ÔÏó¼ÓÈëpoolÖÐ
 //
 // If Get would otherwise return nil and p.New is non-nil, Get returns
 // the result of calling p.New.
-func (p *Pool) Get() interface{} { // ´ÓPoolÖÐ»ñÈ¡Ò»¸öÔªËØ
-	if raceenabled { // ÔÚraceenabledÌõ¼þÏÂ£¬Ö»Ê¹ÓÃNew¹¹Ôì
+func (p *Pool) Get() interface{} { // ä»ŽPoolä¸­èŽ·å–ä¸€ä¸ªå…ƒç´ 
+	if raceenabled { // åœ¨raceenabledæ¡ä»¶ä¸‹ï¼Œåªä½¿ç”¨Newæž„é€ 
 		if p.New != nil {
 			return p.New()
 		}
 		return nil
 	}
-	l := p.pin()   // »ñµÃ¶ÔÓ¦µÄpoolLocal
-	x := l.private // »ñµÃpoolLocalÖÐµÄprivate²¿·Ö
+	l := p.pin()   // èŽ·å¾—å¯¹åº”çš„poolLocal
+	x := l.private // èŽ·å¾—poolLocalä¸­çš„privateéƒ¨åˆ†
 	l.private = nil
 	runtime_procUnpin()
-	if x != nil { // Èç¹û»ñµÃÁËÔªËØ£¬·µ»Ø
+	if x != nil { // å¦‚æžœèŽ·å¾—äº†å…ƒç´ ï¼Œè¿”å›ž
 		return x
 	}
 	l.Lock()
-	last := len(l.shared) - 1 // Èç¹ûÃ»ÓÐprivate´Ó¹²Ïí²¿·Ö»ñµÃÔªËØ
+	last := len(l.shared) - 1 // å¦‚æžœæ²¡æœ‰privateä»Žå…±äº«éƒ¨åˆ†èŽ·å¾—å…ƒç´ 
 	if last >= 0 {
 		x = l.shared[last]
 		l.shared = l.shared[:last]
@@ -124,7 +124,7 @@ func (p *Pool) getSlow() (x interface{}) {
 	// Try to steal one element from other procs.
 	pid := runtime_procPin()
 	runtime_procUnpin()
-	for i := 0; i < int(size); i++ { // ´Ó¸ÃPoolËùÓÐpoolLocalµÄ¹²Ïí²¿·ÖÑ¡Ôñ
+	for i := 0; i < int(size); i++ { // ä»Žè¯¥Poolæ‰€æœ‰poolLocalçš„å…±äº«éƒ¨åˆ†é€‰æ‹©
 		l := indexLocal(local, (pid+i+1)%int(size))
 		l.Lock()
 		last := len(l.shared) - 1
@@ -137,50 +137,50 @@ func (p *Pool) getSlow() (x interface{}) {
 		l.Unlock()
 	}
 
-	if x == nil && p.New != nil { // Èç¹ûÃ»ÓÐ´ÓPoolÖÐÕÒµ½£¬µ÷ÓÃNewÉú³ÉÒ»¸ö
-		x = p.New() // ×îºóµ÷ÓÃNewÉú³ÉÒ»¸öÔªËØ
+	if x == nil && p.New != nil { // å¦‚æžœæ²¡æœ‰ä»ŽPoolä¸­æ‰¾åˆ°ï¼Œè°ƒç”¨Newç”Ÿæˆä¸€ä¸ª
+		x = p.New() // æœ€åŽè°ƒç”¨Newç”Ÿæˆä¸€ä¸ªå…ƒç´ 
 	}
 	return x
 }
 
 // pin pins the current goroutine to P, disables preemption and returns poolLocal pool for the P.
 // Caller must call runtime_procUnpin() when done with the pool.
-func (p *Pool) pin() *poolLocal { // »ñÈ¡ÌØ¶¨ÓÚPµÄpool
-	pid := runtime_procPin() // »ñµÃµ±Ç°PµÄid
+func (p *Pool) pin() *poolLocal { // èŽ·å–ç‰¹å®šäºŽPçš„pool
+	pid := runtime_procPin() // èŽ·å¾—å½“å‰Pçš„id
 	// In pinSlow we store to localSize and then to local, here we load in opposite order.
 	// Since we've disabled preemption, GC can not happen in between.
 	// Thus here we must observe local at least as large localSize.
 	// We can observe a newer/larger local, it is fine (we must observe its zero-initialized-ness).
-	s := atomic.LoadUintptr(&p.localSize) // load-acquire »ñµÃpoolµÄ±¾µØ´óÐ¡
+	s := atomic.LoadUintptr(&p.localSize) // load-acquire èŽ·å¾—poolçš„æœ¬åœ°å¤§å°
 	l := p.local                          // load-consume
-	if uintptr(pid) < s {                 // Èç¹ûpidÐ¡ÓÚlocalSizeµÄ´óÐ¡£¬±íÃ÷PµÄÊýÁ¿ÎÞ±ä»¯£¬Ö±½ÓÈ¡³öpoolLocal
-		return indexLocal(l, pid) // ·µ»Ø¶ÔÓ¦pidµÄpoolLocal
+	if uintptr(pid) < s {                 // å¦‚æžœpidå°äºŽlocalSizeçš„å¤§å°ï¼Œè¡¨æ˜ŽPçš„æ•°é‡æ— å˜åŒ–ï¼Œç›´æŽ¥å–å‡ºpoolLocal
+		return indexLocal(l, pid) // è¿”å›žå¯¹åº”pidçš„poolLocal
 	}
-	return p.pinSlow() // Èç¹û»ñµÃµÄpid´óÓÚlocalSize£¬±íÃ÷PµÄ´óÐ¡±ä»¯ÁË£¬Ê¹ÓÃpinSlow»ñµÃpoolLocal
+	return p.pinSlow() // å¦‚æžœèŽ·å¾—çš„pidå¤§äºŽlocalSizeï¼Œè¡¨æ˜ŽPçš„å¤§å°å˜åŒ–äº†ï¼Œä½¿ç”¨pinSlowèŽ·å¾—poolLocal
 }
 
 func (p *Pool) pinSlow() *poolLocal {
 	// Retry under the mutex.
 	// Can not lock the mutex while pinned.
-	runtime_procUnpin() // ÔÚallPoolsMu¼ÓËøµÄÇé¿öÏÂ²éÕÒ£¬ÕâÊ±ºò±ØÐëunpin
+	runtime_procUnpin() // åœ¨allPoolsMuåŠ é”çš„æƒ…å†µä¸‹æŸ¥æ‰¾ï¼Œè¿™æ—¶å€™å¿…é¡»unpin
 	allPoolsMu.Lock()
-	defer allPoolsMu.Unlock() // ÔÚallPoolsMuµÄ±£»¤ÏÂÖ´ÐÐ
-	pid := runtime_procPin()  // ÔÙ´Î»ñµÃPµÄid
+	defer allPoolsMu.Unlock() // åœ¨allPoolsMuçš„ä¿æŠ¤ä¸‹æ‰§è¡Œ
+	pid := runtime_procPin()  // å†æ¬¡èŽ·å¾—Pçš„id
 	// poolCleanup won't be called while we are pinned.
 	s := p.localSize
 	l := p.local
-	if uintptr(pid) < s { // ³¢ÊÔ»ñÈ¡poolLocal
+	if uintptr(pid) < s { // å°è¯•èŽ·å–poolLocal
 		return indexLocal(l, pid)
 	}
-	if p.local == nil { // »ñÈ¡Ê§°Ü£¬±íÃ÷ÊÇµÚÒ»´Î£¬½«µ±Ç°µÄPool¼ÓÈëµ½allPoolsÖÐ
+	if p.local == nil { // èŽ·å–å¤±è´¥ï¼Œè¡¨æ˜Žæ˜¯ç¬¬ä¸€æ¬¡ï¼Œå°†å½“å‰çš„PoolåŠ å…¥åˆ°allPoolsä¸­
 		allPools = append(allPools, p)
 	}
 	// If GOMAXPROCS changes between GCs, we re-allocate the array and lose the old one.
-	size := runtime.GOMAXPROCS(0)                                               // Èç¹ûµ½ÕâÀï£¬±íÃ÷PµÄÊýÁ¿·¢Éú±ä»¯ÁË£¬¶ªÆúÒÔÇ°µÄpoolLocal
-	local := make([]poolLocal, size)                                            // ·ÖÅäprocs¸öpoolLocal
-	atomic.StorePointer((*unsafe.Pointer)(&p.local), unsafe.Pointer(&local[0])) // store-release ´æ´¢poolLocal
-	atomic.StoreUintptr(&p.localSize, uintptr(size))                            // store-release ´æ´¢´óÐ¡
-	return &local[pid]                                                          // ·µ»Ø¶ÔÓ¦PµÄpoolLocalÖ¸Õë
+	size := runtime.GOMAXPROCS(0)                                               // å¦‚æžœåˆ°è¿™é‡Œï¼Œè¡¨æ˜ŽPçš„æ•°é‡å‘ç”Ÿå˜åŒ–äº†ï¼Œä¸¢å¼ƒä»¥å‰çš„poolLocal
+	local := make([]poolLocal, size)                                            // åˆ†é…procsä¸ªpoolLocal
+	atomic.StorePointer((*unsafe.Pointer)(&p.local), unsafe.Pointer(&local[0])) // store-release å­˜å‚¨poolLocal
+	atomic.StoreUintptr(&p.localSize, uintptr(size))                            // store-release å­˜å‚¨å¤§å°
+	return &local[pid]                                                          // è¿”å›žå¯¹åº”Pçš„poolLocalæŒ‡é’ˆ
 }
 
 func poolCleanup() {
@@ -190,7 +190,7 @@ func poolCleanup() {
 	// 1. To prevent false retention of whole Pools.
 	// 2. If GC happens while a goroutine works with l.shared in Put/Get,
 	//    it will retain whole Pool. So next cycle memory consumption would be doubled.
-	for i, p := range allPools { // ±éÀúËùÓÐµÄPool
+	for i, p := range allPools { // éåŽ†æ‰€æœ‰çš„Pool
 		allPools[i] = nil
 		for i := 0; i < int(p.localSize); i++ {
 			l := indexLocal(p.local, i)
@@ -212,10 +212,10 @@ var (
 )
 
 func init() {
-	runtime_registerPoolCleanup(poolCleanup) // ×¢²ápoolµÄcleanupº¯Êý
+	runtime_registerPoolCleanup(poolCleanup) // æ³¨å†Œpoolçš„cleanupå‡½æ•°
 }
 
-func indexLocal(l unsafe.Pointer, i int) *poolLocal { // ½«l×ª±äÎªpoolLocalÀàÐÍ£¬²¢»ñµÃË÷ÒýiÎ»ÖÃµÄÖµ
+func indexLocal(l unsafe.Pointer, i int) *poolLocal { // å°†lè½¬å˜ä¸ºpoolLocalç±»åž‹ï¼Œå¹¶èŽ·å¾—ç´¢å¼•iä½ç½®çš„å€¼
 	return &(*[1000000]poolLocal)(l)[i]
 }
 

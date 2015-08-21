@@ -9,7 +9,7 @@ import (
 )
 
 // Once is an object that will perform exactly one action.
-type Once struct { // onceÖ»±»Ö´ĞĞÒ»´Î
+type Once struct { // onceåªè¢«æ‰§è¡Œä¸€æ¬¡
 	m    Mutex
 	done uint32
 }
@@ -32,8 +32,8 @@ type Once struct { // onceÖ»±»Ö´ĞĞÒ»´Î
 // If f panics, Do considers it to have returned; future calls of Do return
 // without calling f.
 //
-func (o *Once) Do(f func()) { // OnceÖ»ÄÜ±»Ö´ĞĞÒ»´Î
-	if atomic.LoadUint32(&o.done) == 1 { // Èç¹ûÒÑ¾­Ö´ĞĞÁË£¬·µ»Ø
+func (o *Once) Do(f func()) { // Onceåªèƒ½è¢«æ‰§è¡Œä¸€æ¬¡
+	if atomic.LoadUint32(&o.done) == 1 { // å¦‚æœå·²ç»æ‰§è¡Œäº†ï¼Œè¿”å›
 		return
 	}
 	// Slow-path.

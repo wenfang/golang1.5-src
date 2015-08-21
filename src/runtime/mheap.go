@@ -103,7 +103,7 @@ type mspan struct {
 	prev     *mspan    // in a span linked list
 	start    pageID    // starting page number
 	npages   uintptr   // number of pages in span
-	freelist gclinkptr // list of free objects
+	freelist gclinkptr // list of free objects 空闲对象的列表
 	// sweep generation:
 	// if sweepgen == h->sweepgen - 2, the span needs sweeping
 	// if sweepgen == h->sweepgen - 1, the span is currently being swept
