@@ -11,12 +11,12 @@
 // The interfaces come in pairs that produce and consume encoded data.
 package encoding
 
-// Õë¶Ô¶ş½øÖÆÊı¾İºÍÎÄ±¾Êı¾İ£¬¶¨ÒåÁ½¸ö½Ó¿Ú
+// é’ˆå¯¹äºŒè¿›åˆ¶æ•°æ®å’Œæ–‡æœ¬æ•°æ®ï¼Œå®šä¹‰ä¸¤ä¸ªæ¥å£
 // BinaryMarshaler is the interface implemented by an object that can
 // marshal itself into a binary form.
 //
 // MarshalBinary encodes the receiver into a binary form and returns the result.
-type BinaryMarshaler interface { // ½«receiverÖĞµÄÊı¾İ±àÂë³É¶ş½øÖÆ
+type BinaryMarshaler interface { // å°†receiverä¸­çš„æ•°æ®ç¼–ç æˆäºŒè¿›åˆ¶
 	MarshalBinary() (data []byte, err error)
 }
 

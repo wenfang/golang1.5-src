@@ -14,9 +14,9 @@ import (
 // An Encoder manages the transmission of type and data information to the
 // other side of a connection.
 type Encoder struct {
-	mutex      sync.Mutex              // each item must be sent atomically Ã¿¸öÔªËØ±ØĞëĞòÁĞ»¯·¢ËÍ
+	mutex      sync.Mutex              // each item must be sent atomically æ¯ä¸ªå…ƒç´ å¿…é¡»åºåˆ—åŒ–å‘é€
 	w          []io.Writer             // where to send the data
-	sent       map[reflect.Type]typeId // which types we've already sent ÒÑ¾­·¢ËÍÁËÊ²Ã´ÀàĞÍ
+	sent       map[reflect.Type]typeId // which types we've already sent å·²ç»å‘é€äº†ä»€ä¹ˆç±»å‹
 	countState *encoderState           // stage for writing counts
 	freeList   *encoderState           // list of free encoderStates; avoids reallocation
 	byteBuf    encBuffer               // buffer for top-level encoderState
@@ -30,9 +30,9 @@ const maxLength = 9 // Maximum size of an encoded length.
 var spaceForLength = make([]byte, maxLength)
 
 // NewEncoder returns a new encoder that will transmit on the io.Writer.
-func NewEncoder(w io.Writer) *Encoder { // ĞÂ´´½¨Ò»¸öEncoder±àÂëÆ÷
-	enc := new(Encoder)    // ´´½¨Encoder½á¹¹
-	enc.w = []io.Writer{w} // WriterÁĞ±í£¬ÊÇSlice
+func NewEncoder(w io.Writer) *Encoder { // æ–°åˆ›å»ºä¸€ä¸ªEncoderç¼–ç å™¨
+	enc := new(Encoder)    // åˆ›å»ºEncoderç»“æ„
+	enc.w = []io.Writer{w} // Writeråˆ—è¡¨ï¼Œæ˜¯Slice
 	enc.sent = make(map[reflect.Type]typeId)
 	enc.countState = enc.newEncoderState(new(encBuffer))
 	return enc
@@ -44,7 +44,7 @@ func (enc *Encoder) writer() io.Writer {
 }
 
 // pushWriter adds a writer to the encoder.
-func (enc *Encoder) pushWriter(w io.Writer) { // Ìí¼ÓÒ»¸öwriterµ½encoder
+func (enc *Encoder) pushWriter(w io.Writer) { // æ·»åŠ ä¸€ä¸ªwriteråˆ°encoder
 	enc.w = append(enc.w, w)
 }
 
@@ -170,7 +170,7 @@ func (enc *Encoder) sendType(w io.Writer, state *encoderState, origt reflect.Typ
 
 // Encode transmits the data item represented by the empty interface value,
 // guaranteeing that all necessary type information has been transmitted first.
-func (enc *Encoder) Encode(e interface{}) error { // ½«e½øĞĞ±àÂë£¬µ÷ÓÃEncodeValue
+func (enc *Encoder) Encode(e interface{}) error { // å°†eè¿›è¡Œç¼–ç ï¼Œè°ƒç”¨EncodeValue
 	return enc.EncodeValue(reflect.ValueOf(e))
 }
 
@@ -215,17 +215,17 @@ func (enc *Encoder) sendTypeId(state *encoderState, ut *userTypeInfo) {
 func (enc *Encoder) EncodeValue(value reflect.Value) error {
 	// Gobs contain values. They cannot represent nil pointers, which
 	// have no value to encode.
-	if value.Kind() == reflect.Ptr && value.IsNil() { // ÊÇÖ¸ÕëÀàĞÍ»òÕßnil£¬ÎŞ·¨½øĞĞencode
+	if value.Kind() == reflect.Ptr && value.IsNil() { // æ˜¯æŒ‡é’ˆç±»å‹æˆ–è€…nilï¼Œæ— æ³•è¿›è¡Œencode
 		panic("gob: cannot encode nil pointer of type " + value.Type().String())
 	}
 
 	// Make sure we're single-threaded through here, so multiple
 	// goroutines can share an encoder.
 	enc.mutex.Lock()
-	defer enc.mutex.Unlock() // ÏÈ¼ÓËø
+	defer enc.mutex.Unlock() // å…ˆåŠ é”
 
 	// Remove any nested writers remaining due to previous errors.
-	enc.w = enc.w[0:1] // ÏÈÖ»¿´µÚÒ»¸öWriter
+	enc.w = enc.w[0:1] // å…ˆåªçœ‹ç¬¬ä¸€ä¸ªWriter
 
 	ut, err := validUserType(value.Type())
 	if err != nil {

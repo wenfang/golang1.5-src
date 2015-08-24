@@ -30,8 +30,8 @@ const encodeHex = "0123456789ABCDEFGHIJKLMNOPQRSTUV"
 
 // NewEncoding returns a new Encoding defined by the given alphabet,
 // which must be a 32-byte string.
-func NewEncoding(encoder string) *Encoding { // base32编码
-	e := new(Encoding) // 新创建一个Encoding结构
+func NewEncoding(encoder string) *Encoding { // base32缂栫爜
+	e := new(Encoding) // 鏂板垱寤轰竴涓狤ncoding缁撴瀯
 	e.encode = encoder
 	for i := 0; i < len(e.decodeMap); i++ {
 		e.decodeMap[i] = 0xFF
@@ -67,7 +67,7 @@ var removeNewlinesMapper = func(r rune) rune {
 // The encoding pads the output to a multiple of 8 bytes,
 // so Encode is not appropriate for use on individual blocks
 // of a large data stream.  Use NewEncoder() instead.
-func (enc *Encoding) Encode(dst, src []byte) { // 执行编码操作
+func (enc *Encoding) Encode(dst, src []byte) { // 鎵ц缂栫爜鎿嶄綔
 	if len(src) == 0 {
 		return
 	}
@@ -133,7 +133,7 @@ func (enc *Encoding) Encode(dst, src []byte) { // 执行编码操作
 }
 
 // EncodeToString returns the base32 encoding of src.
-func (enc *Encoding) EncodeToString(src []byte) string { // 编码成字符串
+func (enc *Encoding) EncodeToString(src []byte) string { // 缂栫爜鎴愬瓧绗︿覆
 	buf := make([]byte, enc.EncodedLen(len(src)))
 	enc.Encode(buf, src)
 	return string(buf)
@@ -148,7 +148,7 @@ type encoder struct {
 	out  [1024]byte // output buffer
 }
 
-func (e *encoder) Write(p []byte) (n int, err error) { // 编码器中写入数据
+func (e *encoder) Write(p []byte) (n int, err error) { // 缂栫爜鍣ㄤ腑鍐欏叆鏁版嵁
 	if e.err != nil {
 		return 0, e.err
 	}

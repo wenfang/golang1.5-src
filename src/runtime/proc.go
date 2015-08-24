@@ -141,10 +141,10 @@ func init() {
 	go forcegchelper() // 启动forcegc helper goroutine
 }
 
-func forcegchelper() {
+func forcegchelper() { // 负责强迫执行gc
 	forcegc.g = getg() // 获取当前的goroutine
 	for {
-		lock(&forcegc.lock)
+		lock(&forcegc.lock) // 为当前的forcegc goroutine加锁
 		if forcegc.idle != 0 {
 			throw("forcegc: phase error")
 		}
@@ -185,6 +185,7 @@ func gopark(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason s
 	mcall(park_m)
 }
 
+// 将当前的goroutine置入等待状态，并且解锁，后续调用goready后进入可运行状态
 // Puts the current goroutine into a waiting state and unlocks the lock.
 // The goroutine can be made runnable again by calling goready(gp).
 func goparkunlock(lock *mutex, reason string, traceEv byte, traceskip int) {

@@ -581,7 +581,7 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 				systemstack(func() {
 					mCache_Refill(c, tinySizeClass)
 				})
-				shouldhelpgc = true
+				shouldhelpgc = true // 已经分配不到内存了，尝试进行gc
 				s = c.alloc[tinySizeClass]
 				v = s.freelist
 			}
@@ -613,7 +613,7 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 				systemstack(func() {
 					mCache_Refill(c, int32(sizeclass))
 				})
-				shouldhelpgc = true
+				shouldhelpgc = true // 已经分配不到内存了，尝试进行gc
 				s = c.alloc[sizeclass]
 				v = s.freelist
 			}
@@ -705,7 +705,7 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 	}
 
 	if shouldhelpgc && shouldtriggergc() {
-		startGC(gcBackgroundMode, false)
+		startGC(gcBackgroundMode, false) // 启动后台的GC模式
 	} else if gcBlackenEnabled != 0 {
 		// Assist garbage collector. We delay this until the
 		// epilogue so that it doesn't interfere with the

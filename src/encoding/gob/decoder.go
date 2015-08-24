@@ -175,10 +175,10 @@ func (dec *Decoder) Decode(e interface{}) error {
 	if e == nil {
 		return dec.DecodeValue(reflect.Value{})
 	}
-	value := reflect.ValueOf(e) // »ñµÃeµÄÖµ
+	value := reflect.ValueOf(e) // èŽ·å¾—eçš„å€¼
 	// If e represents a value as opposed to a pointer, the answer won't
 	// get back to the caller.  Make sure it's a pointer.
-	if value.Type().Kind() != reflect.Ptr { // e±ØÐëÎªÖ¸ÕëÀàÐÍ
+	if value.Type().Kind() != reflect.Ptr { // eå¿…é¡»ä¸ºæŒ‡é’ˆç±»åž‹
 		dec.err = errors.New("gob: attempt to decode into a non-pointer")
 		return dec.err
 	}

@@ -2962,7 +2962,7 @@ func checkdead() {
 
 func sysmon() {
 	// If we go two minutes without a garbage collection, force one to run.
-	forcegcperiod := int64(2 * 60 * 1e9)
+	forcegcperiod := int64(2 * 60 * 1e9) // 如果2分钟没有进行gc，强迫进行一次
 
 	// If a heap span goes unused for 5 minutes after a garbage collection,
 	// we hand it back to the operating system.
@@ -3038,8 +3038,8 @@ func sysmon() {
 			idle++
 		}
 		// check if we need to force a GC
-		lastgc := int64(atomicload64(&memstats.last_gc))
-		if lastgc != 0 && unixnow-lastgc > forcegcperiod && atomicload(&forcegc.idle) != 0 && atomicloaduint(&bggc.working) == 0 {
+		lastgc := int64(atomicload64(&memstats.last_gc))                                                                           // 获取上一次gc的时间
+		if lastgc != 0 && unixnow-lastgc > forcegcperiod && atomicload(&forcegc.idle) != 0 && atomicloaduint(&bggc.working) == 0 { // 如果gc时间超过了forcegcperiod，并且当前forcegc的goroutine没有启动，且没有进行gc
 			lock(&forcegc.lock)
 			forcegc.idle = 0
 			forcegc.g.schedlink = 0

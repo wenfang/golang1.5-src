@@ -185,7 +185,7 @@ const defaultHeapMinimum = 4 << 20 // 缺省的最小的堆，4M
 // Initialized from $GOGC.  GOGC=off means no GC.
 var gcpercent int32
 
-func gcinit() {
+func gcinit() { // 初始化gc
 	if unsafe.Sizeof(workbuf{}) != _WorkbufSize { // workbuf的大小不正确，抛出异常
 		throw("size of Workbuf is suboptimal")
 	}
@@ -710,6 +710,8 @@ const gcBgCreditSlack = 2000
 // can accumulate on a P before updating gcController.assistTime.
 const gcAssistTimeSlack = 5000
 
+// 决定是否初始化GC
+// 如果GC已经在启动了，就不需要再启动了
 // Determine whether to initiate a GC.
 // If the GC is already working no need to trigger another one.
 // This should establish a feedback loop where if the GC does not
@@ -719,7 +721,7 @@ const gcAssistTimeSlack = 5000
 // memstat.heap_live read has a benign race.
 // A false negative simple does not start a GC, a false positive
 // will start a GC needlessly. Neither have correctness issues.
-func shouldtriggergc() bool {
+func shouldtriggergc() bool { // 是否启动一个gc
 	return memstats.heap_live >= memstats.next_gc && atomicloaduint(&bggc.working) == 0
 }
 
