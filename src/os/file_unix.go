@@ -21,7 +21,7 @@ func rename(oldname, newname string) error {
 }
 
 // File represents an open file descriptor.
-type File struct { // File´ú±íÒ»¸ö´ò¿ªµÄÎÄ¼şµÄÎÄ¼şÃèÊö·û
+type File struct { // Fileä»£è¡¨ä¸€ä¸ªæ‰“å¼€çš„æ–‡ä»¶çš„æ–‡ä»¶æè¿°ç¬¦
 	*file
 }
 
@@ -29,46 +29,46 @@ type File struct { // File´ú±íÒ»¸ö´ò¿ªµÄÎÄ¼şµÄÎÄ¼şÃèÊö·û
 // The extra level of indirection ensures that no clients of os
 // can overwrite this data, which could cause the finalizer
 // to close the wrong file descriptor.
-type file struct { // File½á¹¹µÄÕæÊµ±íÊ¾
-	fd      int      // ´ò¿ªµÄÎÄ¼şfd
-	name    string   // ´ò¿ªµÄÎÄ¼şÃû
-	dirinfo *dirInfo // nil unless directory being read Èç¹û¶ÁµÄ²»ÊÇÄ¿Â¼£¬Îª¿Õ
-	nepipe  int32    // number of consecutive EPIPE in Write Ğ´µÄÊ±ºòÁ¬Ğø·¢ÉúEPIPE´íÎóµÄ´ÎÊı
+type file struct { // Fileç»“æ„çš„çœŸå®è¡¨ç¤º
+	fd      int      // æ‰“å¼€çš„æ–‡ä»¶fd
+	name    string   // æ‰“å¼€çš„æ–‡ä»¶å
+	dirinfo *dirInfo // nil unless directory being read å¦‚æœè¯»çš„ä¸æ˜¯ç›®å½•ï¼Œä¸ºç©º
+	nepipe  int32    // number of consecutive EPIPE in Write å†™çš„æ—¶å€™è¿ç»­å‘ç”ŸEPIPEé”™è¯¯çš„æ¬¡æ•°
 }
 
 // Fd returns the integer Unix file descriptor referencing the open file.
 // The file descriptor is valid only until f.Close is called or f is garbage collected.
-func (f *File) Fd() uintptr { // ·µ»Ø¶ÔÓ¦µÄÎÄ¼şÃèÊö·û
-	if f == nil { // Èç¹ûfÎª¿Õ£¬·µ»Ø×î´óÖµ
+func (f *File) Fd() uintptr { // è¿”å›å¯¹åº”çš„æ–‡ä»¶æè¿°ç¬¦
+	if f == nil { // å¦‚æœfä¸ºç©ºï¼Œè¿”å›æœ€å¤§å€¼
 		return ^(uintptr(0))
 	}
 	return uintptr(f.fd)
 }
 
 // NewFile returns a new File with the given file descriptor and name.
-func NewFile(fd uintptr, name string) *File { // ¸ù¾İÎÄ¼şÃèÊö·ûºÍÎÄ¼şÃû·µ»ØFile½á¹¹
+func NewFile(fd uintptr, name string) *File { // æ ¹æ®æ–‡ä»¶æè¿°ç¬¦å’Œæ–‡ä»¶åè¿”å›Fileç»“æ„
 	fdi := int(fd)
 	if fdi < 0 {
 		return nil
 	}
 	f := &File{&file{fd: fdi, name: name}}
-	runtime.SetFinalizer(f.file, (*file).close) // Éè¶¨À¬»ø»ØÊÕÊ±Ö´ĞĞclose
+	runtime.SetFinalizer(f.file, (*file).close) // è®¾å®šåƒåœ¾å›æ”¶æ—¶æ‰§è¡Œclose
 	return f
 }
 
 // Auxiliary information if the File describes a directory
-type dirInfo struct { // Ä¿Â¼ĞÅÏ¢½á¹¹
+type dirInfo struct { // ç›®å½•ä¿¡æ¯ç»“æ„
 	buf  []byte // buffer for directory I/O
 	nbuf int    // length of buf; return value from Getdirentries
 	bufp int    // location of next record in buf.
 }
 
 func epipecheck(file *File, e error) {
-	if e == syscall.EPIPE { // Èç¹û´íÎóÊÇEPIPE´íÎó
-		if atomic.AddInt32(&file.nepipe, 1) >= 10 { // Á¬Ğø·¢ÉúÁË10´Î£¬µ÷ÓÃsigpipe
+	if e == syscall.EPIPE { // å¦‚æœé”™è¯¯æ˜¯EPIPEé”™è¯¯
+		if atomic.AddInt32(&file.nepipe, 1) >= 10 { // è¿ç»­å‘ç”Ÿäº†10æ¬¡ï¼Œè°ƒç”¨sigpipe
 			sigpipe()
 		}
-	} else { // ²»ÊÇEPIPE´íÎó,ÉèÖÃÎª0
+	} else { // ä¸æ˜¯EPIPEé”™è¯¯,è®¾ç½®ä¸º0
 		atomic.StoreInt32(&file.nepipe, 0)
 	}
 }
@@ -111,7 +111,7 @@ func OpenFile(name string, flag int, perm FileMode) (*File, error) {
 
 // Close closes the File, rendering it unusable for I/O.
 // It returns an error, if any.
-func (f *File) Close() error { // ¹Ø±ÕÎÄ¼ş
+func (f *File) Close() error { // å…³é—­æ–‡ä»¶
 	if f == nil {
 		return ErrInvalid
 	}
@@ -269,7 +269,7 @@ func (f *File) seek(offset int64, whence int) (ret int64, err error) {
 // Truncate changes the size of the named file.
 // If the file is a symbolic link, it changes the size of the link's target.
 // If there is an error, it will be of type *PathError.
-func Truncate(name string, size int64) error { // truncateÎÄ¼şµÄ´óĞ¡
+func Truncate(name string, size int64) error { // truncateæ–‡ä»¶çš„å¤§å°
 	if e := syscall.Truncate(name, size); e != nil {
 		return &PathError{"truncate", name, e}
 	}
@@ -278,16 +278,16 @@ func Truncate(name string, size int64) error { // truncateÎÄ¼şµÄ´óĞ¡
 
 // Remove removes the named file or directory.
 // If there is an error, it will be of type *PathError.
-func Remove(name string) error { // É¾³ıÎÄ¼ş»òÕßÄ¿Â¼
+func Remove(name string) error { // åˆ é™¤æ–‡ä»¶æˆ–è€…ç›®å½•
 	// System call interface forces us to know
 	// whether name is a file or directory.
 	// Try both: it is cheaper on average than
 	// doing a Stat plus the right one.
-	e := syscall.Unlink(name) // ÏÈ³¢ÊÔÉ¾³ıÎÄ¼ş
-	if e == nil {             // Èç¹ûÉ¾³ı³É¹¦£¬·µ»Ø
+	e := syscall.Unlink(name) // å…ˆå°è¯•åˆ é™¤æ–‡ä»¶
+	if e == nil {             // å¦‚æœåˆ é™¤æˆåŠŸï¼Œè¿”å›
 		return nil
 	}
-	e1 := syscall.Rmdir(name) // ÏÈµ÷ÓÃsyscallµÄUnlinkºÍRmdir
+	e1 := syscall.Rmdir(name) // å…ˆè°ƒç”¨syscallçš„Unlinkå’ŒRmdir
 	if e1 == nil {
 		return nil
 	}
@@ -326,12 +326,12 @@ func basename(name string) string {
 }
 
 // TempDir returns the default directory to use for temporary files.
-func TempDir() string { // ·µ»ØÁÙÊ±Ä¿Â¼Ãû
-	dir := Getenv("TMPDIR") // È¡»Ø»·¾³±äÁ¿TMPDIRÖĞÖ¸Ê¾µÄÁÙÊ±Ä¿Â¼Ãû£¬Èç¹ûÃ»ÓĞ£¬Ä¬ÈÏÉèÖÃÎª/tmp
+func TempDir() string { // è¿”å›ä¸´æ—¶ç›®å½•å
+	dir := Getenv("TMPDIR") // å–å›ç¯å¢ƒå˜é‡TMPDIRä¸­æŒ‡ç¤ºçš„ä¸´æ—¶ç›®å½•åï¼Œå¦‚æœæ²¡æœ‰ï¼Œé»˜è®¤è®¾ç½®ä¸º/tmp
 	if dir == "" {
 		if runtime.GOOS == "android" {
 			dir = "/data/local/tmp"
-		} else { // Ä¬ÈÏÂ·¾¶Îªtmp
+		} else { // é»˜è®¤è·¯å¾„ä¸ºtmp
 			dir = "/tmp"
 		}
 	}

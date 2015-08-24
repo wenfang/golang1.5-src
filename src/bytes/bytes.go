@@ -48,7 +48,7 @@ func explode(s []byte, n int) [][]byte {
 
 // Count counts the number of non-overlapping instances of sep in s.
 // If sep is an empty slice, Count returns 1 + the number of Unicode code points in s.
-func Count(s, sep []byte) int { // ·µ»Øsep ÔÚsÖĞµÄÊıÁ¿
+func Count(s, sep []byte) int { // è¿”å›sep åœ¨sä¸­çš„æ•°é‡
 	n := len(sep)
 	if n == 0 {
 		return utf8.RuneCount(s) + 1
@@ -79,12 +79,12 @@ func Count(s, sep []byte) int { // ·µ»Øsep ÔÚsÖĞµÄÊıÁ¿
 }
 
 // Contains reports whether subslice is within b.
-func Contains(b, subslice []byte) bool { // ¼ì²éÊÇ·ñsubslice´æÔÚÓÚbÖĞ
+func Contains(b, subslice []byte) bool { // æ£€æŸ¥æ˜¯å¦subsliceå­˜åœ¨äºbä¸­
 	return Index(b, subslice) != -1
 }
 
 // Index returns the index of the first instance of sep in s, or -1 if sep is not present in s.
-func Index(s, sep []byte) int { // ·µ»ØsepÔÚsÖĞµÄË÷Òı±àºÅ
+func Index(s, sep []byte) int { // è¿”å›sepåœ¨sä¸­çš„ç´¢å¼•ç¼–å·
 	n := len(sep)
 	if n == 0 {
 		return 0
@@ -124,7 +124,7 @@ func indexBytePortable(s []byte, c byte) int {
 }
 
 // LastIndex returns the index of the last instance of sep in s, or -1 if sep is not present in s.
-func LastIndex(s, sep []byte) int { // ·µ»ØsepÔÚsÖĞ£¬´ÓºóÍùÇ°µÚÒ»¸öÎ»ÖÃµÄË÷Òı
+func LastIndex(s, sep []byte) int { // è¿”å›sepåœ¨sä¸­ï¼Œä»åå¾€å‰ç¬¬ä¸€ä¸ªä½ç½®çš„ç´¢å¼•
 	n := len(sep)
 	if n == 0 {
 		return len(s)
@@ -151,7 +151,7 @@ func LastIndexByte(s []byte, c byte) int {
 // IndexRune interprets s as a sequence of UTF-8-encoded Unicode code points.
 // It returns the byte index of the first occurrence in s of the given rune.
 // It returns -1 if rune is not present in s.
-func IndexRune(s []byte, r rune) int { // ·µ»Ørune rÔÚsÖĞµÄË÷ÒıÎ»ÖÃ
+func IndexRune(s []byte, r rune) int { // è¿”å›rune råœ¨sä¸­çš„ç´¢å¼•ä½ç½®
 	for i := 0; i < len(s); {
 		r1, size := utf8.DecodeRune(s[i:])
 		if r == r1 {
@@ -166,7 +166,7 @@ func IndexRune(s []byte, r rune) int { // ·µ»Ørune rÔÚsÖĞµÄË÷ÒıÎ»ÖÃ
 // It returns the byte index of the first occurrence in s of any of the Unicode
 // code points in chars.  It returns -1 if chars is empty or if there is no code
 // point in common.
-func IndexAny(s []byte, chars string) int { // ·µ»ØsÖĞÈÎÒâÒ»¸öcharsÖĞ×Ö·ûµÄµÚÒ»¸öÎ»ÖÃ
+func IndexAny(s []byte, chars string) int { // è¿”å›sä¸­ä»»æ„ä¸€ä¸ªcharsä¸­å­—ç¬¦çš„ç¬¬ä¸€ä¸ªä½ç½®
 	if len(chars) > 0 {
 		var r rune
 		var width int
@@ -191,7 +191,7 @@ func IndexAny(s []byte, chars string) int { // ·µ»ØsÖĞÈÎÒâÒ»¸öcharsÖĞ×Ö·ûµÄµÚÒ»¸
 // points.  It returns the byte index of the last occurrence in s of any of
 // the Unicode code points in chars.  It returns -1 if chars is empty or if
 // there is no code point in common.
-func LastIndexAny(s []byte, chars string) int { // ÓëIndexAnyÏàÍ¬£¬´ÓºóÍùÇ°
+func LastIndexAny(s []byte, chars string) int { // ä¸IndexAnyç›¸åŒï¼Œä»åå¾€å‰
 	if len(chars) > 0 {
 		for i := len(s); i > 0; {
 			r, size := utf8.DecodeLastRune(s[0:i])
@@ -270,7 +270,7 @@ func SplitAfter(s, sep []byte) [][]byte {
 
 // Fields splits the slice s around each instance of one or more consecutive white space
 // characters, returning a slice of subslices of s or an empty list if s contains only white space.
-func Fields(s []byte) [][]byte { // ÒÔunicodeµÄ¿Õ¸ñ·Ö¸ô[]byte
+func Fields(s []byte) [][]byte { // ä»¥unicodeçš„ç©ºæ ¼åˆ†éš”[]byte
 	return FieldsFunc(s, unicode.IsSpace)
 }
 
@@ -358,9 +358,9 @@ func Map(mapping func(r rune) rune, s []byte) []byte {
 	// In the worst case, the slice can grow when mapped, making
 	// things unpleasant.  But it's so rare we barge in assuming it's
 	// fine.  It could also shrink but that falls out naturally.
-	maxbytes := len(s) // length of b
-	nbytes := 0        // number of bytes encoded in b
-	b := make([]byte, maxbytes) // ´´½¨×îÖÕĞèÒª·µ»ØµÄ[]byte
+	maxbytes := len(s)          // length of b
+	nbytes := 0                 // number of bytes encoded in b
+	b := make([]byte, maxbytes) // åˆ›å»ºæœ€ç»ˆéœ€è¦è¿”å›çš„[]byte
 	for i := 0; i < len(s); {
 		wid := 1
 		r := rune(s[i])
@@ -373,7 +373,7 @@ func Map(mapping func(r rune) rune, s []byte) []byte {
 			if rl < 0 {
 				rl = len(string(utf8.RuneError))
 			}
-			if nbytes+rl > maxbytes { // Èç¹ûmaxbytes¿Õ¼ä²»¹»
+			if nbytes+rl > maxbytes { // å¦‚æœmaxbytesç©ºé—´ä¸å¤Ÿ
 				// Grow the buffer.
 				maxbytes = maxbytes*2 + utf8.UTFMax
 				nb := make([]byte, maxbytes)
@@ -399,7 +399,7 @@ func Repeat(b []byte, count int) []byte {
 }
 
 // ToUpper returns a copy of the byte slice s with all Unicode letters mapped to their upper case.
-func ToUpper(s []byte) []byte { return Map(unicode.ToUpper, s) } // ½«[]byte×ª»»³É´óĞ´
+func ToUpper(s []byte) []byte { return Map(unicode.ToUpper, s) } // å°†[]byteè½¬æ¢æˆå¤§å†™
 
 // ToLower returns a copy of the byte slice s with all Unicode letters mapped to their lower case.
 func ToLower(s []byte) []byte { return Map(unicode.ToLower, s) }

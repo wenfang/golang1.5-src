@@ -110,7 +110,7 @@ func IsNumber(r rune) bool {
 
 // IsPunct reports whether the rune is a Unicode punctuation character
 // (category P).
-func IsPunct(r rune) bool { // ÅĞ¶Ï¸ÃUnicodeÊÇ·ñÎª±êµã·ûºÅ
+func IsPunct(r rune) bool { // åˆ¤æ–­è¯¥Unicodeæ˜¯å¦ä¸ºæ ‡ç‚¹ç¬¦å·
 	if uint32(r) <= MaxLatin1 {
 		return properties[uint8(r)]&pP != 0
 	}
@@ -123,11 +123,11 @@ func IsPunct(r rune) bool { // ÅĞ¶Ï¸ÃUnicodeÊÇ·ñÎª±êµã·ûºÅ
 //	'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
 // Other definitions of spacing characters are set by category
 // Z and property Pattern_White_Space.
-func IsSpace(r rune) bool { // ÊÇ·ñÎª¿Õ¸ñ×Ö·û
+func IsSpace(r rune) bool { // æ˜¯å¦ä¸ºç©ºæ ¼å­—ç¬¦
 	// This property isn't the same as Z; special-case it.
-	if uint32(r) <= MaxLatin1 { // Èç¹ûÊôÓÚÀ­¶¡×Ö·û
-		switch r { // ·µ»ØÀ­¶¡×Ö·û¶¨ÒåµÄ¿Õ¸ñ
-		case '\t', '\n', '\v', '\f', '\r', ' ', 0x85, 0xA0: // ¿Õ¸ñ¡¢\r\n\t
+	if uint32(r) <= MaxLatin1 { // å¦‚æœå±äºæ‹‰ä¸å­—ç¬¦
+		switch r { // è¿”å›æ‹‰ä¸å­—ç¬¦å®šä¹‰çš„ç©ºæ ¼
+		case '\t', '\n', '\v', '\f', '\r', ' ', 0x85, 0xA0: // ç©ºæ ¼ã€\r\n\t
 			return true
 		}
 		return false

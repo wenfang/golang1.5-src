@@ -11,60 +11,60 @@ import (
 )
 
 // Process stores the information about a process created by StartProcess.
-type Process struct { // ½ø³Ì½á¹¹
-	Pid    int // ½ø³Ìpid
+type Process struct { // è¿›ç¨‹ç»“æ„
+	Pid    int     // è¿›ç¨‹pid
 	handle uintptr // handle is accessed atomically on Windows
 	isdone uint32  // process has been successfully waited on, non zero if true
 }
 
-func newProcess(pid int, handle uintptr) *Process { // ĞÂ´´½¨Ò»¸ö½ø³Ì½á¹¹
+func newProcess(pid int, handle uintptr) *Process { // æ–°åˆ›å»ºä¸€ä¸ªè¿›ç¨‹ç»“æ„
 	p := &Process{Pid: pid, handle: handle}
 	runtime.SetFinalizer(p, (*Process).Release)
 	return p
 }
 
-func (p *Process) setDone() { // ÉèÖÃprocessÒÑ¾­Ö´ĞĞÍê³É
+func (p *Process) setDone() { // è®¾ç½®processå·²ç»æ‰§è¡Œå®Œæˆ
 	atomic.StoreUint32(&p.isdone, 1)
 }
 
-func (p *Process) done() bool { // ²é¿´processÊÇ·ñÖ´ĞĞÍê³É
+func (p *Process) done() bool { // æŸ¥çœ‹processæ˜¯å¦æ‰§è¡Œå®Œæˆ
 	return atomic.LoadUint32(&p.isdone) > 0
 }
 
 // ProcAttr holds the attributes that will be applied to a new process
 // started by StartProcess.
-type ProcAttr struct { // ½ø³ÌÊôĞÔ
+type ProcAttr struct { // è¿›ç¨‹å±æ€§
 	// If Dir is non-empty, the child changes into the directory before
 	// creating the process.
-	Dir string // Èç¹ûÄ¿Â¼·Ç¿Õ£¬½ø³ÌÔÚÆô¶¯Ç°½øÈëµ½¸ÃÄ¿Â¼
+	Dir string // å¦‚æœç›®å½•éç©ºï¼Œè¿›ç¨‹åœ¨å¯åŠ¨å‰è¿›å…¥åˆ°è¯¥ç›®å½•
 	// If Env is non-nil, it gives the environment variables for the
 	// new process in the form returned by Environ.
 	// If it is nil, the result of Environ will be used.
-	Env []string // ¸ø¶¨½ø³ÌµÄ»·¾³±äÁ¿
+	Env []string // ç»™å®šè¿›ç¨‹çš„ç¯å¢ƒå˜é‡
 	// Files specifies the open files inherited by the new process.  The
 	// first three entries correspond to standard input, standard output, and
 	// standard error.  An implementation may support additional entries,
 	// depending on the underlying operating system.  A nil entry corresponds
 	// to that file being closed when the process starts.
-	Files []*File // ±»ĞÂ½ø³Ì¼Ì³ĞµÄ´ò¿ªÎÄ¼şÁĞ±í£¬Ç°ÈıÏî¶ÔÓ¦±ê×¼ÊäÈë£¬±ê×¼Êä³öºÍ±ê×¼´íÎó
+	Files []*File // è¢«æ–°è¿›ç¨‹ç»§æ‰¿çš„æ‰“å¼€æ–‡ä»¶åˆ—è¡¨ï¼Œå‰ä¸‰é¡¹å¯¹åº”æ ‡å‡†è¾“å…¥ï¼Œæ ‡å‡†è¾“å‡ºå’Œæ ‡å‡†é”™è¯¯
 
 	// Operating system-specific process creation attributes.
 	// Note that setting this field means that your program
 	// may not execute properly or even compile on some
 	// operating systems.
-	Sys *syscall.SysProcAttr // ²Ù×÷ÏµÍ³ÌØ¶¨µÄ½ø³Ì´´½¨ÊôĞÔ
+	Sys *syscall.SysProcAttr // æ“ä½œç³»ç»Ÿç‰¹å®šçš„è¿›ç¨‹åˆ›å»ºå±æ€§
 }
 
 // A Signal represents an operating system signal.
 // The usual underlying implementation is operating system-dependent:
 // on Unix it is syscall.Signal.
-type Signal interface { // ´ú±í²Ù×÷ÏµÍ³µÄĞÅºÅ
+type Signal interface { // ä»£è¡¨æ“ä½œç³»ç»Ÿçš„ä¿¡å·
 	String() string
 	Signal() // to distinguish from other Stringers
 }
 
 // Getpid returns the process id of the caller.
-func Getpid() int { return syscall.Getpid() } //·µ»Ø½ø³Ìid
+func Getpid() int { return syscall.Getpid() } //è¿”å›è¿›ç¨‹id
 
 // Getppid returns the process id of the caller's parent.
-func Getppid() int { return syscall.Getppid() } // ·µ»Ø½ø³Ìparent id
+func Getppid() int { return syscall.Getppid() } // è¿”å›è¿›ç¨‹parent id

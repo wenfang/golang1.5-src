@@ -67,7 +67,7 @@ func (p *Process) release() error {
 	return nil
 }
 
-func findProcess(pid int) (p *Process, err error) { // 根据pid查找进程结构
+func findProcess(pid int) (p *Process, err error) { // 鏍规嵁pid鏌ユ壘杩涚▼缁撴瀯
 	// NOOP for unix.
 	return newProcess(pid, 0), nil
 }

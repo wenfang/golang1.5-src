@@ -16,7 +16,7 @@ import (
 // readAll reads from r until an error or EOF and returns the data it read
 // from the internal buffer allocated with a specified capacity.
 func readAll(r io.Reader, capacity int64) (b []byte, err error) {
-	buf := bytes.NewBuffer(make([]byte, 0, capacity)) // ´´½¨Ò»¸öbuffer£¬´óĞ¡ÖÁÉÙÎªcapacity
+	buf := bytes.NewBuffer(make([]byte, 0, capacity)) // åˆ›å»ºä¸€ä¸ªbufferï¼Œå¤§å°è‡³å°‘ä¸ºcapacity
 	// If the buffer overflows, we will get bytes.ErrTooLarge.
 	// Return that as an error. Any other panic remains.
 	defer func() {
@@ -38,7 +38,7 @@ func readAll(r io.Reader, capacity int64) (b []byte, err error) {
 // A successful call returns err == nil, not err == EOF. Because ReadAll is
 // defined to read from src until EOF, it does not treat an EOF from Read
 // as an error to be reported.
-func ReadAll(r io.Reader) ([]byte, error) { // ¶ÁÈ¡io.ReaderÖĞËùÓĞµÄÊı¾İµ½[]byteÖĞ
+func ReadAll(r io.Reader) ([]byte, error) { // è¯»å–io.Readerä¸­æ‰€æœ‰çš„æ•°æ®åˆ°[]byteä¸­
 	return readAll(r, bytes.MinRead)
 }
 
@@ -46,8 +46,8 @@ func ReadAll(r io.Reader) ([]byte, error) { // ¶ÁÈ¡io.ReaderÖĞËùÓĞµÄÊı¾İµ½[]byte
 // A successful call returns err == nil, not err == EOF. Because ReadFile
 // reads the whole file, it does not treat an EOF from Read as an error
 // to be reported.
-func ReadFile(filename string) ([]byte, error) { // ¶ÁÈ¡ÎÄ¼şÄÚÈİ£¬¶ÁÈ«²¿ÄÚÈİ£¬·Åµ½byte sliceÖĞ
-	f, err := os.Open(filename) // ÏÈ´ò¿ªÎÄ¼ş
+func ReadFile(filename string) ([]byte, error) { // è¯»å–æ–‡ä»¶å†…å®¹ï¼Œè¯»å…¨éƒ¨å†…å®¹ï¼Œæ”¾åˆ°byte sliceä¸­
+	f, err := os.Open(filename) // å…ˆæ‰“å¼€æ–‡ä»¶
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +67,13 @@ func ReadFile(filename string) ([]byte, error) { // ¶ÁÈ¡ÎÄ¼şÄÚÈİ£¬¶ÁÈ«²¿ÄÚÈİ£¬·Å
 	// call will read into its allocated internal buffer cheaply.  If the size was
 	// wrong, we'll either waste some space off the end or reallocate as needed, but
 	// in the overwhelmingly common case we'll get it just right.
-	return readAll(f, n+bytes.MinRead) // ×îÖÕµ÷ÓÃReadAll£¬¶Á³öÈ«²¿ÄÚÈİ
+	return readAll(f, n+bytes.MinRead) // æœ€ç»ˆè°ƒç”¨ReadAllï¼Œè¯»å‡ºå…¨éƒ¨å†…å®¹
 }
 
 // WriteFile writes data to a file named by filename.
 // If the file does not exist, WriteFile creates it with permissions perm;
 // otherwise WriteFile truncates it before writing.
-func WriteFile(filename string, data []byte, perm os.FileMode) error { // ÏòÎÄ¼şfilenameÖĞĞ´ÄÚÈİdata
+func WriteFile(filename string, data []byte, perm os.FileMode) error { // å‘æ–‡ä»¶filenameä¸­å†™å†…å®¹data
 	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func WriteFile(filename string, data []byte, perm os.FileMode) error { // ÏòÎÄ¼ş
 }
 
 // byName implements sort.Interface.
-type byName []os.FileInfo // ÊµÏÖÁËFileInfoµÄ¿ÉÅÅĞò½Ó¿Ú£¬°´ÕÕÃû³Æ½øĞĞÅÅĞò
+type byName []os.FileInfo // å®ç°äº†FileInfoçš„å¯æ’åºæ¥å£ï¼ŒæŒ‰ç…§åç§°è¿›è¡Œæ’åº
 
 func (f byName) Len() int           { return len(f) }
 func (f byName) Less(i, j int) bool { return f[i].Name() < f[j].Name() }
@@ -97,7 +97,7 @@ func (f byName) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
 
 // ReadDir reads the directory named by dirname and returns
 // a list of sorted directory entries.
-func ReadDir(dirname string) ([]os.FileInfo, error) { // ¶ÁÄ¿Â¼£¬·µ»ØÅÅĞòºóµÄÄ¿Â¼
+func ReadDir(dirname string) ([]os.FileInfo, error) { // è¯»ç›®å½•ï¼Œè¿”å›æ’åºåçš„ç›®å½•
 	f, err := os.Open(dirname)
 	if err != nil {
 		return nil, err
@@ -107,11 +107,11 @@ func ReadDir(dirname string) ([]os.FileInfo, error) { // ¶ÁÄ¿Â¼£¬·µ»ØÅÅĞòºóµÄÄ¿Â
 	if err != nil {
 		return nil, err
 	}
-	sort.Sort(byName(list)) // ¶ÔÄ¿Â¼½øĞĞÅÅĞò
+	sort.Sort(byName(list)) // å¯¹ç›®å½•è¿›è¡Œæ’åº
 	return list, nil
 }
 
-type nopCloser struct { // ¹Ø±Õ·½·¨Îª¿ÕµÄCloser
+type nopCloser struct { // å…³é—­æ–¹æ³•ä¸ºç©ºçš„Closer
 	io.Reader
 }
 
@@ -119,11 +119,11 @@ func (nopCloser) Close() error { return nil }
 
 // NopCloser returns a ReadCloser with a no-op Close method wrapping
 // the provided Reader r.
-func NopCloser(r io.Reader) io.ReadCloser { // ·µ»ØÒ»¸öio.ReadCloser£¬Æä¹Ø±Õ·½·¨Îª¿Õ£¬¹Ø²»µô
+func NopCloser(r io.Reader) io.ReadCloser { // è¿”å›ä¸€ä¸ªio.ReadCloserï¼Œå…¶å…³é—­æ–¹æ³•ä¸ºç©ºï¼Œå…³ä¸æ‰
 	return nopCloser{r}
 }
 
-type devNull int // ÊµÏÖWriter½Ó¿Ú£¬Ğ´Èë¿Õ¶´
+type devNull int // å®ç°Writeræ¥å£ï¼Œå†™å…¥ç©ºæ´
 
 // devNull implements ReaderFrom as an optimization so io.Copy to
 // ioutil.Discard can avoid doing unnecessary work.

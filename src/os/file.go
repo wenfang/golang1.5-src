@@ -42,7 +42,7 @@ import (
 )
 
 // Name returns the name of the file as presented to Open.
-func (f *File) Name() string { return f.name } // ·µ»ØÎÄ¼şÃû
+func (f *File) Name() string { return f.name } // è¿”å›æ–‡ä»¶å
 
 // Stdin, Stdout, and Stderr are open Files pointing to the standard input,
 // standard output, and standard error file descriptors.
@@ -74,47 +74,47 @@ const (
 
 // LinkError records an error during a link or symlink or rename
 // system call and the paths that caused it.
-type LinkError struct { // ±¨¸æÁ´½Ó´íÎó
+type LinkError struct { // æŠ¥å‘Šé“¾æ¥é”™è¯¯
 	Op  string
 	Old string
 	New string
 	Err error
 }
 
-func (e *LinkError) Error() string { // ¶¨ÒåLinkErrorµÄError·½·¨
+func (e *LinkError) Error() string { // å®šä¹‰LinkErrorçš„Erroræ–¹æ³•
 	return e.Op + " " + e.Old + " " + e.New + ": " + e.Err.Error()
 }
 
 // Read reads up to len(b) bytes from the File.
 // It returns the number of bytes read and an error, if any.
 // EOF is signaled by a zero count with err set to io.EOF.
-func (f *File) Read(b []byte) (n int, err error) { // ¶ÁÈ¡Êı¾İµ½bÖĞ
-	if f == nil { // ·µ»Ø¾ä±úÎŞĞ§´íÎó
+func (f *File) Read(b []byte) (n int, err error) { // è¯»å–æ•°æ®åˆ°bä¸­
+	if f == nil { // è¿”å›å¥æŸ„æ— æ•ˆé”™è¯¯
 		return 0, ErrInvalid
 	}
-	n, e := f.read(b) // µ÷ÓÃread¶ÁÊı¾İ
-	if n < 0 {        // ·µ»Ø´íÎó£¬¸úÃ»¶ÁÒ»Ñù
+	n, e := f.read(b) // è°ƒç”¨readè¯»æ•°æ®
+	if n < 0 {        // è¿”å›é”™è¯¯ï¼Œè·Ÿæ²¡è¯»ä¸€æ ·
 		n = 0
 	}
-	if n == 0 && len(b) > 0 && e == nil { // ¶Áµ½ÎÄ¼ş½áÊø
+	if n == 0 && len(b) > 0 && e == nil { // è¯»åˆ°æ–‡ä»¶ç»“æŸ
 		return 0, io.EOF
 	}
 	if e != nil {
 		err = &PathError{"read", f.name, e}
 	}
-	return n, err // Õı³£Çé¿ö·µ»Ø¶Á³öµÄÊı¾İÁ¿
+	return n, err // æ­£å¸¸æƒ…å†µè¿”å›è¯»å‡ºçš„æ•°æ®é‡
 }
 
 // ReadAt reads len(b) bytes from the File starting at byte offset off.
 // It returns the number of bytes read and the error, if any.
 // ReadAt always returns a non-nil error when n < len(b).
 // At end of file, that error is io.EOF.
-func (f *File) ReadAt(b []byte, off int64) (n int, err error) { // ´ÓoffÎ»ÖÃ¶ÁÈ¡Êı¾İµ½bÖĞ
+func (f *File) ReadAt(b []byte, off int64) (n int, err error) { // ä»offä½ç½®è¯»å–æ•°æ®åˆ°bä¸­
 	if f == nil {
 		return 0, ErrInvalid
 	}
 	for len(b) > 0 {
-		m, e := f.pread(b, off) // Ö´ĞĞpread¶ÁÈ¡
+		m, e := f.pread(b, off) // æ‰§è¡Œpreadè¯»å–
 		if m == 0 && e == nil {
 			return n, io.EOF
 		}
@@ -132,7 +132,7 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) { // ´ÓoffÎ»ÖÃ¶ÁÈ¡
 // Write writes len(b) bytes to the File.
 // It returns the number of bytes written and an error, if any.
 // Write returns a non-nil error when n != len(b).
-func (f *File) Write(b []byte) (n int, err error) { // ½«[]byteÊı¾İbĞ´ÈëÎÄ¼şÖĞ
+func (f *File) Write(b []byte) (n int, err error) { // å°†[]byteæ•°æ®bå†™å…¥æ–‡ä»¶ä¸­
 	if f == nil {
 		return 0, ErrInvalid
 	}
@@ -155,7 +155,7 @@ func (f *File) Write(b []byte) (n int, err error) { // ½«[]byteÊı¾İbĞ´ÈëÎÄ¼şÖĞ
 // WriteAt writes len(b) bytes to the File starting at byte offset off.
 // It returns the number of bytes written and an error, if any.
 // WriteAt returns a non-nil error when n != len(b).
-func (f *File) WriteAt(b []byte, off int64) (n int, err error) { // ´ÓoffÎ»ÖÃ¶ÁÊı¾İµ½bÖĞ
+func (f *File) WriteAt(b []byte, off int64) (n int, err error) { // ä»offä½ç½®è¯»æ•°æ®åˆ°bä¸­
 	if f == nil {
 		return 0, ErrInvalid
 	}
@@ -176,7 +176,7 @@ func (f *File) WriteAt(b []byte, off int64) (n int, err error) { // ´ÓoffÎ»ÖÃ¶ÁÊ
 // according to whence: 0 means relative to the origin of the file, 1 means
 // relative to the current offset, and 2 means relative to the end.
 // It returns the new offset and an error, if any.
-func (f *File) Seek(offset int64, whence int) (ret int64, err error) { // µ÷ÓÃseek¶¨Î»
+func (f *File) Seek(offset int64, whence int) (ret int64, err error) { // è°ƒç”¨seekå®šä½
 	if f == nil {
 		return 0, ErrInvalid
 	}
@@ -201,7 +201,7 @@ func (f *File) WriteString(s string) (n int, err error) {
 
 // Mkdir creates a new directory with the specified name and permission bits.
 // If there is an error, it will be of type *PathError.
-func Mkdir(name string, perm FileMode) error { // µ÷ÓÃmkdir£¬´´½¨Ä¿Â¼
+func Mkdir(name string, perm FileMode) error { // è°ƒç”¨mkdirï¼Œåˆ›å»ºç›®å½•
 	e := syscall.Mkdir(name, syscallMode(perm))
 
 	if e != nil {
@@ -218,7 +218,7 @@ func Mkdir(name string, perm FileMode) error { // µ÷ÓÃmkdir£¬´´½¨Ä¿Â¼
 
 // Chdir changes the current working directory to the named directory.
 // If there is an error, it will be of type *PathError.
-func Chdir(dir string) error { // µ÷ÓÃchdir£¬¸Ä±äµ±Ç°Â·¾¶
+func Chdir(dir string) error { // è°ƒç”¨chdirï¼Œæ”¹å˜å½“å‰è·¯å¾„
 	if e := syscall.Chdir(dir); e != nil {
 		return &PathError{"chdir", dir, e}
 	}
@@ -228,7 +228,7 @@ func Chdir(dir string) error { // µ÷ÓÃchdir£¬¸Ä±äµ±Ç°Â·¾¶
 // Chdir changes the current working directory to the file,
 // which must be a directory.
 // If there is an error, it will be of type *PathError.
-func (f *File) Chdir() error { // ¸Ä±äµ±Ç°¹¤×÷Ä¿Â¼
+func (f *File) Chdir() error { // æ”¹å˜å½“å‰å·¥ä½œç›®å½•
 	if f == nil {
 		return ErrInvalid
 	}
@@ -260,7 +260,7 @@ var lstat = Lstat
 
 // Rename renames (moves) a file. OS-specific restrictions might apply.
 // If there is an error, it will be of type *LinkError.
-func Rename(oldpath, newpath string) error { // ÖØÃüÃûoldpathµ½newpath
+func Rename(oldpath, newpath string) error { // é‡å‘½åoldpathåˆ°newpath
 	return rename(oldpath, newpath)
 }
 

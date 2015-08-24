@@ -51,11 +51,11 @@ func unhex(c byte) byte { // 从16进制字符转换为数字
 type encoding int
 
 const (
-	encodePath           encoding = 1 + iota // 字符出现在path上
+	encodePath encoding = 1 + iota // 字符出现在path上
 	encodeHost
 	encodeUserPassword
-	encodeQueryComponent                     // 字符出现在query部分
-	encodeFragment                           // 字符出现在fragment部分
+	encodeQueryComponent // 字符出现在query部分
+	encodeFragment       // 字符出现在fragment部分
 )
 
 type EscapeError string
@@ -258,7 +258,7 @@ type URL struct { // 代表一个解析的URL结构
 	User     *Userinfo // username and password information 用户信息
 	Host     string    // host or host:port 主机+端口
 	Path     string    // 路径
-	RawPath  string // encoded path hint (Go 1.5 and later only; see EscapedPath method)
+	RawPath  string    // encoded path hint (Go 1.5 and later only; see EscapedPath method)
 	RawQuery string    // encoded query values, without '?' 经过编码的查询值，不包含?
 	Fragment string    // fragment for references, without '#' fragment部分，不包含#
 }

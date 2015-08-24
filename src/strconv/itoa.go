@@ -7,7 +7,7 @@ package strconv
 // FormatUint returns the string representation of i in the given base,
 // for 2 <= base <= 36. The result uses the lower-case letters 'a' to 'z'
 // for digit values >= 10.
-func FormatUint(i uint64, base int) string { // ½«Uint×ª»»Îª×Ö·û´®
+func FormatUint(i uint64, base int) string { // å°†Uintè½¬æ¢ä¸ºå­—ç¬¦ä¸²
 	_, s := formatBits(nil, i, base, false, false)
 	return s
 }

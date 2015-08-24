@@ -138,11 +138,11 @@ func os_beforeExit() {
 
 // start forcegc helper goroutine
 func init() {
-	go forcegchelper()
+	go forcegchelper() // 启动forcegc helper goroutine
 }
 
 func forcegchelper() {
-	forcegc.g = getg()
+	forcegc.g = getg() // 获取当前的goroutine
 	for {
 		lock(&forcegc.lock)
 		if forcegc.idle != 0 {

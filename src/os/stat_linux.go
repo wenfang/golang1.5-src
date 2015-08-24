@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func sameFile(fs1, fs2 *fileStat) bool { // ¼ì²éfs1ºÍfs2Á½¸öfileStatÊÇ·ñÎªÍ¬Ò»¸öÎÄ¼ş
+func sameFile(fs1, fs2 *fileStat) bool { // æ£€æŸ¥fs1å’Œfs2ä¸¤ä¸ªfileStatæ˜¯å¦ä¸ºåŒä¸€ä¸ªæ–‡ä»¶
 	stat1 := fs1.sys.(*syscall.Stat_t)
 	stat2 := fs2.sys.(*syscall.Stat_t)
 	return stat1.Dev == stat2.Dev && stat1.Ino == stat2.Ino

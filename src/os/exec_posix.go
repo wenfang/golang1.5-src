@@ -18,7 +18,7 @@ var (
 	Kill      Signal = syscall.SIGKILL
 )
 
-func startProcess(name string, argv []string, attr *ProcAttr) (p *Process, err error) { // 启动进程
+func startProcess(name string, argv []string, attr *ProcAttr) (p *Process, err error) { // 鍚姩杩涚▼
 	// If there is no SysProcAttr (ie. no Chroot or changed
 	// UID/GID), double-check existence of the directory we want
 	// to chdir into.  We can make the error clearer this way.
@@ -30,7 +30,7 @@ func startProcess(name string, argv []string, attr *ProcAttr) (p *Process, err e
 		}
 	}
 
-	sysattr := &syscall.ProcAttr{ // 创建一个syscall的ProcAttr结构
+	sysattr := &syscall.ProcAttr{ // 鍒涘缓涓�涓猻yscall鐨凱rocAttr缁撴瀯
 		Dir: attr.Dir,
 		Env: attr.Env,
 		Sys: attr.Sys,

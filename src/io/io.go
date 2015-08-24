@@ -18,7 +18,7 @@ import (
 
 // ErrShortWrite means that a write accepted fewer bytes than requested
 // but failed to return an explicit error.
-var ErrShortWrite = errors.New("short write") // Ğ´µÄÊı¾İ±ÈÒªÇóĞ´µÄÊı¾İÉÙ
+var ErrShortWrite = errors.New("short write") // å†™çš„æ•°æ®æ¯”è¦æ±‚å†™çš„æ•°æ®å°‘
 
 // ErrShortBuffer means that a read required a longer buffer than was provided.
 var ErrShortBuffer = errors.New("short buffer")
@@ -28,11 +28,11 @@ var ErrShortBuffer = errors.New("short buffer")
 // If the EOF occurs unexpectedly in a structured data stream,
 // the appropriate error is either ErrUnexpectedEOF or some other error
 // giving more detail.
-var EOF = errors.New("EOF") // Read·µ»Ø¸ÃÖµ£¬±íÃ÷¶Áµ½½áÎ²
+var EOF = errors.New("EOF") // Readè¿”å›è¯¥å€¼ï¼Œè¡¨æ˜è¯»åˆ°ç»“å°¾
 
 // ErrUnexpectedEOF means that EOF was encountered in the
 // middle of reading a fixed-size block or data structure.
-var ErrUnexpectedEOF = errors.New("unexpected EOF") // Î´Ô¤ÆÚµÄ½áÎ²
+var ErrUnexpectedEOF = errors.New("unexpected EOF") // æœªé¢„æœŸçš„ç»“å°¾
 
 // ErrNoProgress is returned by some clients of an io.Reader when
 // many calls to Read have failed to return any data or error,
@@ -67,7 +67,7 @@ var ErrNoProgress = errors.New("multiple Read calls return no data or error")
 // nothing happened; in particular it does not indicate EOF.
 //
 // Implementations must not retain p.
-type Reader interface { // ioµÄReader½Ó¿Ú
+type Reader interface { // ioçš„Readeræ¥å£
 	Read(p []byte) (n int, err error)
 }
 
@@ -80,7 +80,7 @@ type Reader interface { // ioµÄReader½Ó¿Ú
 // Write must not modify the slice data, even temporarily.
 //
 // Implementations must not retain p.
-type Writer interface { // ioµÄWriter½Ó¿Ú
+type Writer interface { // ioçš„Writeræ¥å£
 	Write(p []byte) (n int, err error)
 }
 
@@ -88,7 +88,7 @@ type Writer interface { // ioµÄWriter½Ó¿Ú
 //
 // The behavior of Close after the first call is undefined.
 // Specific implementations may document their own behavior.
-type Closer interface { // ioµÄCloser½Ó¿Ú
+type Closer interface { // ioçš„Closeræ¥å£
 	Close() error
 }
 
@@ -103,7 +103,7 @@ type Closer interface { // ioµÄCloser½Ó¿Ú
 // Seeking to a negative offset is an error. Seeking to any positive
 // offset is legal, but the behavior of subsequent I/O operations on
 // the underlying object is implementation-dependent.
-type Seeker interface { // ioµÄSeeker½Ó¿Ú
+type Seeker interface { // ioçš„Seekeræ¥å£
 	Seek(offset int64, whence int) (int64, error)
 }
 
@@ -275,11 +275,11 @@ type stringWriter interface {
 
 // WriteString writes the contents of the string s to w, which accepts a slice of bytes.
 // If w implements a WriteString method, it is invoked directly.
-func WriteString(w Writer, s string) (n int, err error) { // ¶ÔËùÓĞµÄWrite½Ó¿ÚĞ´ÈëÊı¾İ
-	if sw, ok := w.(stringWriter); ok { // ½«w×ª±äÎªstringWriterÀàĞÍ
-		return sw.WriteString(s) // Èç¹û×ª»»³É¹¦£¬µ÷ÓÃWriteString
+func WriteString(w Writer, s string) (n int, err error) { // å¯¹æ‰€æœ‰çš„Writeæ¥å£å†™å…¥æ•°æ®
+	if sw, ok := w.(stringWriter); ok { // å°†wè½¬å˜ä¸ºstringWriterç±»å‹
+		return sw.WriteString(s) // å¦‚æœè½¬æ¢æˆåŠŸï¼Œè°ƒç”¨WriteString
 	}
-	return w.Write([]byte(s)) // ·ñÔò½«string±äÎª[]byte£¬µ÷ÓÃWrite
+	return w.Write([]byte(s)) // å¦åˆ™å°†stringå˜ä¸º[]byteï¼Œè°ƒç”¨Write
 }
 
 // ReadAtLeast reads from r into buf until it has read at least min bytes.
@@ -289,11 +289,11 @@ func WriteString(w Writer, s string) (n int, err error) { // ¶ÔËùÓĞµÄWrite½Ó¿ÚĞ´
 // ReadAtLeast returns ErrUnexpectedEOF.
 // If min is greater than the length of buf, ReadAtLeast returns ErrShortBuffer.
 // On return, n >= min if and only if err == nil.
-func ReadAtLeast(r Reader, buf []byte, min int) (n int, err error) { // ´Óreader½Ó¿Ú¶ÁÈ¡ÖÁÉÙminÊı¾İ
+func ReadAtLeast(r Reader, buf []byte, min int) (n int, err error) { // ä»readeræ¥å£è¯»å–è‡³å°‘minæ•°æ®
 	if len(buf) < min {
 		return 0, ErrShortBuffer
 	}
-	for n < min && err == nil { // µ±¶Áµ½µÄÊıÁ¿Ğ¡ÓÚminÊ±Ñ­»·¶Á
+	for n < min && err == nil { // å½“è¯»åˆ°çš„æ•°é‡å°äºminæ—¶å¾ªç¯è¯»
 		var nn int
 		nn, err = r.Read(buf[n:])
 		n += nn
@@ -312,7 +312,7 @@ func ReadAtLeast(r Reader, buf []byte, min int) (n int, err error) { // ´Óreader
 // If an EOF happens after reading some but not all the bytes,
 // ReadFull returns ErrUnexpectedEOF.
 // On return, n == len(buf) if and only if err == nil.
-func ReadFull(r Reader, buf []byte) (n int, err error) { // ´Óreader½Ó¿Ú¾¡Á¿¶ÁÈ¡Êı¾İ³äÂúbuf
+func ReadFull(r Reader, buf []byte) (n int, err error) { // ä»readeræ¥å£å°½é‡è¯»å–æ•°æ®å……æ»¡buf
 	return ReadAtLeast(r, buf, len(buf))
 }
 
@@ -323,7 +323,7 @@ func ReadFull(r Reader, buf []byte) (n int, err error) { // ´Óreader½Ó¿Ú¾¡Á¿¶ÁÈ¡
 //
 // If dst implements the ReaderFrom interface,
 // the copy is implemented using it.
-func CopyN(dst Writer, src Reader, n int64) (written int64, err error) { // ´Ósrcµ½dst¿½±´n¸öbyte
+func CopyN(dst Writer, src Reader, n int64) (written int64, err error) { // ä»srcåˆ°dstæ‹·è´nä¸ªbyte
 	written, err = Copy(dst, LimitReader(src, n))
 	if written == n {
 		return n, nil
@@ -347,7 +347,7 @@ func CopyN(dst Writer, src Reader, n int64) (written int64, err error) { // ´Ósr
 // the copy is implemented by calling src.WriteTo(dst).
 // Otherwise, if dst implements the ReaderFrom interface,
 // the copy is implemented by calling dst.ReadFrom(src).
-func Copy(dst Writer, src Reader) (written int64, err error) { // ½«srcµÄÊı¾İ¿½±´µ½dst
+func Copy(dst Writer, src Reader) (written int64, err error) { // å°†srcçš„æ•°æ®æ‹·è´åˆ°dst
 	return copyBuffer(dst, src, nil)
 }
 
@@ -367,11 +367,11 @@ func CopyBuffer(dst Writer, src Reader, buf []byte) (written int64, err error) {
 func copyBuffer(dst Writer, src Reader, buf []byte) (written int64, err error) {
 	// If the reader has a WriteTo method, use it to do the copy.
 	// Avoids an allocation and a copy.
-	if wt, ok := src.(WriterTo); ok { // Èç¹ûsrcÖ§³ÖWriterTo£¬µ÷ÓÃWriterToÖ´ĞĞ
+	if wt, ok := src.(WriterTo); ok { // å¦‚æœsrcæ”¯æŒWriterToï¼Œè°ƒç”¨WriterToæ‰§è¡Œ
 		return wt.WriteTo(dst)
 	}
 	// Similarly, if the writer has a ReadFrom method, use it to do the copy.
-	if rt, ok := dst.(ReaderFrom); ok { // Èç¹ûdstÖ§³ÖReaderFrom£¬µ÷ÓÃReaderFromÖ´ĞĞ
+	if rt, ok := dst.(ReaderFrom); ok { // å¦‚æœdstæ”¯æŒReaderFromï¼Œè°ƒç”¨ReaderFromæ‰§è¡Œ
 		return rt.ReadFrom(src)
 	}
 	if buf == nil {
@@ -396,7 +396,7 @@ func copyBuffer(dst Writer, src Reader, buf []byte) (written int64, err error) {
 		if er == EOF {
 			break
 		}
-		if er != nil { // Èç¹ûÊÇÆäËû´íÎó£¬·µ»Øerr
+		if er != nil { // å¦‚æœæ˜¯å…¶ä»–é”™è¯¯ï¼Œè¿”å›err
 			err = er
 			break
 		}
@@ -407,45 +407,45 @@ func copyBuffer(dst Writer, src Reader, buf []byte) (written int64, err error) {
 // LimitReader returns a Reader that reads from r
 // but stops with EOF after n bytes.
 // The underlying implementation is a *LimitedReader.
-func LimitReader(r Reader, n int64) Reader { return &LimitedReader{r, n} } // ÓĞÏŞµÄ¶Á¹Ì¶¨µÄÊı¾İ£¬·µ»ØÊı¾İ½á¹¹
+func LimitReader(r Reader, n int64) Reader { return &LimitedReader{r, n} } // æœ‰é™çš„è¯»å›ºå®šçš„æ•°æ®ï¼Œè¿”å›æ•°æ®ç»“æ„
 
 // A LimitedReader reads from R but limits the amount of
 // data returned to just N bytes. Each call to Read
 // updates N to reflect the new amount remaining.
-type LimitedReader struct { // ¶ÔReader½øĞĞ°ü×°£¬ĞÎ³ÉLimitReader
-	R Reader // underlying reader µ×²ãµÄio.Reader
-	N int64  // max bytes remaining Ê£Óà¿É¶ÁµÄ×Ö½ÚÊı
+type LimitedReader struct { // å¯¹Readerè¿›è¡ŒåŒ…è£…ï¼Œå½¢æˆLimitReader
+	R Reader // underlying reader åº•å±‚çš„io.Reader
+	N int64  // max bytes remaining å‰©ä½™å¯è¯»çš„å­—èŠ‚æ•°
 }
 
-func (l *LimitedReader) Read(p []byte) (n int, err error) { // ×î¶àÖ»¶Ál.N´óĞ¡µÄÊı¾İ
-	if l.N <= 0 { // ÒÑ¾­È«¶ÁÍêÁË£¬·µ»Ø0, err·µ»ØEOF
+func (l *LimitedReader) Read(p []byte) (n int, err error) { // æœ€å¤šåªè¯»l.Nå¤§å°çš„æ•°æ®
+	if l.N <= 0 { // å·²ç»å…¨è¯»å®Œäº†ï¼Œè¿”å›0, errè¿”å›EOF
 		return 0, EOF
 	}
-	if int64(len(p)) > l.N { // buffer¿Õ¼ä±È½Ï´ó£¬Ëõ¶Ìbuffer¿Õ¼ä
+	if int64(len(p)) > l.N { // bufferç©ºé—´æ¯”è¾ƒå¤§ï¼Œç¼©çŸ­bufferç©ºé—´
 		p = p[0:l.N]
 	}
 	n, err = l.R.Read(p)
-	l.N -= int64(n) // ¿ÉÒÔ¶ÁµÄÊıÁ¿¼õÉÙÁË
+	l.N -= int64(n) // å¯ä»¥è¯»çš„æ•°é‡å‡å°‘äº†
 	return
 }
 
 // NewSectionReader returns a SectionReader that reads from r
 // starting at offset off and stops with EOF after n bytes.
-func NewSectionReader(r ReaderAt, off int64, n int64) *SectionReader { // ¶ÁÄ³Ò»¸ö²¿·Ö£¬´Óoff¿ªÊ¼£¬¶Á³¤¶ÈÎªn
+func NewSectionReader(r ReaderAt, off int64, n int64) *SectionReader { // è¯»æŸä¸€ä¸ªéƒ¨åˆ†ï¼Œä»offå¼€å§‹ï¼Œè¯»é•¿åº¦ä¸ºn
 	return &SectionReader{r, off, off, off + n}
 }
 
 // SectionReader implements Read, Seek, and ReadAt on a section
 // of an underlying ReaderAt.
-type SectionReader struct { // ´ÓÒ»¸öoff¿ªÊ¼£¬¶Áµ½Ò»¸öÌØ¶¨Î»ÖÃ
-	r     ReaderAt // Êı¾İÔ´
-	base  int64    // ´ÓÄÄÀï¿ªÊ¼¶Á
-	off   int64    // µ±Ç°¶Áµ½µÄÎ»ÖÃ
-	limit int64    // ¶Áµ½ÄÄÀï½áÊø
+type SectionReader struct { // ä»ä¸€ä¸ªoffå¼€å§‹ï¼Œè¯»åˆ°ä¸€ä¸ªç‰¹å®šä½ç½®
+	r     ReaderAt // æ•°æ®æº
+	base  int64    // ä»å“ªé‡Œå¼€å§‹è¯»
+	off   int64    // å½“å‰è¯»åˆ°çš„ä½ç½®
+	limit int64    // è¯»åˆ°å“ªé‡Œç»“æŸ
 }
 
-func (s *SectionReader) Read(p []byte) (n int, err error) { // Ö´ĞĞÊı¾İ¶Á
-	if s.off >= s.limit { // µ½´ïÁË¶ÁµÄÎ»ÖÃ£¬·µ»ØEOF
+func (s *SectionReader) Read(p []byte) (n int, err error) { // æ‰§è¡Œæ•°æ®è¯»
+	if s.off >= s.limit { // åˆ°è¾¾äº†è¯»çš„ä½ç½®ï¼Œè¿”å›EOF
 		return 0, EOF
 	}
 	if max := s.limit - s.off; int64(len(p)) > max {
@@ -459,7 +459,7 @@ func (s *SectionReader) Read(p []byte) (n int, err error) { // Ö´ĞĞÊı¾İ¶Á
 var errWhence = errors.New("Seek: invalid whence")
 var errOffset = errors.New("Seek: invalid offset")
 
-func (s *SectionReader) Seek(offset int64, whence int) (int64, error) { // ¶¨Î»¶ÁÖ¸ÕëÆ«ÒÆ
+func (s *SectionReader) Seek(offset int64, whence int) (int64, error) { // å®šä½è¯»æŒ‡é’ˆåç§»
 	switch whence {
 	default:
 		return 0, errWhence
@@ -477,7 +477,7 @@ func (s *SectionReader) Seek(offset int64, whence int) (int64, error) { // ¶¨Î»¶
 	return offset - s.base, nil
 }
 
-func (s *SectionReader) ReadAt(p []byte, off int64) (n int, err error) { // ´ÓÄ³Î»ÖÃ¿ªÊ¼¶Á
+func (s *SectionReader) ReadAt(p []byte, off int64) (n int, err error) { // ä»æŸä½ç½®å¼€å§‹è¯»
 	if off < 0 || off >= s.limit-s.base {
 		return 0, EOF
 	}
@@ -494,18 +494,18 @@ func (s *SectionReader) ReadAt(p []byte, off int64) (n int, err error) { // ´ÓÄ³
 }
 
 // Size returns the size of the section in bytes.
-func (s *SectionReader) Size() int64 { return s.limit - s.base } // ·µ»ØĞèÒª¶ÁÈ¡µÄÊı¾İÁ¿´óĞ¡
+func (s *SectionReader) Size() int64 { return s.limit - s.base } // è¿”å›éœ€è¦è¯»å–çš„æ•°æ®é‡å¤§å°
 
 // TeeReader returns a Reader that writes to w what it reads from r.
 // All reads from r performed through it are matched with
 // corresponding writes to w.  There is no internal buffering -
 // the write must complete before the read completes.
 // Any error encountered while writing is reported as a read error.
-func TeeReader(r Reader, w Writer) Reader { // ´Ór¶Áµ½µÄÊı¾İÖ±½ÓÓÖĞ´µ½wÖĞ
+func TeeReader(r Reader, w Writer) Reader { // ä»rè¯»åˆ°çš„æ•°æ®ç›´æ¥åˆå†™åˆ°wä¸­
 	return &teeReader{r, w}
 }
 
-type teeReader struct { // ´Ór¶Á³öÊı¾İ£¬Ğ´µ½wÖĞ
+type teeReader struct { // ä»rè¯»å‡ºæ•°æ®ï¼Œå†™åˆ°wä¸­
 	r Reader
 	w Writer
 }

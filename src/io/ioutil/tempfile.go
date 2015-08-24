@@ -23,7 +23,7 @@ func reseed() uint32 {
 	return uint32(time.Now().UnixNano() + int64(os.Getpid()))
 }
 
-func nextSuffix() string { // »ñµÃÏÂÒ»¸öºó×ºÃû£¬Ëæ»úÉú³É
+func nextSuffix() string { // è·å¾—ä¸‹ä¸€ä¸ªåç¼€åï¼Œéšæœºç”Ÿæˆ
 	randmu.Lock()
 	r := rand
 	if r == 0 {
@@ -44,13 +44,13 @@ func nextSuffix() string { // »ñµÃÏÂÒ»¸öºó×ºÃû£¬Ëæ»úÉú³É
 // will not choose the same file.  The caller can use f.Name()
 // to find the pathname of the file.  It is the caller's responsibility
 // to remove the file when no longer needed.
-func TempFile(dir, prefix string) (f *os.File, err error) { // ´´½¨ÁÙÊ±ÎÄ¼ş£¬·µ»ØÎÄ¼şµÄFile½á¹¹£¬ÔÚdirÄ¿Â¼£¬Ê¹ÓÃprefixÇ°×ºÉú³É
-	if dir == "" { // Èç¹ûdirÎª¿Õ£¬È¡ÏµÍ³µÄtempdir
+func TempFile(dir, prefix string) (f *os.File, err error) { // åˆ›å»ºä¸´æ—¶æ–‡ä»¶ï¼Œè¿”å›æ–‡ä»¶çš„Fileç»“æ„ï¼Œåœ¨dirç›®å½•ï¼Œä½¿ç”¨prefixå‰ç¼€ç”Ÿæˆ
+	if dir == "" { // å¦‚æœdirä¸ºç©ºï¼Œå–ç³»ç»Ÿçš„tempdir
 		dir = os.TempDir()
 	}
 
 	nconflict := 0
-	for i := 0; i < 10000; i++ { // ÖØÊÔ10000´Ê£¬Ã¿10´ÎÖØĞÂÉè¶¨Ëæ»úÖÖ×Ó
+	for i := 0; i < 10000; i++ { // é‡è¯•10000è¯ï¼Œæ¯10æ¬¡é‡æ–°è®¾å®šéšæœºç§å­
 		name := filepath.Join(dir, prefix+nextSuffix())
 		f, err = os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
 		if os.IsExist(err) {
@@ -73,7 +73,7 @@ func TempFile(dir, prefix string) (f *os.File, err error) { // ´´½¨ÁÙÊ±ÎÄ¼ş£¬·µ»
 // Multiple programs calling TempDir simultaneously
 // will not choose the same directory.  It is the caller's responsibility
 // to remove the directory when no longer needed.
-func TempDir(dir, prefix string) (name string, err error) { // Éú³ÉÁÙÊ±Ä¿Â¼£¬·µ»ØÄ¿Â¼×Ö·û´®
+func TempDir(dir, prefix string) (name string, err error) { // ç”Ÿæˆä¸´æ—¶ç›®å½•ï¼Œè¿”å›ç›®å½•å­—ç¬¦ä¸²
 	if dir == "" {
 		dir = os.TempDir()
 	}

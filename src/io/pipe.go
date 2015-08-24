@@ -21,11 +21,11 @@ type pipeResult struct {
 }
 
 // A pipe is the shared pipe structure underlying PipeReader and PipeWriter.
-type pipe struct { // pipe½á¹¹
-	rl    sync.Mutex // gates readers one at a time ±£Ö¤¶Á»¥³â
-	wl    sync.Mutex // gates writers one at a time ±£Ö¤Ğ´»¥³â
-	l     sync.Mutex // protects remaining fields ±£»¤ÏÂÃæµÄÓò
-	data  []byte     // data remaining in pending write Êı¾İÇø
+type pipe struct { // pipeç»“æ„
+	rl    sync.Mutex // gates readers one at a time ä¿è¯è¯»äº’æ–¥
+	wl    sync.Mutex // gates writers one at a time ä¿è¯å†™äº’æ–¥
+	l     sync.Mutex // protects remaining fields ä¿æŠ¤ä¸‹é¢çš„åŸŸ
+	data  []byte     // data remaining in pending write æ•°æ®åŒº
 	rwait sync.Cond  // waiting reader
 	wwait sync.Cond  // waiting writer
 	rerr  error      // if reader closed, error to give writes
@@ -121,7 +121,7 @@ func (p *pipe) wclose(err error) {
 }
 
 // A PipeReader is the read half of a pipe.
-type PipeReader struct { // PipeµÄ¶Á¶Ë
+type PipeReader struct { // Pipeçš„è¯»ç«¯
 	p *pipe
 }
 
@@ -148,7 +148,7 @@ func (r *PipeReader) CloseWithError(err error) error {
 }
 
 // A PipeWriter is the write half of a pipe.
-type PipeWriter struct { // PipeµÄĞ´¶Ë
+type PipeWriter struct { // Pipeçš„å†™ç«¯
 	p *pipe
 }
 
@@ -186,7 +186,7 @@ func (w *PipeWriter) CloseWithError(err error) error {
 // Close. Close will complete once pending I/O is done. Parallel calls to
 // Read, and parallel calls to Write, are also safe:
 // the individual calls will be gated sequentially.
-func Pipe() (*PipeReader, *PipeWriter) { // ´´½¨Ò»¸öpipe£¬·µ»ØÒ»¸öPipeReaderºÍÒ»¸öPipeWriter
+func Pipe() (*PipeReader, *PipeWriter) { // åˆ›å»ºä¸€ä¸ªpipeï¼Œè¿”å›ä¸€ä¸ªPipeReaderå’Œä¸€ä¸ªPipeWriter
 	p := new(pipe)
 	p.rwait.L = &p.l
 	p.wwait.L = &p.l

@@ -76,7 +76,7 @@ func getShellName(s string) (string, int) {
 
 // Getenv retrieves the value of the environment variable named by the key.
 // It returns the value, which will be empty if the variable is not present.
-func Getenv(key string) string { // »ñÈ¡»·¾³±äÁ¿µÄÖµ
+func Getenv(key string) string { // è·å–ç¯å¢ƒå˜é‡çš„å€¼
 	v, _ := syscall.Getenv(key)
 	return v
 }
@@ -92,7 +92,7 @@ func LookupEnv(key string) (string, bool) {
 
 // Setenv sets the value of the environment variable named by the key.
 // It returns an error, if any.
-func Setenv(key, value string) error { // ÉèÖÃ»·¾³±äÁ¿
+func Setenv(key, value string) error { // è®¾ç½®ç¯å¢ƒå˜é‡
 	err := syscall.Setenv(key, value)
 	if err != nil {
 		return NewSyscallError("setenv", err)
@@ -106,12 +106,12 @@ func Unsetenv(key string) error {
 }
 
 // Clearenv deletes all environment variables.
-func Clearenv() { // É¾³ıËùÓĞµÄ»·¾³±äÁ¿
+func Clearenv() { // åˆ é™¤æ‰€æœ‰çš„ç¯å¢ƒå˜é‡
 	syscall.Clearenv()
 }
 
 // Environ returns a copy of strings representing the environment,
 // in the form "key=value".
-func Environ() []string { // ·µ»ØËùÓĞ»·¾³±äÁ¿µÄÒ»·İ¿½±´
+func Environ() []string { // è¿”å›æ‰€æœ‰ç¯å¢ƒå˜é‡çš„ä¸€ä»½æ‹·è´
 	return syscall.Environ()
 }

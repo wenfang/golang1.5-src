@@ -37,7 +37,7 @@ const encodeURL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678
 // which must be a 64-byte string.
 // The resulting Encoding uses the default padding character ('='),
 // which may be changed or disabled via WithPadding.
-func NewEncoding(encoder string) *Encoding { // ĞÂ´´½¨Ò»¸öbase64±àÂëÆ÷
+func NewEncoding(encoder string) *Encoding { // æ–°åˆ›å»ºä¸€ä¸ªbase64ç¼–ç å™¨
 	if len(encoder) != 64 {
 		panic("encoding alphabet is not 64-bytes long")
 	}
@@ -46,10 +46,10 @@ func NewEncoding(encoder string) *Encoding { // ĞÂ´´½¨Ò»¸öbase64±àÂëÆ÷
 	e.padChar = StdPadding
 	copy(e.encode[:], encoder)
 
-	for i := 0; i < len(e.decodeMap); i++ { // ³õÊ¼»¯decodeMap
-		e.decodeMap[i] = 0xFF // ÏÈÈ«²¿³õÊ¼»¯Îª0xFF
+	for i := 0; i < len(e.decodeMap); i++ { // åˆå§‹åŒ–decodeMap
+		e.decodeMap[i] = 0xFF // å…ˆå…¨éƒ¨åˆå§‹åŒ–ä¸º0xFF
 	}
-	for i := 0; i < len(encoder); i++ { // ±éÀúÃ¿¸ö×Ö·û
+	for i := 0; i < len(encoder); i++ { // éå†æ¯ä¸ªå­—ç¬¦
 		e.decodeMap[encoder[i]] = byte(i)
 	}
 	return e
@@ -64,11 +64,11 @@ func (enc Encoding) WithPadding(padding rune) *Encoding {
 
 // StdEncoding is the standard base64 encoding, as defined in
 // RFC 4648.
-var StdEncoding = NewEncoding(encodeStd) // ±ê×¼µÄbase64 encode
+var StdEncoding = NewEncoding(encodeStd) // æ ‡å‡†çš„base64 encode
 
 // URLEncoding is the alternate base64 encoding defined in RFC 4648.
 // It is typically used in URLs and file names.
-var URLEncoding = NewEncoding(encodeURL) // ÓÃ×÷URLµÄbase64±àÂëÆ÷
+var URLEncoding = NewEncoding(encodeURL) // ç”¨ä½œURLçš„base64ç¼–ç å™¨
 
 // RawStdEncoding is the standard raw, unpadded base64 encoding,
 // as defined in RFC 4648 section 3.2.
@@ -90,8 +90,8 @@ var RawURLEncoding = URLEncoding.WithPadding(NoPadding)
 // The encoding pads the output to a multiple of 4 bytes,
 // so Encode is not appropriate for use on individual blocks
 // of a large data stream.  Use NewEncoder() instead.
-func (enc *Encoding) Encode(dst, src []byte) { // ½«src±àÂëÎªdstÊä³ö
-	if len(src) == 0 { // Èç¹ûsrc³¤¶ÈÎª0£¬Ö±½Ó·µ»Ø
+func (enc *Encoding) Encode(dst, src []byte) { // å°†srcç¼–ç ä¸ºdstè¾“å‡º
+	if len(src) == 0 { // å¦‚æœsrcé•¿åº¦ä¸º0ï¼Œç›´æ¥è¿”å›
 		return
 	}
 
@@ -138,7 +138,7 @@ func (enc *Encoding) Encode(dst, src []byte) { // ½«src±àÂëÎªdstÊä³ö
 }
 
 // EncodeToString returns the base64 encoding of src.
-func (enc *Encoding) EncodeToString(src []byte) string { // ½«src±àÂëÎªstringÊä³ö
+func (enc *Encoding) EncodeToString(src []byte) string { // å°†srcç¼–ç ä¸ºstringè¾“å‡º
 	buf := make([]byte, enc.EncodedLen(len(src)))
 	enc.Encode(buf, src)
 	return string(buf)
@@ -218,7 +218,7 @@ func (e *encoder) Close() error {
 // Base64 encodings operate in 4-byte blocks; when finished
 // writing, the caller must Close the returned encoder to flush any
 // partially written blocks.
-func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser { // ĞÂ´´½¨Ò»¸öEncoder
+func NewEncoder(enc *Encoding, w io.Writer) io.WriteCloser { // æ–°åˆ›å»ºä¸€ä¸ªEncoder
 	return &encoder{enc: enc, w: w}
 }
 
@@ -432,7 +432,7 @@ func (r *newlineFilteringReader) Read(p []byte) (int, error) {
 }
 
 // NewDecoder constructs a new base64 stream decoder.
-func NewDecoder(enc *Encoding, r io.Reader) io.Reader { // ĞÂ´´½¨Ò»¸öDecoder
+func NewDecoder(enc *Encoding, r io.Reader) io.Reader { // æ–°åˆ›å»ºä¸€ä¸ªDecoder
 	return &decoder{enc: enc, r: &newlineFilteringReader{r}}
 }
 

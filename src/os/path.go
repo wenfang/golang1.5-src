@@ -16,7 +16,7 @@ import (
 // directories that MkdirAll creates.
 // If path is already a directory, MkdirAll does nothing
 // and returns nil.
-func MkdirAll(path string, perm FileMode) error { // ´´½¨Ä¿Â¼, ÀàËÆmkdir -p
+func MkdirAll(path string, perm FileMode) error { // åˆ›å»ºç›®å½•, ç±»ä¼¼mkdir -p
 	// Fast path: if we can tell whether path is a directory or file, stop with success or error.
 	dir, err := Stat(path)
 	if err == nil {
@@ -63,7 +63,7 @@ func MkdirAll(path string, perm FileMode) error { // ´´½¨Ä¿Â¼, ÀàËÆmkdir -p
 // It removes everything it can but returns the first error
 // it encounters.  If the path does not exist, RemoveAll
 // returns nil (no error).
-func RemoveAll(path string) error { // É¾³ıÒ»¸öÂ·¾¶¼°Â·¾¶ÉÏËùÓĞÄ¿Â¼ÎÄ¼ş
+func RemoveAll(path string) error { // åˆ é™¤ä¸€ä¸ªè·¯å¾„åŠè·¯å¾„ä¸Šæ‰€æœ‰ç›®å½•æ–‡ä»¶
 	// Simple case: if Remove works, we're done.
 	err := Remove(path)
 	if err == nil || IsNotExist(err) {

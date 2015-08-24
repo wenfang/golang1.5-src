@@ -7,10 +7,10 @@ package strconv
 import "errors"
 
 // ErrRange indicates that a value is out of range for the target type.
-var ErrRange = errors.New("value out of range") // ÖµµÄ·¶Î§Ô½½ç
+var ErrRange = errors.New("value out of range") // å€¼çš„èŒƒå›´è¶Šç•Œ
 
 // ErrSyntax indicates that a value does not have the right syntax for the target type.
-var ErrSyntax = errors.New("invalid syntax") // ½âÎöÎŞĞ§
+var ErrSyntax = errors.New("invalid syntax") // è§£ææ— æ•ˆ
 
 // A NumError records a failed conversion.
 type NumError struct {
@@ -39,7 +39,7 @@ const IntSize = intSize
 const maxUint64 = (1<<64 - 1)
 
 // ParseUint is like ParseInt but for unsigned numbers.
-func ParseUint(s string, base int, bitSize int) (n uint64, err error) { // ½âÎöUint
+func ParseUint(s string, base int, bitSize int) (n uint64, err error) { // è§£æUint
 	var cutoff, maxVal uint64
 
 	if bitSize == 0 {
@@ -151,7 +151,7 @@ Error:
 // signed integer of the given size, err.Err = ErrRange and the
 // returned value is the maximum magnitude integer of the
 // appropriate bitSize and sign.
-func ParseInt(s string, base int, bitSize int) (i int64, err error) { // ½âÎöÕûĞÍ±äÁ¿
+func ParseInt(s string, base int, bitSize int) (i int64, err error) { // è§£ææ•´å‹å˜é‡
 	const fnParseInt = "ParseInt"
 
 	if bitSize == 0 {
@@ -196,7 +196,7 @@ func ParseInt(s string, base int, bitSize int) (i int64, err error) { // ½âÎöÕûĞ
 }
 
 // Atoi is shorthand for ParseInt(s, 10, 0).
-func Atoi(s string) (i int, err error) { // AtoiÎªParseInt(s, 10, 0)µÄ¼òĞ´
+func Atoi(s string) (i int, err error) { // Atoiä¸ºParseInt(s, 10, 0)çš„ç®€å†™
 	i64, err := ParseInt(s, 10, 0)
 	return int(i64), err
 }

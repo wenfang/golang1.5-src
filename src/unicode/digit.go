@@ -5,7 +5,7 @@
 package unicode
 
 // IsDigit reports whether the rune is a decimal digit.
-func IsDigit(r rune) bool { // ÅĞ¶Ïrune rÊÇ·ñÊÇÒ»¸öÊı×Ö
+func IsDigit(r rune) bool { // åˆ¤æ–­rune ræ˜¯å¦æ˜¯ä¸€ä¸ªæ•°å­—
 	if r <= MaxLatin1 {
 		return '0' <= r && r <= '9'
 	}

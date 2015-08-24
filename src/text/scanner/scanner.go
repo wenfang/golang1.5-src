@@ -25,17 +25,17 @@ import (
 
 // A source position is represented by a Position value.
 // A position is valid if Line > 0.
-type Position struct { // ´ú±íÒ»¸öÎ»ÖÃÖµ
-	Filename string // filename, if any ÎÄ¼şÃû
-	Offset   int    // byte offset, starting at 0 Æ«ÒÆÁ¿
-	Line     int    // line number, starting at 1 ĞĞºÅ
-	Column   int    // column number, starting at 1 (character count per line) ÁĞºÅ
+type Position struct { // ä»£è¡¨ä¸€ä¸ªä½ç½®å€¼
+	Filename string // filename, if any æ–‡ä»¶å
+	Offset   int    // byte offset, starting at 0 åç§»é‡
+	Line     int    // line number, starting at 1 è¡Œå·
+	Column   int    // column number, starting at 1 (character count per line) åˆ—å·
 }
 
 // IsValid reports whether the position is valid.
-func (pos *Position) IsValid() bool { return pos.Line > 0 } // Î»ÖÃÊÇ·ñÓĞĞ§£¬ĞĞºÅ´óÓÚ0
+func (pos *Position) IsValid() bool { return pos.Line > 0 } // ä½ç½®æ˜¯å¦æœ‰æ•ˆï¼Œè¡Œå·å¤§äº0
 
-func (pos Position) String() string { // ·µ»ØPosition×Ö·û´®
+func (pos Position) String() string { // è¿”å›Positionå­—ç¬¦ä¸²
 	s := pos.Filename
 	if pos.IsValid() {
 		if s != "" {
@@ -112,9 +112,9 @@ const GoWhitespace = 1<<'\t' | 1<<'\n' | 1<<'\r' | 1<<' '
 const bufLen = 1024 // at least utf8.UTFMax
 
 // A Scanner implements reading of Unicode characters and tokens from an io.Reader.
-type Scanner struct { // ÎÄ±¾Scanner½á¹¹
+type Scanner struct { // æ–‡æœ¬Scannerç»“æ„
 	// Input
-	src io.Reader // Êı¾İÊäÈëÔ´
+	src io.Reader // æ•°æ®è¾“å…¥æº
 
 	// Source buffer
 	srcBuf [bufLen + 1]byte // +1 for sentinel for common case of s.next()
@@ -176,8 +176,8 @@ type Scanner struct { // ÎÄ±¾Scanner½á¹¹
 // Init initializes a Scanner with a new source and returns s.
 // Error is set to nil, ErrorCount is set to 0, Mode is set to GoTokens,
 // and Whitespace is set to GoWhitespace.
-func (s *Scanner) Init(src io.Reader) *Scanner { // ³õÊ¼»¯Ò»¸öĞÂµÄÎÄ±¾Scanner
-	s.src = src // Êı¾İÀ´Ô´
+func (s *Scanner) Init(src io.Reader) *Scanner { // åˆå§‹åŒ–ä¸€ä¸ªæ–°çš„æ–‡æœ¬Scanner
+	s.src = src // æ•°æ®æ¥æº
 
 	// initialize source buffer
 	// (the first call to next() will fill it by calling src.Read)
@@ -299,7 +299,7 @@ func (s *Scanner) next() rune {
 // it prints an error message to os.Stderr. Next does not
 // update the Scanner's Position field; use Pos() to
 // get the current position.
-func (s *Scanner) Next() rune { // »ñÈ¡ÏÂÒ»¸örune
+func (s *Scanner) Next() rune { // è·å–ä¸‹ä¸€ä¸ªrune
 	s.tokPos = -1 // don't collect token text
 	s.Line = 0    // invalidate token position
 	ch := s.Peek()
@@ -312,7 +312,7 @@ func (s *Scanner) Next() rune { // »ñÈ¡ÏÂÒ»¸örune
 // Peek returns the next Unicode character in the source without advancing
 // the scanner. It returns EOF if the scanner's position is at the last
 // character of the source.
-func (s *Scanner) Peek() rune { // ²é¿´ÏÂÒ»¸örune
+func (s *Scanner) Peek() rune { // æŸ¥çœ‹ä¸‹ä¸€ä¸ªrune
 	if s.ch == -2 {
 		// this code is only run for the very first character
 		s.ch = s.next()
@@ -538,7 +538,7 @@ func (s *Scanner) scanComment(ch rune) rune {
 // It returns EOF at the end of the source. It reports scanner errors (read and
 // token errors) by calling s.Error, if not nil; otherwise it prints an error
 // message to os.Stderr.
-func (s *Scanner) Scan() rune { // ¶Á³öÏÂÒ»¸ötoken»òÕßunicode×Ö·û
+func (s *Scanner) Scan() rune { // è¯»å‡ºä¸‹ä¸€ä¸ªtokenæˆ–è€…unicodeå­—ç¬¦
 	ch := s.Peek()
 
 	// reset token text position

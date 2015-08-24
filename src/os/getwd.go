@@ -23,7 +23,7 @@ var useSyscallwd = func(error) bool { return true }
 // current directory.  If the current directory can be
 // reached via multiple paths (due to symbolic links),
 // Getwd may return any one of them.
-func Getwd() (dir string, err error) { // 获得当前路径
+func Getwd() (dir string, err error) { // 鑾峰緱褰撳墠璺緞
 	if runtime.GOOS == "windows" {
 		return syscall.Getwd()
 	}

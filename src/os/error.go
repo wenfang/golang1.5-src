@@ -17,16 +17,16 @@ var (
 )
 
 // PathError records an error and the operation and file path that caused it.
-type PathError struct { // ¼ÇÂ¼´íÎóºÍµ¼ÖÂ¸Ã´íÎóµÄÎÄ¼þÂ·¾¶
+type PathError struct { // è®°å½•é”™è¯¯å’Œå¯¼è‡´è¯¥é”™è¯¯çš„æ–‡ä»¶è·¯å¾„
 	Op   string
 	Path string
 	Err  error
 }
 
-func (e *PathError) Error() string { return e.Op + " " + e.Path + ": " + e.Err.Error() } // Â·¾¶´íÎó
+func (e *PathError) Error() string { return e.Op + " " + e.Path + ": " + e.Err.Error() } // è·¯å¾„é”™è¯¯
 
 // SyscallError records an error from a specific system call.
-type SyscallError struct { // ¼ÇÂ¼Ö¸¶¨¶ÔÓ¦ÏµÍ³µ÷ÓÃµÄ´íÎó
+type SyscallError struct { // è®°å½•æŒ‡å®šå¯¹åº”ç³»ç»Ÿè°ƒç”¨çš„é”™è¯¯
 	Syscall string
 	Err     error
 }
@@ -36,7 +36,7 @@ func (e *SyscallError) Error() string { return e.Syscall + ": " + e.Err.Error() 
 // NewSyscallError returns, as an error, a new SyscallError
 // with the given system call name and error details.
 // As a convenience, if err is nil, NewSyscallError returns nil.
-func NewSyscallError(syscall string, err error) error { // ÐÂ´´½¨ÏµÍ³µ÷ÓÃ´íÎó
+func NewSyscallError(syscall string, err error) error { // æ–°åˆ›å»ºç³»ç»Ÿè°ƒç”¨é”™è¯¯
 	if err == nil {
 		return nil
 	}

@@ -12,14 +12,14 @@ package utf8
 
 // Numbers fundamental to the encoding.
 const (
-	RuneError = '\uFFFD'     // the "error" Rune or "Unicode replacement character" ¶ÔÓ¦´íÎóµÄunicodeÌæ»»×Ö·û
-	RuneSelf  = 0x80         // characters below Runeself are represented as themselves in a single byte. Ğ¡ÓÚRuneselfµÄ±»ÈÏÎªÊÇµ¥¸ö×Ö·û
-	MaxRune   = '\U0010FFFF' // Maximum valid Unicode code point. ×î´óÓĞĞ§µÄunicode´úÂë
+	RuneError = '\uFFFD'     // the "error" Rune or "Unicode replacement character" å¯¹åº”é”™è¯¯çš„unicodeæ›¿æ¢å­—ç¬¦
+	RuneSelf  = 0x80         // characters below Runeself are represented as themselves in a single byte. å°äºRuneselfçš„è¢«è®¤ä¸ºæ˜¯å•ä¸ªå­—ç¬¦
+	MaxRune   = '\U0010FFFF' // Maximum valid Unicode code point. æœ€å¤§æœ‰æ•ˆçš„unicodeä»£ç 
 	UTFMax    = 4            // maximum number of bytes of a UTF-8 encoded Unicode character.
 )
 
 // Code points in the surrogate range are not valid for UTF-8.
-const ( // ÔÚ¸Ã·¶Î§ÄÚµÄ±àÂë²»ÊÇÓĞĞ§µÄUTF8±àÂë
+const ( // åœ¨è¯¥èŒƒå›´å†…çš„ç¼–ç ä¸æ˜¯æœ‰æ•ˆçš„UTF8ç¼–ç 
 	surrogateMin = 0xD800
 	surrogateMax = 0xDFFF
 )
@@ -42,29 +42,29 @@ const (
 	rune3Max = 1<<16 - 1
 )
 
-func decodeRuneInternal(p []byte) (r rune, size int, short bool) { // ½«byteĞòÁĞ°´utf8½âÎöÎªrune
-	n := len(p) // »ñÈ¡pµÄ³¤¶È
-	if n < 1 {  // pµÄ³¤¶ÈÎª0£¬·µ»Ø´íÎó
+func decodeRuneInternal(p []byte) (r rune, size int, short bool) { // å°†byteåºåˆ—æŒ‰utf8è§£æä¸ºrune
+	n := len(p) // è·å–pçš„é•¿åº¦
+	if n < 1 {  // pçš„é•¿åº¦ä¸º0ï¼Œè¿”å›é”™è¯¯
 		return RuneError, 0, true
 	}
-	c0 := p[0] // È¡³öÀ´pÖĞµÄµÚÒ»¸ö×Ö·û
+	c0 := p[0] // å–å‡ºæ¥pä¸­çš„ç¬¬ä¸€ä¸ªå­—ç¬¦
 
 	// 1-byte, 7-bit sequence?
-	if c0 < tx { // ÊÇÒ»¸ö7bitµÄ×Ö·û
+	if c0 < tx { // æ˜¯ä¸€ä¸ª7bitçš„å­—ç¬¦
 		return rune(c0), 1, false
 	}
 
 	// unexpected continuation byte?
-	if c0 < t2 { // ÊÇ¸öË«×Ö½ÚµÄ£¬±ØĞëÒÔC0-DF¿ªÍ·
+	if c0 < t2 { // æ˜¯ä¸ªåŒå­—èŠ‚çš„ï¼Œå¿…é¡»ä»¥C0-DFå¼€å¤´
 		return RuneError, 1, false
 	}
 
 	// need first continuation byte
-	if n < 2 { // ±ØĞëÖÁÉÙÊÇ¸öË«×Ö½ÚµÄ
+	if n < 2 { // å¿…é¡»è‡³å°‘æ˜¯ä¸ªåŒå­—èŠ‚çš„
 		return RuneError, 1, true
 	}
 	c1 := p[1]
-	if c1 < tx || t2 <= c1 { // µÚ¶ş¸ö×Ö½Ú±ØĞëÔÚ80-BFÖĞ¼ä
+	if c1 < tx || t2 <= c1 { // ç¬¬äºŒä¸ªå­—èŠ‚å¿…é¡»åœ¨80-BFä¸­é—´
 		return RuneError, 1, false
 	}
 
@@ -120,7 +120,7 @@ func decodeRuneInternal(p []byte) (r rune, size int, short bool) { // ½«byteĞòÁĞ
 	return RuneError, 1, false
 }
 
-func decodeRuneInStringInternal(s string) (r rune, size int, short bool) { // ½âÎö×Ö·û´®
+func decodeRuneInStringInternal(s string) (r rune, size int, short bool) { // è§£æå­—ç¬¦ä¸²
 	n := len(s)
 	if n < 1 {
 		return RuneError, 0, true
@@ -200,13 +200,13 @@ func decodeRuneInStringInternal(s string) (r rune, size int, short bool) { // ½â
 
 // FullRune reports whether the bytes in p begin with a full UTF-8 encoding of a rune.
 // An invalid encoding is considered a full Rune since it will convert as a width-1 error rune.
-func FullRune(p []byte) bool { // ²é¿´pÖĞµÄ×Ö·ûĞòÁĞÊÇ·ñ¶¼ÎªRune
+func FullRune(p []byte) bool { // æŸ¥çœ‹pä¸­çš„å­—ç¬¦åºåˆ—æ˜¯å¦éƒ½ä¸ºRune
 	_, _, short := decodeRuneInternal(p)
 	return !short
 }
 
 // FullRuneInString is like FullRune but its input is a string.
-func FullRuneInString(s string) bool { // ²é¿´sÖĞµÄ×Ö·ûĞòÁĞÊÇ·ñ¶¼ÎªRune
+func FullRuneInString(s string) bool { // æŸ¥çœ‹sä¸­çš„å­—ç¬¦åºåˆ—æ˜¯å¦éƒ½ä¸ºRune
 	_, _, short := decodeRuneInStringInternal(s)
 	return !short
 }
@@ -219,7 +219,7 @@ func FullRuneInString(s string) bool { // ²é¿´sÖĞµÄ×Ö·ûĞòÁĞÊÇ·ñ¶¼ÎªRune
 // An encoding is invalid if it is incorrect UTF-8, encodes a rune that is
 // out of range, or is not the shortest possible UTF-8 encoding for the
 // value. No other validation is performed.
-func DecodeRune(p []byte) (r rune, size int) { // °´utf8µÄ¸ñÊ½½âÂëp£¬µÃµ½µÚÒ»¸örune
+func DecodeRune(p []byte) (r rune, size int) { // æŒ‰utf8çš„æ ¼å¼è§£ç pï¼Œå¾—åˆ°ç¬¬ä¸€ä¸ªrune
 	r, size, _ = decodeRuneInternal(p)
 	return
 }
@@ -231,7 +231,7 @@ func DecodeRune(p []byte) (r rune, size int) { // °´utf8µÄ¸ñÊ½½âÂëp£¬µÃµ½µÚÒ»¸ör
 // An encoding is invalid if it is incorrect UTF-8, encodes a rune that is
 // out of range, or is not the shortest possible UTF-8 encoding for the
 // value. No other validation is performed.
-func DecodeRuneInString(s string) (r rune, size int) { // °´utf8µÄ¸ñÊ½½âÂës£¬µÃµ½µÚÒ»¸örune
+func DecodeRuneInString(s string) (r rune, size int) { // æŒ‰utf8çš„æ ¼å¼è§£ç sï¼Œå¾—åˆ°ç¬¬ä¸€ä¸ªrune
 	r, size, _ = decodeRuneInStringInternal(s)
 	return
 }
@@ -317,7 +317,7 @@ func DecodeLastRuneInString(s string) (r rune, size int) {
 
 // RuneLen returns the number of bytes required to encode the rune.
 // It returns -1 if the rune is not a valid value to encode in UTF-8.
-func RuneLen(r rune) int { // ·µ»ØÒ»¸öruneµÄ³¤¶È
+func RuneLen(r rune) int { // è¿”å›ä¸€ä¸ªruneçš„é•¿åº¦
 	switch {
 	case r < 0:
 		return -1
@@ -337,7 +337,7 @@ func RuneLen(r rune) int { // ·µ»ØÒ»¸öruneµÄ³¤¶È
 
 // EncodeRune writes into p (which must be large enough) the UTF-8 encoding of the rune.
 // It returns the number of bytes written.
-func EncodeRune(p []byte, r rune) int { // °´utf8µÄ¸ñÊ½£¬°Ñ±àÂë×ª»»µ½pÖĞ
+func EncodeRune(p []byte, r rune) int { // æŒ‰utf8çš„æ ¼å¼ï¼ŒæŠŠç¼–ç è½¬æ¢åˆ°pä¸­
 	// Negative values are erroneous.  Making it unsigned addresses the problem.
 	switch i := uint32(r); {
 	case i <= rune1Max:
@@ -366,7 +366,7 @@ func EncodeRune(p []byte, r rune) int { // °´utf8µÄ¸ñÊ½£¬°Ñ±àÂë×ª»»µ½pÖĞ
 
 // RuneCount returns the number of runes in p.  Erroneous and short
 // encodings are treated as single runes of width 1 byte.
-func RuneCount(p []byte) int { // ¼ì²éÒ»¸ösliceÖĞruneµÄ¸öÊı
+func RuneCount(p []byte) int { // æ£€æŸ¥ä¸€ä¸ªsliceä¸­runeçš„ä¸ªæ•°
 	i := 0
 	var n int
 	for n = 0; i < len(p); n++ {
@@ -381,7 +381,7 @@ func RuneCount(p []byte) int { // ¼ì²éÒ»¸ösliceÖĞruneµÄ¸öÊı
 }
 
 // RuneCountInString is like RuneCount but its input is a string.
-func RuneCountInString(s string) (n int) { // ¼ì²éÒ»¸östringÖĞruneµÄ¸öÊı
+func RuneCountInString(s string) (n int) { // æ£€æŸ¥ä¸€ä¸ªstringä¸­runeçš„ä¸ªæ•°
 	for range s {
 		n++
 	}
@@ -394,7 +394,7 @@ func RuneCountInString(s string) (n int) { // ¼ì²éÒ»¸östringÖĞruneµÄ¸öÊı
 func RuneStart(b byte) bool { return b&0xC0 != 0x80 }
 
 // Valid reports whether p consists entirely of valid UTF-8-encoded runes.
-func Valid(p []byte) bool { // ÅĞ¶Ï byte sliceÊÇ·ñÄÜ±»±àÂëÎªutf8
+func Valid(p []byte) bool { // åˆ¤æ–­ byte sliceæ˜¯å¦èƒ½è¢«ç¼–ç ä¸ºutf8
 	i := 0
 	for i < len(p) {
 		if p[i] < RuneSelf {
@@ -414,9 +414,9 @@ func Valid(p []byte) bool { // ÅĞ¶Ï byte sliceÊÇ·ñÄÜ±»±àÂëÎªutf8
 }
 
 // ValidString reports whether s consists entirely of valid UTF-8-encoded runes.
-func ValidString(s string) bool { // ¼ì²éÒ»¸ö×Ö·û´®ÊÇ·ñÄÜ±»±àÂë³ÉUTF8
+func ValidString(s string) bool { // æ£€æŸ¥ä¸€ä¸ªå­—ç¬¦ä¸²æ˜¯å¦èƒ½è¢«ç¼–ç æˆUTF8
 	for i, r := range s {
-		if r == RuneError { // Èç¹ûÊÇ´íÎó×Ö·û
+		if r == RuneError { // å¦‚æœæ˜¯é”™è¯¯å­—ç¬¦
 			// The RuneError value can be an error
 			// sentinel value (if it's size 1) or the same
 			// value encoded properly. Decode it to see if
@@ -432,13 +432,13 @@ func ValidString(s string) bool { // ¼ì²éÒ»¸ö×Ö·û´®ÊÇ·ñÄÜ±»±àÂë³ÉUTF8
 
 // ValidRune reports whether r can be legally encoded as UTF-8.
 // Code points that are out of range or a surrogate half are illegal.
-func ValidRune(r rune) bool { // ¼ì²érÊÇ·ñÄÜ±»±àÂë³ÉUTF8
+func ValidRune(r rune) bool { // æ£€æŸ¥ræ˜¯å¦èƒ½è¢«ç¼–ç æˆUTF8
 	switch {
-	case r < 0: // rĞ¡ÓÚ0£¬ÎŞ·¨±»±àÂë
+	case r < 0: // rå°äº0ï¼Œæ— æ³•è¢«ç¼–ç 
 		return false
-	case surrogateMin <= r && r <= surrogateMax: // ÔÚ¸Ã·¶Î§ÄÚ£¬²»ÊÇÓĞĞ§µÄUTF8±àÂë
+	case surrogateMin <= r && r <= surrogateMax: // åœ¨è¯¥èŒƒå›´å†…ï¼Œä¸æ˜¯æœ‰æ•ˆçš„UTF8ç¼–ç 
 		return false
-	case r > MaxRune: // ´óÓÚMaxRune,²»ÊÇÓĞĞ§µÄutf8±àÂë
+	case r > MaxRune: // å¤§äºMaxRune,ä¸æ˜¯æœ‰æ•ˆçš„utf8ç¼–ç 
 		return false
 	}
 	return true

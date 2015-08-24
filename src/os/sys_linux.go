@@ -6,8 +6,8 @@
 
 package os
 
-func hostname() (name string, err error) { // È¡³öÖ÷»úÃû
-	f, err := Open("/proc/sys/kernel/hostname") // ´Óproc/sys/kernel/hostnameÖĞÈ¡³öÖ÷»úÃû
+func hostname() (name string, err error) { // å–å‡ºä¸»æœºå
+	f, err := Open("/proc/sys/kernel/hostname") // ä»proc/sys/kernel/hostnameä¸­å–å‡ºä¸»æœºå
 	if err != nil {
 		return "", err
 	}

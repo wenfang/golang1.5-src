@@ -4,14 +4,14 @@
 
 package io
 
-type multiReader struct { // MultiReader½á¹¹£¬ÊµÏÖReader½Ó¿Ú£¬·â×°ÁË¶à¸öReader
+type multiReader struct { // MultiReaderç»“æ„ï¼Œå®ç°Readeræ¥å£ï¼Œå°è£…äº†å¤šä¸ªReader
 	readers []Reader
 }
 
-func (mr *multiReader) Read(p []byte) (n int, err error) { // ÒÀ´Ë´ÓÃ¿¸öReaderÖĞ¶ÁÈ¡£¬¶ÁÍêÒ»¸öÔÙ¶ÁÏÂÒ»¸ö
+func (mr *multiReader) Read(p []byte) (n int, err error) { // ä¾æ­¤ä»æ¯ä¸ªReaderä¸­è¯»å–ï¼Œè¯»å®Œä¸€ä¸ªå†è¯»ä¸‹ä¸€ä¸ª
 	for len(mr.readers) > 0 {
-		n, err = mr.readers[0].Read(p) // ÏÈ¶ÁÁĞ±íÖĞµÚÒ»¸ö
-		if n > 0 || err != EOF {       // ¶Áµ½Êı¾İ£¬·µ»Ø£¬Ö±µ½µÚÒ»¸ö¶ÁÍê£¬ÔÙË³Ğò¶ÁµÚ¶ş¸ö
+		n, err = mr.readers[0].Read(p) // å…ˆè¯»åˆ—è¡¨ä¸­ç¬¬ä¸€ä¸ª
+		if n > 0 || err != EOF {       // è¯»åˆ°æ•°æ®ï¼Œè¿”å›ï¼Œç›´åˆ°ç¬¬ä¸€ä¸ªè¯»å®Œï¼Œå†é¡ºåºè¯»ç¬¬äºŒä¸ª
 			if err == EOF {
 				// Don't return EOF yet. There may be more bytes
 				// in the remaining readers.
@@ -19,7 +19,7 @@ func (mr *multiReader) Read(p []byte) (n int, err error) { // ÒÀ´Ë´ÓÃ¿¸öReaderÖĞ
 			}
 			return
 		}
-		mr.readers = mr.readers[1:] // ´Óreader sliceÖĞÈ¥µôµÚÒ»¸ö
+		mr.readers = mr.readers[1:] // ä»reader sliceä¸­å»æ‰ç¬¬ä¸€ä¸ª
 	}
 	return 0, EOF
 }
@@ -28,18 +28,18 @@ func (mr *multiReader) Read(p []byte) (n int, err error) { // ÒÀ´Ë´ÓÃ¿¸öReaderÖĞ
 // the provided input readers.  They're read sequentially.  Once all
 // inputs have returned EOF, Read will return EOF.  If any of the readers
 // return a non-nil, non-EOF error, Read will return that error.
-func MultiReader(readers ...Reader) Reader { // ´´½¨MultiReader½á¹¹
+func MultiReader(readers ...Reader) Reader { // åˆ›å»ºMultiReaderç»“æ„
 	r := make([]Reader, len(readers))
 	copy(r, readers)
 	return &multiReader{r}
 }
 
-type multiWriter struct { // multiWriter½á¹¹£¬¶à¸öwriterµÄ·â×°
+type multiWriter struct { // multiWriterç»“æ„ï¼Œå¤šä¸ªwriterçš„å°è£…
 	writers []Writer
 }
 
-func (t *multiWriter) Write(p []byte) (n int, err error) { // multiwriter£¬ÒÀ´Ë¶ÔËùÓĞµÄwriterĞ´
-	for _, w := range t.writers { // ±éÀúËùÓĞµÄwriter£¬Ã¿¸öĞ´Èëp£¬Ò»¸ö³ö´íÔòÕûÌå³ö´í
+func (t *multiWriter) Write(p []byte) (n int, err error) { // multiwriterï¼Œä¾æ­¤å¯¹æ‰€æœ‰çš„writerå†™
+	for _, w := range t.writers { // éå†æ‰€æœ‰çš„writerï¼Œæ¯ä¸ªå†™å…¥pï¼Œä¸€ä¸ªå‡ºé”™åˆ™æ•´ä½“å‡ºé”™
 		n, err = w.Write(p)
 		if err != nil {
 			return
@@ -54,7 +54,7 @@ func (t *multiWriter) Write(p []byte) (n int, err error) { // multiwriter£¬ÒÀ´Ë¶
 
 // MultiWriter creates a writer that duplicates its writes to all the
 // provided writers, similar to the Unix tee(1) command.
-func MultiWriter(writers ...Writer) Writer { // ´´½¨MultiWriter½á¹¹
+func MultiWriter(writers ...Writer) Writer { // åˆ›å»ºMultiWriterç»“æ„
 	w := make([]Writer, len(writers))
 	copy(w, writers)
 	return &multiWriter{w}

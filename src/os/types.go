@@ -10,16 +10,16 @@ import (
 )
 
 // Getpagesize returns the underlying system's memory page size.
-func Getpagesize() int { return syscall.Getpagesize() } // »ñµÃÏµÍ³Ò³Ãæ´óĞ¡
+func Getpagesize() int { return syscall.Getpagesize() } // è·å¾—ç³»ç»Ÿé¡µé¢å¤§å°
 
 // A FileInfo describes a file and is returned by Stat and Lstat.
-type FileInfo interface { //ÎÄ¼şĞÅÏ¢£¬ÊÇÒ»¸ö½Ó¿Ú
-	Name() string       // base name of the file // ÎÄ¼şÃû
-	Size() int64        // length in bytes for regular files; system-dependent for others // ÎÄ¼ş´óĞ¡
-	Mode() FileMode     // file mode bits // ÎÄ¼şmodeÎ»
-	ModTime() time.Time // modification time // ÎÄ¼ş¸ü¸ÄÊ±¼ä
-	IsDir() bool        // abbreviation for Mode().IsDir() // ÊÇ·ñÊÇÄ¿Â¼
-	Sys() interface{}   // underlying data source (can return nil) // µ×²ãµÄÊı¾İÔ´
+type FileInfo interface { //æ–‡ä»¶ä¿¡æ¯ï¼Œæ˜¯ä¸€ä¸ªæ¥å£
+	Name() string       // base name of the file // æ–‡ä»¶å
+	Size() int64        // length in bytes for regular files; system-dependent for others // æ–‡ä»¶å¤§å°
+	Mode() FileMode     // file mode bits // æ–‡ä»¶modeä½
+	ModTime() time.Time // modification time // æ–‡ä»¶æ›´æ”¹æ—¶é—´
+	IsDir() bool        // abbreviation for Mode().IsDir() // æ˜¯å¦æ˜¯ç›®å½•
+	Sys() interface{}   // underlying data source (can return nil) // åº•å±‚çš„æ•°æ®æº
 }
 
 // A FileMode represents a file's mode and permission bits.
@@ -27,7 +27,7 @@ type FileInfo interface { //ÎÄ¼şĞÅÏ¢£¬ÊÇÒ»¸ö½Ó¿Ú
 // information about files can be moved from one system
 // to another portably.  Not all bits apply to all systems.
 // The only required bit is ModeDir for directories.
-type FileMode uint32 // ¶¨ÒåÎÄ¼şÈ¨ÏŞÎ»
+type FileMode uint32 // å®šä¹‰æ–‡ä»¶æƒé™ä½
 
 // The defined file mode bits are the most significant bits of the FileMode.
 // The nine least-significant bits are the standard Unix rwxrwxrwx permissions.
@@ -54,11 +54,11 @@ const (
 	ModeType = ModeDir | ModeSymlink | ModeNamedPipe | ModeSocket | ModeDevice
 
 	ModePerm FileMode = 0777 // Unix permission bits
-) // ÎÄ¼şÄ£Ê½±êÖ¾Î»
+) // æ–‡ä»¶æ¨¡å¼æ ‡å¿—ä½
 
-func (m FileMode) String() string { // ½«ÎÄ¼şÄ£Ê½±äÎª×Ö·û´®
-	const str = "dalTLDpSugct" // ÎÄ¼şÄ£Ê½¿ÉÑ¡µÄ×Ö·û´®
-	var buf [32]byte // Mode is uint32.
+func (m FileMode) String() string { // å°†æ–‡ä»¶æ¨¡å¼å˜ä¸ºå­—ç¬¦ä¸²
+	const str = "dalTLDpSugct" // æ–‡ä»¶æ¨¡å¼å¯é€‰çš„å­—ç¬¦ä¸²
+	var buf [32]byte           // Mode is uint32.
 	w := 0
 	for i, c := range str {
 		if m&(1<<uint(32-1-i)) != 0 {
@@ -84,18 +84,18 @@ func (m FileMode) String() string { // ½«ÎÄ¼şÄ£Ê½±äÎª×Ö·û´®
 
 // IsDir reports whether m describes a directory.
 // That is, it tests for the ModeDir bit being set in m.
-func (m FileMode) IsDir() bool { // ¼ì²éÎÄ¼şÊÇ·ñÊÇÒ»¸öÄ¿Â¼
+func (m FileMode) IsDir() bool { // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦æ˜¯ä¸€ä¸ªç›®å½•
 	return m&ModeDir != 0
 }
 
 // IsRegular reports whether m describes a regular file.
 // That is, it tests that no mode type bits are set.
-func (m FileMode) IsRegular() bool { // ¼ì²éÊÇ·ñÎªÆÕÍ¨ÎÄ¼ş
+func (m FileMode) IsRegular() bool { // æ£€æŸ¥æ˜¯å¦ä¸ºæ™®é€šæ–‡ä»¶
 	return m&ModeType == 0
 }
 
 // Perm returns the Unix permission bits in m.
-func (m FileMode) Perm() FileMode { // ·µ»ØÈ¨ÏŞÎ»
+func (m FileMode) Perm() FileMode { // è¿”å›æƒé™ä½
 	return m & ModePerm
 }
 
@@ -108,10 +108,10 @@ func (fs *fileStat) IsDir() bool  { return fs.Mode().IsDir() }
 // the decision may be based on the path names.
 // SameFile only applies to results returned by this package's Stat.
 // It returns false in other cases.
-func SameFile(fi1, fi2 FileInfo) bool { // ²é¿´fi1ºÍfi2ÊÇ·ñÎªÍ¬Ò»¸öÎÄ¼ş
+func SameFile(fi1, fi2 FileInfo) bool { // æŸ¥çœ‹fi1å’Œfi2æ˜¯å¦ä¸ºåŒä¸€ä¸ªæ–‡ä»¶
 	fs1, ok1 := fi1.(*fileStat)
 	fs2, ok2 := fi2.(*fileStat)
-	if !ok1 || !ok2 { // ÏÈ½«FileInfo½Ó¿Ú×ª»»ÎªfileStat½á¹¹£¬¿´ÊÇ·ñ³É¹¦
+	if !ok1 || !ok2 { // å…ˆå°†FileInfoæ¥å£è½¬æ¢ä¸ºfileStatç»“æ„ï¼Œçœ‹æ˜¯å¦æˆåŠŸ
 		return false
 	}
 	return sameFile(fs1, fs2)

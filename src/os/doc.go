@@ -9,7 +9,7 @@ import "time"
 // FindProcess looks for a running process by its pid.
 // The Process it returns can be used to obtain information
 // about the underlying operating system process.
-func FindProcess(pid int) (p *Process, err error) { // ¸ù¾İpid²éÕÒ½ø³Ì½á¹¹
+func FindProcess(pid int) (p *Process, err error) { // æ ¹æ®pidæŸ¥æ‰¾è¿›ç¨‹ç»“æ„
 	return findProcess(pid)
 }
 
@@ -20,7 +20,7 @@ func FindProcess(pid int) (p *Process, err error) { // ¸ù¾İpid²éÕÒ½ø³Ì½á¹¹
 // higher-level interfaces.
 //
 // If there is an error, it will be of type *PathError.
-func StartProcess(name string, argv []string, attr *ProcAttr) (*Process, error) { // Æô¶¯ĞÂ½ø³Ì
+func StartProcess(name string, argv []string, attr *ProcAttr) (*Process, error) { // å¯åŠ¨æ–°è¿›ç¨‹
 	return startProcess(name, argv, attr)
 }
 
@@ -89,7 +89,7 @@ func (p *ProcessState) SysUsage() interface{} {
 }
 
 // Hostname returns the host name reported by the kernel.
-func Hostname() (name string, err error) { // È¡³öÖ÷»úÃû
+func Hostname() (name string, err error) { // å–å‡ºä¸»æœºå
 	return hostname()
 }
 
@@ -108,7 +108,7 @@ func Hostname() (name string, err error) { // È¡³öÖ÷»úÃû
 // nil error. If it encounters an error before the end of the
 // directory, Readdir returns the FileInfo read until that point
 // and a non-nil error.
-func (f *File) Readdir(n int) (fi []FileInfo, err error) { // ¶Áf¶ÔÓ¦µÄÄ¿Â¼µÄÄÚÈİ£¬·µ»ØÒ»¸öFileInfoµÄslice£¬°üº¬×î¶àn¸ö
+func (f *File) Readdir(n int) (fi []FileInfo, err error) { // è¯»få¯¹åº”çš„ç›®å½•çš„å†…å®¹ï¼Œè¿”å›ä¸€ä¸ªFileInfoçš„sliceï¼ŒåŒ…å«æœ€å¤šnä¸ª
 	if f == nil {
 		return nil, ErrInvalid
 	}

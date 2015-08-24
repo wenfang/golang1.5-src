@@ -47,7 +47,7 @@ func syscallMode(i FileMode) (o uint32) {
 // Chmod changes the mode of the named file to mode.
 // If the file is a symbolic link, it changes the mode of the link's target.
 // If there is an error, it will be of type *PathError.
-func Chmod(name string, mode FileMode) error { // 改变文件访问模式
+func Chmod(name string, mode FileMode) error { // 鏀瑰彉鏂囦欢璁块棶妯″紡
 	if e := syscall.Chmod(name, syscallMode(mode)); e != nil {
 		return &PathError{"chmod", name, e}
 	}
@@ -69,7 +69,7 @@ func (f *File) Chmod(mode FileMode) error {
 // Chown changes the numeric uid and gid of the named file.
 // If the file is a symbolic link, it changes the uid and gid of the link's target.
 // If there is an error, it will be of type *PathError.
-func Chown(name string, uid, gid int) error { // 改变文件owner
+func Chown(name string, uid, gid int) error { // 鏀瑰彉鏂囦欢owner
 	if e := syscall.Chown(name, uid, gid); e != nil {
 		return &PathError{"chown", name, e}
 	}

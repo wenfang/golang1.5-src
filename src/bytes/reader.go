@@ -15,14 +15,14 @@ import (
 // a byte slice.
 // Unlike a Buffer, a Reader is read-only and supports seeking.
 type Reader struct {
-	s        []byte // Ö¸ÏòÊı¾İÇø
-	i        int64  // current reading index µ±Ç°¶ÁË÷ÒıµÄÎ»ÖÃ
-	prevRune int    // index of previous rune; or < 0 Ç°Ò»¸öruneË÷ÒıµÄÎ»ÖÃ
+	s        []byte // æŒ‡å‘æ•°æ®åŒº
+	i        int64  // current reading index å½“å‰è¯»ç´¢å¼•çš„ä½ç½®
+	prevRune int    // index of previous rune; or < 0 å‰ä¸€ä¸ªruneç´¢å¼•çš„ä½ç½®
 }
 
 // Len returns the number of bytes of the unread portion of the
 // slice.
-func (r *Reader) Len() int { // ·µ»ØÎ´¶ÁÊı¾İµÄ³¤¶È
+func (r *Reader) Len() int { // è¿”å›æœªè¯»æ•°æ®çš„é•¿åº¦
 	if r.i >= int64(len(r.s)) {
 		return 0
 	}
@@ -35,7 +35,7 @@ func (r *Reader) Len() int { // ·µ»ØÎ´¶ÁÊı¾İµÄ³¤¶È
 // to any other method.
 func (r *Reader) Size() int64 { return int64(len(r.s)) }
 
-func (r *Reader) Read(b []byte) (n int, err error) { // ¶ÁÊı¾İ½øÈëbÖĞ
+func (r *Reader) Read(b []byte) (n int, err error) { // è¯»æ•°æ®è¿›å…¥bä¸­
 	if len(b) == 0 {
 		return 0, nil
 	}
@@ -48,7 +48,7 @@ func (r *Reader) Read(b []byte) (n int, err error) { // ¶ÁÊı¾İ½øÈëbÖĞ
 	return
 }
 
-func (r *Reader) ReadAt(b []byte, off int64) (n int, err error) { // ´Óoff¿ªÊ¼¶ÁÊı¾İ½øÈëbÖĞ
+func (r *Reader) ReadAt(b []byte, off int64) (n int, err error) { // ä»offå¼€å§‹è¯»æ•°æ®è¿›å…¥bä¸­
 	// cannot modify state - see io.ReaderAt
 	if off < 0 {
 		return 0, errors.New("bytes.Reader.ReadAt: negative offset")
@@ -63,9 +63,9 @@ func (r *Reader) ReadAt(b []byte, off int64) (n int, err error) { // ´Óoff¿ªÊ¼¶Á
 	return
 }
 
-func (r *Reader) ReadByte() (b byte, err error) { // ´ÓReaderÖĞ¶ÁÒ»¸ö×Ö½Ú³öÀ´
+func (r *Reader) ReadByte() (b byte, err error) { // ä»Readerä¸­è¯»ä¸€ä¸ªå­—èŠ‚å‡ºæ¥
 	r.prevRune = -1
-	if r.i >= int64(len(r.s)) { // ¶Áµ½Êı¾İ½áÎ²ÁË
+	if r.i >= int64(len(r.s)) { // è¯»åˆ°æ•°æ®ç»“å°¾äº†
 		return 0, io.EOF
 	}
 	b = r.s[r.i]
@@ -73,7 +73,7 @@ func (r *Reader) ReadByte() (b byte, err error) { // ´ÓReaderÖĞ¶ÁÒ»¸ö×Ö½Ú³öÀ´
 	return
 }
 
-func (r *Reader) UnreadByte() error { // unreadÒ»¸öbyte£¬Ë÷ÒıÖµ¼õÒ»
+func (r *Reader) UnreadByte() error { // unreadä¸€ä¸ªbyteï¼Œç´¢å¼•å€¼å‡ä¸€
 	r.prevRune = -1
 	if r.i <= 0 {
 		return errors.New("bytes.Reader.UnreadByte: at beginning of slice")
@@ -82,17 +82,17 @@ func (r *Reader) UnreadByte() error { // unreadÒ»¸öbyte£¬Ë÷ÒıÖµ¼õÒ»
 	return nil
 }
 
-func (r *Reader) ReadRune() (ch rune, size int, err error) { // ¶ÁÒ»¸örune³öÀ´
-	if r.i >= int64(len(r.s)) { // ¶Áµ½Êı¾İ½áÎ²ÁË
+func (r *Reader) ReadRune() (ch rune, size int, err error) { // è¯»ä¸€ä¸ªruneå‡ºæ¥
+	if r.i >= int64(len(r.s)) { // è¯»åˆ°æ•°æ®ç»“å°¾äº†
 		r.prevRune = -1
 		return 0, 0, io.EOF
 	}
-	r.prevRune = int(r.i) // »ñÈ¡µ±Ç°µÄË÷ÒıÎ»ÖÃ£¬unreadruneÊ±»áÊ¹ÓÃ
+	r.prevRune = int(r.i) // è·å–å½“å‰çš„ç´¢å¼•ä½ç½®ï¼Œunreadruneæ—¶ä¼šä½¿ç”¨
 	if c := r.s[r.i]; c < utf8.RuneSelf {
 		r.i++
 		return rune(c), 1, nil
 	}
-	ch, size = utf8.DecodeRune(r.s[r.i:]) // °´utf8±àÂë£¬½âÎöÒ»¸örune³öÀ´
+	ch, size = utf8.DecodeRune(r.s[r.i:]) // æŒ‰utf8ç¼–ç ï¼Œè§£æä¸€ä¸ªruneå‡ºæ¥
 	r.i += int64(size)
 	return
 }
@@ -147,4 +147,4 @@ func (r *Reader) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 // NewReader returns a new Reader reading from b.
-func NewReader(b []byte) *Reader { return &Reader{b, 0, -1} } // ´Ó[]byte´´½¨Ò»¸öReader
+func NewReader(b []byte) *Reader { return &Reader{b, 0, -1} } // ä»[]byteåˆ›å»ºä¸€ä¸ªReader

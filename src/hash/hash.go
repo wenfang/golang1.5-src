@@ -8,36 +8,36 @@ package hash
 import "io"
 
 // Hash is the common interface implemented by all hash functions.
-type Hash interface { //Hash½Ó¿Ú
+type Hash interface { //Hashæ¥å£
 	// Write (via the embedded io.Writer interface) adds more data to the running hash.
 	// It never returns an error.
-	io.Writer // °üº¬io.Wirter½Ó¿Ú
+	io.Writer // åŒ…å«io.Wirteræ¥å£
 
 	// Sum appends the current hash to b and returns the resulting slice.
 	// It does not change the underlying hash state.
-	Sum(b []byte) []byte // ¼ÆËãHash½á¹û·µ»ØÖµ£¬½«½á¹û×·¼Óµ½bÖ®ºó
+	Sum(b []byte) []byte // è®¡ç®—Hashç»“æœè¿”å›å€¼ï¼Œå°†ç»“æœè¿½åŠ åˆ°bä¹‹å
 
 	// Reset resets the Hash to its initial state.
-	Reset() // ÖØÖÃHashÎª³õÊ¼×´Ì¬
+	Reset() // é‡ç½®Hashä¸ºåˆå§‹çŠ¶æ€
 
 	// Size returns the number of bytes Sum will return.
-	Size() int // ·µ»ØSum¼ÆËãºó·µ»ØµÄ×Ö½ÚÊı
+	Size() int // è¿”å›Sumè®¡ç®—åè¿”å›çš„å­—èŠ‚æ•°
 
 	// BlockSize returns the hash's underlying block size.
 	// The Write method must be able to accept any amount
 	// of data, but it may operate more efficiently if all writes
 	// are a multiple of the block size.
-	BlockSize() int // ·µ»Ø¼ÆËã¿éµÄ´óĞ¡
+	BlockSize() int // è¿”å›è®¡ç®—å—çš„å¤§å°
 }
 
 // Hash32 is the common interface implemented by all 32-bit hash functions.
-type Hash32 interface { // Hash32½Ó¿Ú
+type Hash32 interface { // Hash32æ¥å£
 	Hash
 	Sum32() uint32
 }
 
 // Hash64 is the common interface implemented by all 64-bit hash functions.
-type Hash64 interface { // Hash64½Ó¿Ú
+type Hash64 interface { // Hash64æ¥å£
 	Hash
 	Sum64() uint64
 }

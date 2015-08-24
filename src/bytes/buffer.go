@@ -14,19 +14,19 @@ import (
 
 // A Buffer is a variable-sized buffer of bytes with Read and Write methods.
 // The zero value for Buffer is an empty buffer ready to use.
-type Buffer struct { // bytesµÄ»º´æ½á¹¹
+type Buffer struct { // bytesçš„ç¼“å­˜ç»“æ„
 	buf       []byte            // contents are the bytes buf[off : len(buf)]
-	off       int               // read at &buf[off], write at &buf[len(buf)] ´Óoff¿ªÊ¼¶Á£¬´Ólen(buf)¿ªÊ¼Ğ´
-	runeBytes [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune ±ÜÃâÃ¿´Î¶¼·ÖÅäÒ»¸öSlice
-	bootstrap [64]byte          // memory to hold first slice; helps small buffers (Printf) avoid allocation. Ô¤·ÖÅäµÄ¿Õ¼ä
-	lastRead  readOp            // last read operation, so that Unread* can work correctly. // ×î½üµÄ¶Á²Ù×÷
+	off       int               // read at &buf[off], write at &buf[len(buf)] ä»offå¼€å§‹è¯»ï¼Œä»len(buf)å¼€å§‹å†™
+	runeBytes [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune é¿å…æ¯æ¬¡éƒ½åˆ†é…ä¸€ä¸ªSlice
+	bootstrap [64]byte          // memory to hold first slice; helps small buffers (Printf) avoid allocation. é¢„åˆ†é…çš„ç©ºé—´
+	lastRead  readOp            // last read operation, so that Unread* can work correctly. // æœ€è¿‘çš„è¯»æ“ä½œ
 }
 
 // The readOp constants describe the last action performed on
 // the buffer, so that UnreadRune and UnreadByte can
 // check for invalid usage.
-type readOp int // ÃèÊö×î½ü¶ÔbufferµÄ²Ù×÷
-// ×î½ü¶Á²Ù×÷µÄÀàĞÍ
+type readOp int // æè¿°æœ€è¿‘å¯¹bufferçš„æ“ä½œ
+// æœ€è¿‘è¯»æ“ä½œçš„ç±»å‹
 const (
 	opInvalid  readOp = iota // Non-read operation.
 	opReadRune               // Read rune.
@@ -40,11 +40,11 @@ var ErrTooLarge = errors.New("bytes.Buffer: too large")
 // len(b.Bytes()) == b.Len().  If the caller changes the contents of the
 // returned slice, the contents of the buffer will change provided there
 // are no intervening method calls on the Buffer.
-func (b *Buffer) Bytes() []byte { return b.buf[b.off:] } // ½«bufµÄÓĞĞ§ÄÚÈİ°´ÕÕ[]byteÊä³ö
+func (b *Buffer) Bytes() []byte { return b.buf[b.off:] } // å°†bufçš„æœ‰æ•ˆå†…å®¹æŒ‰ç…§[]byteè¾“å‡º
 
 // String returns the contents of the unread portion of the buffer
 // as a string.  If the Buffer is a nil pointer, it returns "<nil>".
-func (b *Buffer) String() string { // ½«bufµÄÄÚÈİ×ª»»Îªstring
+func (b *Buffer) String() string { // å°†bufçš„å†…å®¹è½¬æ¢ä¸ºstring
 	if b == nil {
 		// Special case, useful in debugging.
 		return "<nil>"
@@ -54,7 +54,7 @@ func (b *Buffer) String() string { // ½«bufµÄÄÚÈİ×ª»»Îªstring
 
 // Len returns the number of bytes of the unread portion of the buffer;
 // b.Len() == len(b.Bytes()).
-func (b *Buffer) Len() int { return len(b.buf) - b.off } // µ±Ç°bufµÄÓĞĞ§³¤¶È
+func (b *Buffer) Len() int { return len(b.buf) - b.off } // å½“å‰bufçš„æœ‰æ•ˆé•¿åº¦
 
 // Cap returns the capacity of the buffer's underlying byte slice, that is, the
 // total space allocated for the buffer's data.
@@ -62,26 +62,26 @@ func (b *Buffer) Cap() int { return cap(b.buf) }
 
 // Truncate discards all but the first n unread bytes from the buffer.
 // It panics if n is negative or greater than the length of the buffer.
-func (b *Buffer) Truncate(n int) { // ³ı±£ÁôbufÖĞÇ°n¸öÍâ£¬¶¼É¾³ı
-	b.lastRead = opInvalid // Éè¶¨ÉÏÒ»¸ö¶Á²Ù×÷ÎŞĞ§
+func (b *Buffer) Truncate(n int) { // é™¤ä¿ç•™bufä¸­å‰nä¸ªå¤–ï¼Œéƒ½åˆ é™¤
+	b.lastRead = opInvalid // è®¾å®šä¸Šä¸€ä¸ªè¯»æ“ä½œæ— æ•ˆ
 	switch {
-	case n < 0 || n > b.Len(): // n µÄÖµ²»ºÏ·¨£¬Ê§°Ü
+	case n < 0 || n > b.Len(): // n çš„å€¼ä¸åˆæ³•ï¼Œå¤±è´¥
 		panic("bytes.Buffer: truncation out of range")
-	case n == 0: // ÖØÓÃbuffer
+	case n == 0: // é‡ç”¨buffer
 		// Reuse buffer space.
 		b.off = 0
 	}
-	b.buf = b.buf[0 : b.off+n] // Éè¶¨bufferµÄlen
+	b.buf = b.buf[0 : b.off+n] // è®¾å®šbufferçš„len
 }
 
 // Reset resets the buffer so it has no content.
 // b.Reset() is the same as b.Truncate(0).
-func (b *Buffer) Reset() { b.Truncate(0) } // ½«bufµÄÄÚÈİÇå¿Õ
+func (b *Buffer) Reset() { b.Truncate(0) } // å°†bufçš„å†…å®¹æ¸…ç©º
 
 // grow grows the buffer to guarantee space for n more bytes.
 // It returns the index where bytes should be written.
 // If the buffer can't grow it will panic with ErrTooLarge.
-func (b *Buffer) grow(n int) int { // Ôö³¤buffer£¬Ê¹Æä¿ÉÒÔ¶àÈİÄÉn¸öbyte
+func (b *Buffer) grow(n int) int { // å¢é•¿bufferï¼Œä½¿å…¶å¯ä»¥å¤šå®¹çº³nä¸ªbyte
 	m := b.Len()
 	// If buffer is empty, reset to recover space.
 	if m == 0 && b.off != 0 {
@@ -115,7 +115,7 @@ func (b *Buffer) grow(n int) int { // Ôö³¤buffer£¬Ê¹Æä¿ÉÒÔ¶àÈİÄÉn¸öbyte
 // buffer without another allocation.
 // If n is negative, Grow will panic.
 // If the buffer can't grow it will panic with ErrTooLarge.
-func (b *Buffer) Grow(n int) { // Ôö¼ÓbufµÄÈİÁ¿£¬¶àÔö¼Ón¸ö
+func (b *Buffer) Grow(n int) { // å¢åŠ bufçš„å®¹é‡ï¼Œå¤šå¢åŠ nä¸ª
 	if n < 0 {
 		panic("bytes.Buffer.Grow: negative count")
 	}
@@ -126,16 +126,16 @@ func (b *Buffer) Grow(n int) { // Ôö¼ÓbufµÄÈİÁ¿£¬¶àÔö¼Ón¸ö
 // Write appends the contents of p to the buffer, growing the buffer as
 // needed. The return value n is the length of p; err is always nil. If the
 // buffer becomes too large, Write will panic with ErrTooLarge.
-func (b *Buffer) Write(p []byte) (n int, err error) { // ½«p×·¼Óµ½bufºó
-	b.lastRead = opInvalid // ÏÈÉèÖÃÉÏÒ»¸ö¶ÁÎŞĞ§
-	m := b.grow(len(p))    // ¶àÔö¼Óp¸öÄÚÈİ
+func (b *Buffer) Write(p []byte) (n int, err error) { // å°†pè¿½åŠ åˆ°bufå
+	b.lastRead = opInvalid // å…ˆè®¾ç½®ä¸Šä¸€ä¸ªè¯»æ— æ•ˆ
+	m := b.grow(len(p))    // å¤šå¢åŠ pä¸ªå†…å®¹
 	return copy(b.buf[m:], p), nil
 }
 
 // WriteString appends the contents of s to the buffer, growing the buffer as
 // needed. The return value n is the length of s; err is always nil. If the
 // buffer becomes too large, WriteString will panic with ErrTooLarge.
-func (b *Buffer) WriteString(s string) (n int, err error) { // ½«s×·¼Óµ½bufºó
+func (b *Buffer) WriteString(s string) (n int, err error) { // å°†sè¿½åŠ åˆ°bufå
 	b.lastRead = opInvalid
 	m := b.grow(len(s))
 	return copy(b.buf[m:], s), nil
@@ -151,17 +151,17 @@ const MinRead = 512
 // the buffer as needed. The return value n is the number of bytes read. Any
 // error except io.EOF encountered during the read is also returned. If the
 // buffer becomes too large, ReadFrom will panic with ErrTooLarge.
-func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) { // ´ÓrÖĞ¶ÁÊı¾İ£¬×·¼Óµ½bufºó£¬Ö±µ½EOF
+func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) { // ä»rä¸­è¯»æ•°æ®ï¼Œè¿½åŠ åˆ°bufåï¼Œç›´åˆ°EOF
 	b.lastRead = opInvalid
 	// If buffer is empty, reset to recover space.
-	if b.off >= len(b.buf) { // buffer±ä¿ÕÁË
+	if b.off >= len(b.buf) { // bufferå˜ç©ºäº†
 		b.Truncate(0)
 	}
 	for {
-		if free := cap(b.buf) - len(b.buf); free < MinRead { // ¿ÕÏĞµÄ¿Õ¼äĞ¡ÓÚMinRead
+		if free := cap(b.buf) - len(b.buf); free < MinRead { // ç©ºé—²çš„ç©ºé—´å°äºMinRead
 			// not enough space at end
 			newBuf := b.buf
-			if b.off+free < MinRead { // Èç¹ûÏòÇ°ÒÆ¶¯bufferµÄÊı¾İÈÔÈ»²»¹»£¬Ö»ÄÜÀ©Õ¹ÁË
+			if b.off+free < MinRead { // å¦‚æœå‘å‰ç§»åŠ¨bufferçš„æ•°æ®ä»ç„¶ä¸å¤Ÿï¼Œåªèƒ½æ‰©å±•äº†
 				// not enough space using beginning of buffer;
 				// double buffer capacity
 				newBuf = makeSlice(2*cap(b.buf) + MinRead)
@@ -199,7 +199,7 @@ func makeSlice(n int) []byte {
 // The return value n is the number of bytes written; it always fits into an
 // int, but it is int64 to match the io.WriterTo interface. Any error
 // encountered during the write is also returned.
-func (b *Buffer) WriteTo(w io.Writer) (n int64, err error) { // ½«bufÖĞµÄÊı¾İĞ´µ½wÖĞ
+func (b *Buffer) WriteTo(w io.Writer) (n int64, err error) { // å°†bufä¸­çš„æ•°æ®å†™åˆ°wä¸­
 	b.lastRead = opInvalid
 	if b.off < len(b.buf) {
 		nBytes := b.Len()
@@ -227,7 +227,7 @@ func (b *Buffer) WriteTo(w io.Writer) (n int64, err error) { // ½«bufÖĞµÄÊı¾İĞ´µ
 // The returned error is always nil, but is included to match bufio.Writer's
 // WriteByte. If the buffer becomes too large, WriteByte will panic with
 // ErrTooLarge.
-func (b *Buffer) WriteByte(c byte) error { // ½«Ò»¸öbyte×·¼Óµ½bufÖĞ
+func (b *Buffer) WriteByte(c byte) error { // å°†ä¸€ä¸ªbyteè¿½åŠ åˆ°bufä¸­
 	b.lastRead = opInvalid
 	m := b.grow(1)
 	b.buf[m] = c
@@ -238,7 +238,7 @@ func (b *Buffer) WriteByte(c byte) error { // ½«Ò»¸öbyte×·¼Óµ½bufÖĞ
 // buffer, returning its length and an error, which is always nil but is
 // included to match bufio.Writer's WriteRune. The buffer is grown as needed;
 // if it becomes too large, WriteRune will panic with ErrTooLarge.
-func (b *Buffer) WriteRune(r rune) (n int, err error) { // ½«Ò»¸örune×·¼Óµ½bufÖĞ
+func (b *Buffer) WriteRune(r rune) (n int, err error) { // å°†ä¸€ä¸ªruneè¿½åŠ åˆ°bufä¸­
 	if r < utf8.RuneSelf {
 		b.WriteByte(byte(r))
 		return 1, nil
@@ -252,7 +252,7 @@ func (b *Buffer) WriteRune(r rune) (n int, err error) { // ½«Ò»¸örune×·¼Óµ½bufÖĞ
 // is drained.  The return value n is the number of bytes read.  If the
 // buffer has no data to return, err is io.EOF (unless len(p) is zero);
 // otherwise it is nil.
-func (b *Buffer) Read(p []byte) (n int, err error) { // ´ÓbufÖĞ¶ÁÈ¡len(p)×Ö½ÚÊı¾İµ½p
+func (b *Buffer) Read(p []byte) (n int, err error) { // ä»bufä¸­è¯»å–len(p)å­—èŠ‚æ•°æ®åˆ°p
 	b.lastRead = opInvalid
 	if b.off >= len(b.buf) {
 		// Buffer is empty, reset to recover space.
@@ -274,7 +274,7 @@ func (b *Buffer) Read(p []byte) (n int, err error) { // ´ÓbufÖĞ¶ÁÈ¡len(p)×Ö½ÚÊı¾
 // advancing the buffer as if the bytes had been returned by Read.
 // If there are fewer than n bytes in the buffer, Next returns the entire buffer.
 // The slice is only valid until the next call to a read or write method.
-func (b *Buffer) Next(n int) []byte { // ·µ»ØbufferÖĞºón¸öÊı¾İ
+func (b *Buffer) Next(n int) []byte { // è¿”å›bufferä¸­ånä¸ªæ•°æ®
 	b.lastRead = opInvalid
 	m := b.Len()
 	if n > m {
@@ -290,7 +290,7 @@ func (b *Buffer) Next(n int) []byte { // ·µ»ØbufferÖĞºón¸öÊı¾İ
 
 // ReadByte reads and returns the next byte from the buffer.
 // If no byte is available, it returns error io.EOF.
-func (b *Buffer) ReadByte() (c byte, err error) { // ´ÓbufÖĞ¶ÁÈ¡Ò»¸öbyte
+func (b *Buffer) ReadByte() (c byte, err error) { // ä»bufä¸­è¯»å–ä¸€ä¸ªbyte
 	b.lastRead = opInvalid
 	if b.off >= len(b.buf) {
 		// Buffer is empty, reset to recover space.
@@ -308,7 +308,7 @@ func (b *Buffer) ReadByte() (c byte, err error) { // ´ÓbufÖĞ¶ÁÈ¡Ò»¸öbyte
 // If no bytes are available, the error returned is io.EOF.
 // If the bytes are an erroneous UTF-8 encoding, it
 // consumes one byte and returns U+FFFD, 1.
-func (b *Buffer) ReadRune() (r rune, size int, err error) { // ´ÓbufÖĞ¶ÁÈ¡Ò»¸örune
+func (b *Buffer) ReadRune() (r rune, size int, err error) { // ä»bufä¸­è¯»å–ä¸€ä¸ªrune
 	b.lastRead = opInvalid
 	if b.off >= len(b.buf) {
 		// Buffer is empty, reset to recover space.
@@ -331,7 +331,7 @@ func (b *Buffer) ReadRune() (r rune, size int, err error) { // ´ÓbufÖĞ¶ÁÈ¡Ò»¸öru
 // not a ReadRune, UnreadRune returns an error.  (In this regard
 // it is stricter than UnreadByte, which will unread the last byte
 // from any read operation.)
-func (b *Buffer) UnreadRune() error { // unreadÉÏÒ»¸örune
+func (b *Buffer) UnreadRune() error { // unreadä¸Šä¸€ä¸ªrune
 	if b.lastRead != opReadRune {
 		return errors.New("bytes.Buffer: UnreadRune: previous operation was not ReadRune")
 	}
@@ -346,7 +346,7 @@ func (b *Buffer) UnreadRune() error { // unreadÉÏÒ»¸örune
 // UnreadByte unreads the last byte returned by the most recent
 // read operation.  If write has happened since the last read, UnreadByte
 // returns an error.
-func (b *Buffer) UnreadByte() error { // unread ÉÏÒ»¸öbyte
+func (b *Buffer) UnreadByte() error { // unread ä¸Šä¸€ä¸ªbyte
 	if b.lastRead != opReadRune && b.lastRead != opRead {
 		return errors.New("bytes.Buffer: UnreadByte: previous operation was not a read")
 	}
@@ -363,7 +363,7 @@ func (b *Buffer) UnreadByte() error { // unread ÉÏÒ»¸öbyte
 // it returns the data read before the error and the error itself (often io.EOF).
 // ReadBytes returns err != nil if and only if the returned data does not end in
 // delim.
-func (b *Buffer) ReadBytes(delim byte) (line []byte, err error) { // ¶ÁÊı¾İ£¬¶Á³öÒ»·İ¿½±´
+func (b *Buffer) ReadBytes(delim byte) (line []byte, err error) { // è¯»æ•°æ®ï¼Œè¯»å‡ºä¸€ä»½æ‹·è´
 	slice, err := b.readSlice(delim)
 	// return a copy of slice. The buffer's backing array may
 	// be overwritten by later calls.
@@ -372,7 +372,7 @@ func (b *Buffer) ReadBytes(delim byte) (line []byte, err error) { // ¶ÁÊı¾İ£¬¶Á³
 }
 
 // readSlice is like ReadBytes but returns a reference to internal buffer data.
-func (b *Buffer) readSlice(delim byte) (line []byte, err error) { // ¶ÁÊı¾İ£¬Ö¸ÏòÄÚ²¿bufµÄÄÚÈİ
+func (b *Buffer) readSlice(delim byte) (line []byte, err error) { // è¯»æ•°æ®ï¼ŒæŒ‡å‘å†…éƒ¨bufçš„å†…å®¹
 	i := IndexByte(b.buf[b.off:], delim)
 	end := b.off + i + 1
 	if i < 0 {
@@ -391,7 +391,7 @@ func (b *Buffer) readSlice(delim byte) (line []byte, err error) { // ¶ÁÊı¾İ£¬Ö¸Ï
 // it returns the data read before the error and the error itself (often io.EOF).
 // ReadString returns err != nil if and only if the returned data does not end
 // in delim.
-func (b *Buffer) ReadString(delim byte) (line string, err error) { // ´ÓbufÖĞ¶ÁÈ¡Ò»¸ö×Ö·û´®
+func (b *Buffer) ReadString(delim byte) (line string, err error) { // ä»bufä¸­è¯»å–ä¸€ä¸ªå­—ç¬¦ä¸²
 	slice, err := b.readSlice(delim)
 	return string(slice), err
 }
@@ -403,7 +403,7 @@ func (b *Buffer) ReadString(delim byte) (line string, err error) { // ´ÓbufÖĞ¶ÁÈ
 //
 // In most cases, new(Buffer) (or just declaring a Buffer variable) is
 // sufficient to initialize a Buffer.
-func NewBuffer(buf []byte) *Buffer { return &Buffer{buf: buf} } // Éú³ÉÒ»¸öĞÂµÄbuffer£¬Ê¹ÓÃbuf×÷Îª³õÊ¼Öµ
+func NewBuffer(buf []byte) *Buffer { return &Buffer{buf: buf} } // ç”Ÿæˆä¸€ä¸ªæ–°çš„bufferï¼Œä½¿ç”¨bufä½œä¸ºåˆå§‹å€¼
 
 // NewBufferString creates and initializes a new Buffer using string s as its
 // initial contents. It is intended to prepare a buffer to read an existing
@@ -411,6 +411,6 @@ func NewBuffer(buf []byte) *Buffer { return &Buffer{buf: buf} } // Éú³ÉÒ»¸öĞÂµÄb
 //
 // In most cases, new(Buffer) (or just declaring a Buffer variable) is
 // sufficient to initialize a Buffer.
-func NewBufferString(s string) *Buffer { // Éú³ÉÒ»¸öĞÂbuf,string×÷Îª³õÊ¼Öµ
+func NewBufferString(s string) *Buffer { // ç”Ÿæˆä¸€ä¸ªæ–°buf,stringä½œä¸ºåˆå§‹å€¼
 	return &Buffer{buf: []byte(s)}
 }

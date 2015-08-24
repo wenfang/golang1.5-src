@@ -107,8 +107,8 @@ func growslice(t *slicetype, old slice, cap int) slice {
 	return slice{p, old.len, newcap}
 }
 
-func slicecopy(to, fm slice, width uintptr) int {
-	if fm.len == 0 || to.len == 0 {
+func slicecopy(to, fm slice, width uintptr) int { // 执行slice的copy
+	if fm.len == 0 || to.len == 0 { // 如果from和to的长度都为0，返回0
 		return 0
 	}
 

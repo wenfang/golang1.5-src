@@ -30,13 +30,13 @@ import (
 
 // A ByteOrder specifies how to convert byte sequences into
 // 16-, 32-, or 64-bit unsigned integers.
-type ByteOrder interface { // ByteOrder½Ó¿Ú£¬¶¨ÒåÁËÈçºÎ½«byte slice×ª»»Îªuint
+type ByteOrder interface { // ByteOrderæ¥å£ï¼Œå®šä¹‰äº†å¦‚ä½•å°†byte sliceè½¬æ¢ä¸ºuint
 	Uint16([]byte) uint16
 	Uint32([]byte) uint32
-	Uint64([]byte) uint64 // ½«byte slice×ª±äÎªuint
+	Uint64([]byte) uint64 // å°†byte sliceè½¬å˜ä¸ºuint
 	PutUint16([]byte, uint16)
 	PutUint32([]byte, uint32)
-	PutUint64([]byte, uint64) // ½«uint×ª±äÎªbyte slice
+	PutUint64([]byte, uint64) // å°†uintè½¬å˜ä¸ºbyte slice
 	String() string
 }
 
@@ -48,7 +48,7 @@ var BigEndian bigEndian
 
 type littleEndian struct{}
 
-func (littleEndian) Uint16(b []byte) uint16 { return uint16(b[0]) | uint16(b[1])<<8 } // ½«byte slice×ª»»Îªuint16
+func (littleEndian) Uint16(b []byte) uint16 { return uint16(b[0]) | uint16(b[1])<<8 } // å°†byte sliceè½¬æ¢ä¸ºuint16
 
 func (littleEndian) PutUint16(b []byte, v uint16) {
 	b[0] = byte(v)
@@ -82,9 +82,9 @@ func (littleEndian) PutUint64(b []byte, v uint64) {
 	b[7] = byte(v >> 56)
 }
 
-func (littleEndian) String() string { return "LittleEndian" } // ×ª»»³É×Ö·û´®
+func (littleEndian) String() string { return "LittleEndian" } // è½¬æ¢æˆå­—ç¬¦ä¸²
 
-func (littleEndian) GoString() string { return "binary.LittleEndian" } // ×ª»»³ÉGO×Ö·û´®
+func (littleEndian) GoString() string { return "binary.LittleEndian" } // è½¬æ¢æˆGOå­—ç¬¦ä¸²
 
 type bigEndian struct{}
 
@@ -135,7 +135,7 @@ func (bigEndian) GoString() string { return "binary.BigEndian" }
 // blank (_) field names is skipped; i.e., blank field names
 // may be used for padding.
 // When reading into a struct, all non-blank fields must be exported.
-func Read(r io.Reader, order ByteOrder, data interface{}) error { // ¶Á¶ş½øÖÆÊı¾İ
+func Read(r io.Reader, order ByteOrder, data interface{}) error { // è¯»äºŒè¿›åˆ¶æ•°æ®
 	// Fast path for basic types and slices.
 	if n := intDataSize(data); n != 0 {
 		var b [8]byte
@@ -227,7 +227,7 @@ func Read(r io.Reader, order ByteOrder, data interface{}) error { // ¶Á¶ş½øÖÆÊı¾
 // and read from successive fields of the data.
 // When writing structs, zero values are written for fields
 // with blank (_) field names.
-func Write(w io.Writer, order ByteOrder, data interface{}) error { // ½«dataÊı¾İĞ´µ½wÖĞ
+func Write(w io.Writer, order ByteOrder, data interface{}) error { // å°†dataæ•°æ®å†™åˆ°wä¸­
 	// Fast path for basic types and slices.
 	if n := intDataSize(data); n != 0 {
 		var b [8]byte

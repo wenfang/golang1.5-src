@@ -7,7 +7,7 @@
 TEXT _rt0_amd64_linux(SB),NOSPLIT,$-8 // go程序主进入点
 	LEAQ	8(SP), SI // argv
 	MOVQ	0(SP), DI // argc
-	MOVQ	$main(SB), AX
+	MOVQ	$main(SB), AX // 跳转到main开始执行
 	JMP	AX
 
 // When building with -buildmode=c-shared, this symbol is called when the shared
