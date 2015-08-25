@@ -139,8 +139,8 @@ import (
 
 const (
 	// Defaults used by HandleHTTP
-	DefaultRPCPath   = "/_goRPC_"   // È±Ê¡µÄRPC·ÃÎÊÂ·¾¶
-	DefaultDebugPath = "/debug/rpc" // È±Ê¡µÄdebug·ÃÎÊÂ·¾¶
+	DefaultRPCPath   = "/_goRPC_"   // ç¼ºçœçš„RPCè®¿é—®è·¯å¾„
+	DefaultDebugPath = "/debug/rpc" // ç¼ºçœçš„debugè®¿é—®è·¯å¾„
 )
 
 // Precompute the reflect type for error.  Can't use error directly
@@ -155,7 +155,7 @@ type methodType struct {
 	numCalls   uint
 }
 
-type service struct { // service½á¹¹£¬´ú±íÒ»¸ö·şÎñ
+type service struct { // serviceç»“æ„ï¼Œä»£è¡¨ä¸€ä¸ªæœåŠ¡
 	name   string                 // name of service
 	rcvr   reflect.Value          // receiver of methods for the service
 	typ    reflect.Type           // type of the receiver
@@ -182,27 +182,27 @@ type Response struct {
 }
 
 // Server represents an RPC Server.
-type Server struct { // RPC ServerµÄ½á¹¹
-	mu         sync.RWMutex // protects the serviceMap
-	serviceMap map[string]*service // ¶ÔÓ¦·şÎñÃûµÄservice½á¹¹
-	reqLock    sync.Mutex // protects freeReq
+type Server struct { // RPC Serverçš„ç»“æ„
+	mu         sync.RWMutex        // protects the serviceMap
+	serviceMap map[string]*service // å¯¹åº”æœåŠ¡åçš„serviceç»“æ„
+	reqLock    sync.Mutex          // protects freeReq
 	freeReq    *Request
 	respLock   sync.Mutex // protects freeResp
 	freeResp   *Response
 }
 
 // NewServer returns a new Server.
-func NewServer() *Server { // ĞÂ½¨Ò»¸öServer½á¹¹
+func NewServer() *Server { // æ–°å»ºä¸€ä¸ªServerç»“æ„
 	return &Server{serviceMap: make(map[string]*service)}
 }
 
 // DefaultServer is the default instance of *Server.
-var DefaultServer = NewServer() // ´´½¨È±Ê¡µÄ·şÎñÆ÷
+var DefaultServer = NewServer() // åˆ›å»ºç¼ºçœçš„æœåŠ¡å™¨
 
 // Is this an exported - upper case - name?
-func isExported(name string) bool { // ÅĞ¶ÏnameÊÇ·ñÊÇ¿Éµ¼³öµÄ
-	rune, _ := utf8.DecodeRuneInString(name) // ·µ»ØµÚÒ»¸örune×Ö·û
-	return unicode.IsUpper(rune)             // ÅĞ¶Ïrune×Ö·ûÊÇ·ñÊÇ´óĞ´
+func isExported(name string) bool { // åˆ¤æ–­nameæ˜¯å¦æ˜¯å¯å¯¼å‡ºçš„
+	rune, _ := utf8.DecodeRuneInString(name) // è¿”å›ç¬¬ä¸€ä¸ªruneå­—ç¬¦
+	return unicode.IsUpper(rune)             // åˆ¤æ–­runeå­—ç¬¦æ˜¯å¦æ˜¯å¤§å†™
 }
 
 // Is this type exported or a builtin?
@@ -225,7 +225,7 @@ func isExportedOrBuiltinType(t reflect.Type) bool {
 // no suitable methods. It also logs the error using package log.
 // The client accesses each method using a string of the form "Type.Method",
 // where Type is the receiver's concrete type.
-func (server *Server) Register(rcvr interface{}) error { // ×¢²á²¢µ¼³öÆä·½·¨
+func (server *Server) Register(rcvr interface{}) error { // æ³¨å†Œå¹¶å¯¼å‡ºå…¶æ–¹æ³•
 	return server.register(rcvr, "", false)
 }
 
@@ -236,29 +236,29 @@ func (server *Server) RegisterName(name string, rcvr interface{}) error {
 }
 
 func (server *Server) register(rcvr interface{}, name string, useName bool) error {
-	server.mu.Lock() // ÏÈ½«server¼ÓËø
+	server.mu.Lock() // å…ˆå°†serveråŠ é”
 	defer server.mu.Unlock()
-	if server.serviceMap == nil { // Èç¹ûserviceMapÎª¿Õ£¬¹¹½¨Ò»¸öserviceMap
+	if server.serviceMap == nil { // å¦‚æœserviceMapä¸ºç©ºï¼Œæ„å»ºä¸€ä¸ªserviceMap
 		server.serviceMap = make(map[string]*service)
 	}
-	s := new(service) // ´´½¨Ò»¸öservice
+	s := new(service) // åˆ›å»ºä¸€ä¸ªservice
 	s.typ = reflect.TypeOf(rcvr)
 	s.rcvr = reflect.ValueOf(rcvr)
 	sname := reflect.Indirect(s.rcvr).Type().Name()
 	if useName {
 		sname = name
 	}
-	if sname == "" { // serviceÎŞÃû³Æ
+	if sname == "" { // serviceæ— åç§°
 		s := "rpc.Register: no service name for type " + s.typ.String()
 		log.Print(s)
 		return errors.New(s)
 	}
-	if !isExported(sname) && !useName { // sname²»ÊÇ¿Éµ¼³öµÄ£¬³ö´íÁË
+	if !isExported(sname) && !useName { // snameä¸æ˜¯å¯å¯¼å‡ºçš„ï¼Œå‡ºé”™äº†
 		s := "rpc.Register: type " + sname + " is not exported"
 		log.Print(s)
 		return errors.New(s)
 	}
-	if _, present := server.serviceMap[sname]; present { // Èç¹û¶ÔÓ¦snameµÄ·şÎñÒÑ¾­ÔÚserviceMapÖĞ£¬³ö´í
+	if _, present := server.serviceMap[sname]; present { // å¦‚æœå¯¹åº”snameçš„æœåŠ¡å·²ç»åœ¨serviceMapä¸­ï¼Œå‡ºé”™
 		return errors.New("rpc: service already defined: " + sname)
 	}
 	s.name = sname
@@ -391,7 +391,7 @@ func (s *service) call(server *Server, sending *sync.Mutex, mtype *methodType, r
 	server.freeRequest(req)
 }
 
-type gobServerCodec struct { // gobĞÎÊ½µÄcodec
+type gobServerCodec struct { // gobå½¢å¼çš„codec
 	rwc    io.ReadWriteCloser
 	dec    *gob.Decoder
 	enc    *gob.Encoder
@@ -399,15 +399,15 @@ type gobServerCodec struct { // gobĞÎÊ½µÄcodec
 	closed bool
 }
 
-func (c *gobServerCodec) ReadRequestHeader(r *Request) error { // ¶ÁÇëÇóÍ·²¿
+func (c *gobServerCodec) ReadRequestHeader(r *Request) error { // è¯»è¯·æ±‚å¤´éƒ¨
 	return c.dec.Decode(r)
 }
 
-func (c *gobServerCodec) ReadRequestBody(body interface{}) error { // ¶ÁÇëÇóÊı¾İÌå
+func (c *gobServerCodec) ReadRequestBody(body interface{}) error { // è¯»è¯·æ±‚æ•°æ®ä½“
 	return c.dec.Decode(body)
 }
 
-func (c *gobServerCodec) WriteResponse(r *Response, body interface{}) (err error) { // ·¢ËÍÏìÓ¦
+func (c *gobServerCodec) WriteResponse(r *Response, body interface{}) (err error) { // å‘é€å“åº”
 	if err = c.enc.Encode(r); err != nil {
 		if c.encBuf.Flush() == nil {
 			// Gob couldn't encode the header. Should not happen, so if it does,
@@ -429,7 +429,7 @@ func (c *gobServerCodec) WriteResponse(r *Response, body interface{}) (err error
 	return c.encBuf.Flush()
 }
 
-func (c *gobServerCodec) Close() error { // ¹Ø±ÕÁ¬½Ó
+func (c *gobServerCodec) Close() error { // å…³é—­è¿æ¥
 	if c.closed {
 		// Only call c.rwc.Close once; otherwise the semantics are undefined.
 		return nil
@@ -443,8 +443,8 @@ func (c *gobServerCodec) Close() error { // ¹Ø±ÕÁ¬½Ó
 // The caller typically invokes ServeConn in a go statement.
 // ServeConn uses the gob wire format (see package gob) on the
 // connection.  To use an alternate codec, use ServeCodec.
-func (server *Server) ServeConn(conn io.ReadWriteCloser) { // ·â×°ÇëÇó±àÂë
-	buf := bufio.NewWriter(conn) // ÓÃbufio·â×°
+func (server *Server) ServeConn(conn io.ReadWriteCloser) { // å°è£…è¯·æ±‚ç¼–ç 
+	buf := bufio.NewWriter(conn) // ç”¨bufioå°è£…
 	srv := &gobServerCodec{
 		rwc:    conn,
 		dec:    gob.NewDecoder(conn),
@@ -613,7 +613,7 @@ func (server *Server) readRequestHeader(codec ServerCodec) (service *service, mt
 // Accept accepts connections on the listener and serves requests
 // for each incoming connection.  Accept blocks; the caller typically
 // invokes it in a go statement.
-func (server *Server) Accept(lis net.Listener) { // ´¿socketÁ¬½Ó½Ó¿Ú
+func (server *Server) Accept(lis net.Listener) { // çº¯socketè¿æ¥æ¥å£
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
@@ -624,11 +624,11 @@ func (server *Server) Accept(lis net.Listener) { // ´¿socketÁ¬½Ó½Ó¿Ú
 }
 
 // Register publishes the receiver's methods in the DefaultServer.
-func Register(rcvr interface{}) error { return DefaultServer.Register(rcvr) } // ÔÚÈ±Ê¡µÄServerÖĞ×¢²á
+func Register(rcvr interface{}) error { return DefaultServer.Register(rcvr) } // åœ¨ç¼ºçœçš„Serverä¸­æ³¨å†Œ
 
 // RegisterName is like Register but uses the provided name for the type
 // instead of the receiver's concrete type.
-func RegisterName(name string, rcvr interface{}) error { // Ê¹ÓÃÌá¹©µÄname×¢²á
+func RegisterName(name string, rcvr interface{}) error { // ä½¿ç”¨æä¾›çš„nameæ³¨å†Œ
 	return DefaultServer.RegisterName(name, rcvr)
 }
 
@@ -678,9 +678,9 @@ func Accept(lis net.Listener) { DefaultServer.Accept(lis) }
 var connected = "200 Connected to Go RPC"
 
 // ServeHTTP implements an http.Handler that answers RPC requests.
-func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) { // ¸ÃServer±¾ÉíÊÇÒ»¸öHandle
-	if req.Method != "CONNECT" { // Èç¹û·½·¨ÀàĞÍ²»ÎªCONNECT
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8") // ÉèÖÃÏìÓ¦ÀàĞÍÎªtext/plain
+func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) { // è¯¥Serveræœ¬èº«æ˜¯ä¸€ä¸ªHandle
+	if req.Method != "CONNECT" { // å¦‚æœæ–¹æ³•ç±»å‹ä¸ä¸ºCONNECT
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8") // è®¾ç½®å“åº”ç±»å‹ä¸ºtext/plain
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		io.WriteString(w, "405 must CONNECT\n")
 		return
@@ -697,14 +697,14 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) { // ¸
 // HandleHTTP registers an HTTP handler for RPC messages on rpcPath,
 // and a debugging handler on debugPath.
 // It is still necessary to invoke http.Serve(), typically in a go statement.
-func (server *Server) HandleHTTP(rpcPath, debugPath string) { // ×¢²áHTTPµÄhandle½Ó¿Ú
-	http.Handle(rpcPath, server) // ×¢²áhandler
+func (server *Server) HandleHTTP(rpcPath, debugPath string) { // æ³¨å†ŒHTTPçš„handleæ¥å£,rpcPathå’ŒdebugPath
+	http.Handle(rpcPath, server) // æ³¨å†Œhandler
 	http.Handle(debugPath, debugHTTP{server})
 }
 
 // HandleHTTP registers an HTTP handler for RPC messages to DefaultServer
 // on DefaultRPCPath and a debugging handler on DefaultDebugPath.
 // It is still necessary to invoke http.Serve(), typically in a go statement.
-func HandleHTTP() { // Ê¹ÓÃHTTPĞ­Òé´¦Àí£¬ÓÃDefaultServer
+func HandleHTTP() { // ä½¿ç”¨HTTPåè®®å¤„ç†ï¼Œç”¨DefaultServer
 	DefaultServer.HandleHTTP(DefaultRPCPath, DefaultDebugPath)
 }

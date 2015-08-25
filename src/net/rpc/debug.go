@@ -64,7 +64,7 @@ func (m methodArray) Len() int           { return len(m) }
 func (m methodArray) Less(i, j int) bool { return m[i].Name < m[j].Name }
 func (m methodArray) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 
-type debugHTTP struct { // ¶Ôrpc Server HandleµÄ°ü×°
+type debugHTTP struct { // å¯¹rpc Server Handleçš„åŒ…è£…
 	*Server
 }
 

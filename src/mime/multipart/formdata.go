@@ -20,9 +20,9 @@ import (
 // a Content-Disposition of "form-data".
 // It stores up to maxMemory bytes of the file parts in memory
 // and the remainder on disk in temporary files.
-func (r *Reader) ReadForm(maxMemory int64) (f *Form, err error) { // ¶Á³öÒ»¸öForm£¬maxMemoryµÄÊı¾İÔÚÄÚ´æÖĞ£¬ÆäÓàÔÚÓ²ÅÌÖĞ
-	form := &Form{make(map[string][]string), make(map[string][]*FileHeader)} // ´´½¨From½á¹¹
-	defer func() {                                                           // ´´½¨defer£¬º¯ÊıÖ´ĞĞÍê³Éºó£¬ÔËĞĞRemoveAll
+func (r *Reader) ReadForm(maxMemory int64) (f *Form, err error) { // è¯»å‡ºä¸€ä¸ªFormï¼ŒmaxMemoryçš„æ•°æ®åœ¨å†…å­˜ä¸­ï¼Œå…¶ä½™åœ¨ç¡¬ç›˜ä¸­
+	form := &Form{make(map[string][]string), make(map[string][]*FileHeader)} // åˆ›å»ºFromç»“æ„
+	defer func() {                                                           // åˆ›å»ºdeferï¼Œå‡½æ•°æ‰§è¡Œå®Œæˆåï¼Œè¿è¡ŒRemoveAll
 		if err != nil {
 			form.RemoveAll()
 		}
@@ -30,33 +30,33 @@ func (r *Reader) ReadForm(maxMemory int64) (f *Form, err error) { // ¶Á³öÒ»¸öFor
 
 	maxValueBytes := int64(10 << 20) // 10 MB is a lot of text.
 	for {
-		p, err := r.NextPart() // »ñµÃÒ»¸öpart
-		if err == io.EOF {     // Èç¹û¶Á³ö½áÊø£¬Ìø³ö
+		p, err := r.NextPart() // è·å¾—ä¸€ä¸ªpart
+		if err == io.EOF {     // å¦‚æœè¯»å‡ºç»“æŸï¼Œè·³å‡º
 			break
 		}
-		if err != nil { // Èç¹û³ö´í£¬·µ»Ø
+		if err != nil { // å¦‚æœå‡ºé”™ï¼Œè¿”å›
 			return nil, err
 		}
 
-		name := p.FormName() // È¡³öformµÄname
-		if name == "" {      // formÃ»ÓĞÃû³Æ£¬¼ÌĞø¶ÁÏÂÒ»¸öPart
+		name := p.FormName() // å–å‡ºformçš„name
+		if name == "" {      // formæ²¡æœ‰åç§°ï¼Œç»§ç»­è¯»ä¸‹ä¸€ä¸ªPart
 			continue
 		}
-		filename := p.FileName() // È¡³öformµÄfilename
+		filename := p.FileName() // å–å‡ºformçš„filename
 
-		var b bytes.Buffer // ÉùÃ÷Ò»¸öbyteµÄBuffer
+		var b bytes.Buffer // å£°æ˜ä¸€ä¸ªbyteçš„Buffer
 
-		if filename == "" { // Ã»ÓĞÎÄ¼şÃû
-			// value, store as string in memory °ÑÄÚÈİ±£´æÔÚÄÚ´æÖĞ£¬µ±×ö×Ö·û´®
-			n, err := io.CopyN(&b, p, maxValueBytes) // ´ÓpÖĞ¿½±´Êı¾İµ½bÖĞ
-			if err != nil && err != io.EOF {         // ¿½±´Êı¾İ³ö´í£¬·µ»Ø
+		if filename == "" { // æ²¡æœ‰æ–‡ä»¶å
+			// value, store as string in memory æŠŠå†…å®¹ä¿å­˜åœ¨å†…å­˜ä¸­ï¼Œå½“åšå­—ç¬¦ä¸²
+			n, err := io.CopyN(&b, p, maxValueBytes) // ä»pä¸­æ‹·è´æ•°æ®åˆ°bä¸­
+			if err != nil && err != io.EOF {         // æ‹·è´æ•°æ®å‡ºé”™ï¼Œè¿”å›
 				return nil, err
 			}
 			maxValueBytes -= n
-			if maxValueBytes == 0 { // ´ïµ½ÁË10MµÄÏŞÖÆ£¬·µ»ØÏûÏ¢¹ı³¤
+			if maxValueBytes == 0 { // è¾¾åˆ°äº†10Mçš„é™åˆ¶ï¼Œè¿”å›æ¶ˆæ¯è¿‡é•¿
 				return nil, errors.New("multipart: message too large")
 			}
-			form.Value[name] = append(form.Value[name], b.String()) // Éè¶¨formµÄÖµ
+			form.Value[name] = append(form.Value[name], b.String()) // è®¾å®šformçš„å€¼
 			continue
 		}
 
@@ -64,14 +64,14 @@ func (r *Reader) ReadForm(maxMemory int64) (f *Form, err error) { // ¶Á³öÒ»¸öFor
 		fh := &FileHeader{
 			Filename: filename,
 			Header:   p.Header,
-		} // ´´½¨Ò»¸öFileHeader½á¹¹
-		n, err := io.CopyN(&b, p, maxMemory+1) // ½«Êı¾İ¿½±´µ½bÖĞ
+		} // åˆ›å»ºä¸€ä¸ªFileHeaderç»“æ„
+		n, err := io.CopyN(&b, p, maxMemory+1) // å°†æ•°æ®æ‹·è´åˆ°bä¸­
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		if n > maxMemory { // Èç¹û³¤¶È´óÓÚmaxMemory
+		if n > maxMemory { // å¦‚æœé•¿åº¦å¤§äºmaxMemory
 			// too big, write to disk and flush buffer
-			file, err := ioutil.TempFile("", "multipart-") // Ì«´óÁË£¬´´½¨Ò»¸öÁÙÊ±ÎÄ¼ş
+			file, err := ioutil.TempFile("", "multipart-") // å¤ªå¤§äº†ï¼Œåˆ›å»ºä¸€ä¸ªä¸´æ—¶æ–‡ä»¶
 			if err != nil {
 				return nil, err
 			}
@@ -82,33 +82,33 @@ func (r *Reader) ReadForm(maxMemory int64) (f *Form, err error) { // ¶Á³öÒ»¸öFor
 				return nil, err
 			}
 			fh.tmpfile = file.Name()
-		} else { // ÄÚ´æÖĞ¿ÉÈ«²¿±£´æ£¬½«Êı¾İ·ÅÈëcontentÖĞ
+		} else { // å†…å­˜ä¸­å¯å…¨éƒ¨ä¿å­˜ï¼Œå°†æ•°æ®æ”¾å…¥contentä¸­
 			fh.content = b.Bytes()
 			maxMemory -= n
 		}
-		form.File[name] = append(form.File[name], fh) // ·µ»ØÎÄ¼şµÄhandler
+		form.File[name] = append(form.File[name], fh) // è¿”å›æ–‡ä»¶çš„handler
 	}
 
 	return form, nil
 }
 
-// Form is a parsed multipart form. ±íÊ¾±»½âÎöµÄmultipart form
-// Its File parts are stored either in memory or on disk, ÎÄ¼ş²¿·Ö»òÕß±£³ÖÔÚÄÚ´æ»ò±£´æÔÚ´ÅÅÌÉÏ
-// and are accessible via the *FileHeader's Open method. Í¨¹ıFileHeaderµÄOpen·½·¨¿ÉÒÔ·ÃÎÊ
+// Form is a parsed multipart form. è¡¨ç¤ºè¢«è§£æçš„multipart form
+// Its File parts are stored either in memory or on disk, æ–‡ä»¶éƒ¨åˆ†æˆ–è€…ä¿æŒåœ¨å†…å­˜æˆ–ä¿å­˜åœ¨ç£ç›˜ä¸Š
+// and are accessible via the *FileHeader's Open method. é€šè¿‡FileHeaderçš„Openæ–¹æ³•å¯ä»¥è®¿é—®
 // Its Value parts are stored as strings.
 // Both are keyed by field name.
-type Form struct { // multipartÖĞform½á¹¹£¬File²¿·Ö»òÕß´æ´¢ÔÚÄÚ´æÖĞ»òÕß´æ´¢ÔÚ´ÅÅÌÉÏ
-	Value map[string][]string      // value²¿·Ö´æ´¢ÔÚ×Ö·û´®ÉÏ
-	File  map[string][]*FileHeader // »òÕßÔÚÄÚ´æÖĞ£¬»òÕßÔÚÎÄ¼şÉÏ
+type Form struct { // multipartä¸­formç»“æ„ï¼ŒFileéƒ¨åˆ†æˆ–è€…å­˜å‚¨åœ¨å†…å­˜ä¸­æˆ–è€…å­˜å‚¨åœ¨ç£ç›˜ä¸Š
+	Value map[string][]string      // valueéƒ¨åˆ†å­˜å‚¨åœ¨å­—ç¬¦ä¸²ä¸Š
+	File  map[string][]*FileHeader // æˆ–è€…åœ¨å†…å­˜ä¸­ï¼Œæˆ–è€…åœ¨æ–‡ä»¶ä¸Š
 }
 
 // RemoveAll removes any temporary files associated with a Form.
-func (f *Form) RemoveAll() error { // Çå³ı¸ÃFormÖĞµÄËùÓĞÁÙÊ±ÎÄ¼ş
+func (f *Form) RemoveAll() error { // æ¸…é™¤è¯¥Formä¸­çš„æ‰€æœ‰ä¸´æ—¶æ–‡ä»¶
 	var err error
-	for _, fhs := range f.File { // ±éÀúËùÓĞµÄFileHeaderÊı×é
-		for _, fh := range fhs { // ±éÀúFileHeaderÊı×éÖĞËùÓĞµÄFileHeader
-			if fh.tmpfile != "" { // Èç¹ûÓĞÁÙÊ±ÎÄ¼ş
-				e := os.Remove(fh.tmpfile) // É¾³ıÁÙÊ±ÎÄ¼ş
+	for _, fhs := range f.File { // éå†æ‰€æœ‰çš„FileHeaderæ•°ç»„
+		for _, fh := range fhs { // éå†FileHeaderæ•°ç»„ä¸­æ‰€æœ‰çš„FileHeader
+			if fh.tmpfile != "" { // å¦‚æœæœ‰ä¸´æ—¶æ–‡ä»¶
+				e := os.Remove(fh.tmpfile) // åˆ é™¤ä¸´æ—¶æ–‡ä»¶
 				if e != nil && err == nil {
 					err = e
 				}
@@ -119,18 +119,18 @@ func (f *Form) RemoveAll() error { // Çå³ı¸ÃFormÖĞµÄËùÓĞÁÙÊ±ÎÄ¼ş
 }
 
 // A FileHeader describes a file part of a multipart request.
-type FileHeader struct { // ÃèÊöÒ»¸ömultipartÇëÇóµÄÎÄ¼ş²¿·Ö£¬¿ÉÄÜÖ»ÔÚÄÚ´æÖĞcontent£¬Ò²¿ÉÄÜÔÚ´ÅÅÌÉÏ
-	Filename string               // ÎÄ¼şÃû
+type FileHeader struct { // æè¿°ä¸€ä¸ªmultipartè¯·æ±‚çš„æ–‡ä»¶éƒ¨åˆ†ï¼Œå¯èƒ½åªåœ¨å†…å­˜ä¸­contentï¼Œä¹Ÿå¯èƒ½åœ¨ç£ç›˜ä¸Š
+	Filename string               // æ–‡ä»¶å
 	Header   textproto.MIMEHeader // MIMEHeader
 
-	content []byte // Èç¹ûÎÄ¼şÄÚÈİÔÚÄÚ´æÖĞ£¬±£´æÔÚcontentÀï
-	tmpfile string // Èç¹ûÎÄ¼şÄÚÈİÔÚ´ÅÅÌÉÏ£¬Ö¸Ïò´ÅÅÌÎÄ¼ş
+	content []byte // å¦‚æœæ–‡ä»¶å†…å®¹åœ¨å†…å­˜ä¸­ï¼Œä¿å­˜åœ¨contenté‡Œ
+	tmpfile string // å¦‚æœæ–‡ä»¶å†…å®¹åœ¨ç£ç›˜ä¸Šï¼ŒæŒ‡å‘ç£ç›˜æ–‡ä»¶
 }
 
 // Open opens and returns the FileHeader's associated File.
-func (fh *FileHeader) Open() (File, error) { // ´ò¿ªFileHeader»ñµÃÒ»¸öÎÄ¼ş½Ó¿Ú
-	if b := fh.content; b != nil { // Èç¹ûÄÚÈİÔÚÄÚ´æÉÏ
-		r := io.NewSectionReader(bytes.NewReader(b), 0, int64(len(b))) // ´´½¨Ò»¸ösectionReader
+func (fh *FileHeader) Open() (File, error) { // æ‰“å¼€FileHeaderè·å¾—ä¸€ä¸ªæ–‡ä»¶æ¥å£
+	if b := fh.content; b != nil { // å¦‚æœå†…å®¹åœ¨å†…å­˜ä¸Š
+		r := io.NewSectionReader(bytes.NewReader(b), 0, int64(len(b))) // åˆ›å»ºä¸€ä¸ªsectionReader
 		return sectionReadCloser{r}, nil
 	}
 	return os.Open(fh.tmpfile)
@@ -139,7 +139,7 @@ func (fh *FileHeader) Open() (File, error) { // ´ò¿ªFileHeader»ñµÃÒ»¸öÎÄ¼ş½Ó¿Ú
 // File is an interface to access the file part of a multipart message.
 // Its contents may be either stored in memory or on disk.
 // If stored on disk, the File's underlying concrete type will be an *os.File.
-type File interface { // File½Ó¿Ú
+type File interface { // Fileæ¥å£
 	io.Reader
 	io.ReaderAt
 	io.Seeker
@@ -148,7 +148,7 @@ type File interface { // File½Ó¿Ú
 
 // helper types to turn a []byte into a File
 
-type sectionReadCloser struct { // Îªsection Reader¼ÓÉÏClose
+type sectionReadCloser struct { // ä¸ºsection ReaderåŠ ä¸ŠClose
 	*io.SectionReader
 }
 

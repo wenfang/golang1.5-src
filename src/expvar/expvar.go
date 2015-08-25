@@ -37,40 +37,39 @@ import (
 )
 
 // Var is an abstract type for all exported variables.
-type Var interface { // ×÷ÎªËùÓĞµ¼³ö±äÁ¿µÄ³éÏóÀàĞÍ£¬½Ó¿ÚÀàĞÍ
+type Var interface { // ä½œä¸ºæ‰€æœ‰å¯¼å‡ºå˜é‡çš„æŠ½è±¡ç±»å‹ï¼Œæ¥å£ç±»å‹
 	String() string
 }
 
 // Int is a 64-bit integer variable that satisfies the Var interface.
-type Int struct { // 64Î»µÄIntÀàĞÍµÄÖµ
-type Int struct {
+type Int struct { // 64ä½çš„Intç±»å‹çš„å€¼
 	i int64
 }
 
-func (v *Int) String() string { // ÊµÏÖÁËVar½Ó¿Ú
+func (v *Int) String() string { // å®ç°äº†Varæ¥å£
 	return strconv.FormatInt(atomic.LoadInt64(&v.i), 10)
 }
 
-func (v *Int) Add(delta int64) { // ¿ÉÒÔ¶ÔInt½øĞĞAdd
+func (v *Int) Add(delta int64) { // å¯ä»¥å¯¹Intè¿›è¡ŒAdd
 	atomic.AddInt64(&v.i, delta)
 }
 
-func (v *Int) Set(value int64) { // ¿ÉÒÔ¶ÔInt½øĞĞSet
+func (v *Int) Set(value int64) { // å¯ä»¥å¯¹Intè¿›è¡ŒSet
 	atomic.StoreInt64(&v.i, value)
 }
 
 // Float is a 64-bit float variable that satisfies the Var interface.
-type Float struct { // FloatÖµ
+type Float struct { // Floatå€¼
 	f uint64
 }
 
-func (v *Float) String() string { // ÊµÏÖÁËVar½Ó¿Ú
+func (v *Float) String() string { // å®ç°äº†Varæ¥å£
 	return strconv.FormatFloat(
 		math.Float64frombits(atomic.LoadUint64(&v.f)), 'g', -1, 64)
 }
 
 // Add adds delta to v.
-func (v *Float) Add(delta float64) { // Ôö¼ÓdeltaÖµµ½v
+func (v *Float) Add(delta float64) { // å¢åŠ deltaå€¼åˆ°v
 	for {
 		cur := atomic.LoadUint64(&v.f)
 		curVal := math.Float64frombits(cur)
@@ -83,7 +82,7 @@ func (v *Float) Add(delta float64) { // Ôö¼ÓdeltaÖµµ½v
 }
 
 // Set sets v to value.
-func (v *Float) Set(value float64) { // ÉèÖÃvalueÖµ
+func (v *Float) Set(value float64) { // è®¾ç½®valueå€¼
 	atomic.StoreUint64(&v.f, math.Float64bits(value))
 }
 
@@ -231,31 +230,31 @@ func (v *String) Set(value string) {
 
 // Func implements Var by calling the function
 // and formatting the returned value using JSON.
-type Func func() interface{} // ½«º¯Êı·â×°ÎªVar
+type Func func() interface{} // å°†å‡½æ•°å°è£…ä¸ºVar
 
-func (f Func) String() string { // ½«º¯ÊıµÄ·µ»Ø½á¹û±äÎªjson
+func (f Func) String() string { // å°†å‡½æ•°çš„è¿”å›ç»“æœå˜ä¸ºjson
 	v, _ := json.Marshal(f())
 	return string(v)
 }
 
 // All published variables.
 var (
-	mutex   sync.RWMutex           // ÓÃÓÚ±£»¤±äÁ¿µÄ¶ÁĞ´Ëø
-	vars    = make(map[string]Var) // ±äÁ¿ÃûºÍ±äÁ¿µÄ¶ÔÓ¦¹ØÏµ
-	varKeys []string               // sorted ÅÅĞòºóµÄ±äÁ¿key
+	mutex   sync.RWMutex           // ç”¨äºä¿æŠ¤å˜é‡çš„è¯»å†™é”
+	vars    = make(map[string]Var) // å˜é‡åå’Œå˜é‡çš„å¯¹åº”å…³ç³»
+	varKeys []string               // sorted æ’åºåçš„å˜é‡key
 )
 
 // Publish declares a named exported variable. This should be called from a
 // package's init function when it creates its Vars. If the name is already
 // registered then this will log.Panic.
-func Publish(name string, v Var) { // ÉùÃ÷Ò»¸öÃüÃûµÄµ¼³ö±äÁ¿
+func Publish(name string, v Var) { // å£°æ˜ä¸€ä¸ªå‘½åçš„å¯¼å‡ºå˜é‡
 	mutex.Lock()
 	defer mutex.Unlock()
-	if _, existing := vars[name]; existing { // ±éÀúËùÓĞÒªµ¼³öµÄVar£¬²éÕÒÖØ¸´
-		log.Panicln("Reuse of exported var name:", name) // µ¼³öÃûÖØ¸´
+	if _, existing := vars[name]; existing { // éå†æ‰€æœ‰è¦å¯¼å‡ºçš„Varï¼ŒæŸ¥æ‰¾é‡å¤
+		log.Panicln("Reuse of exported var name:", name) // å¯¼å‡ºåé‡å¤
 	}
 	vars[name] = v
-	varKeys = append(varKeys, name) // ½«nameÌí¼Óµ½varKeysµÄsliceÖĞ
+	varKeys = append(varKeys, name) // å°†nameæ·»åŠ åˆ°varKeysçš„sliceä¸­
 	sort.Strings(varKeys)
 }
 
@@ -268,25 +267,25 @@ func Get(name string) Var {
 
 // Convenience functions for creating new exported variables.
 
-func NewInt(name string) *Int { // ĞÂPublishÒ»¸öIntÖµ
+func NewInt(name string) *Int { // æ–°Publishä¸€ä¸ªIntå€¼
 	v := new(Int)
 	Publish(name, v)
 	return v
 }
 
-func NewFloat(name string) *Float { // ĞÂPublishÒ»¸öFloatÖµ
+func NewFloat(name string) *Float { // æ–°Publishä¸€ä¸ªFloatå€¼
 	v := new(Float)
 	Publish(name, v)
 	return v
 }
 
-func NewMap(name string) *Map { // ĞÂPublishÒ»¸öMap
+func NewMap(name string) *Map { // æ–°Publishä¸€ä¸ªMap
 	v := new(Map).Init()
 	Publish(name, v)
 	return v
 }
 
-func NewString(name string) *String { // ĞÂPublishÒ»¸öString
+func NewString(name string) *String { // æ–°Publishä¸€ä¸ªString
 	v := new(String)
 	Publish(name, v)
 	return v
@@ -295,16 +294,16 @@ func NewString(name string) *String { // ĞÂPublishÒ»¸öString
 // Do calls f for each exported variable.
 // The global variable map is locked during the iteration,
 // but existing entries may be concurrently updated.
-func Do(f func(KeyValue)) { // ¶Ôvars±éÀúµ÷ÓÃº¯Êıf£¬¿ÉÓÃÊ¹ÓÃDo´¦Àíµ±Ç°µÄµ¼³ö±äÁ¿
+func Do(f func(KeyValue)) { // å¯¹varséå†è°ƒç”¨å‡½æ•°fï¼Œå¯ç”¨ä½¿ç”¨Doå¤„ç†å½“å‰çš„å¯¼å‡ºå˜é‡
 	mutex.RLock()
 	defer mutex.RUnlock()
-	for _, k := range varKeys { // ±éÀúËùÓĞµÄ±äÁ¿key
+	for _, k := range varKeys { // éå†æ‰€æœ‰çš„å˜é‡key
 		f(KeyValue{k, vars[k]})
 	}
 }
 
-func expvarHandler(w http.ResponseWriter, r *http.Request) { // ´¦Àíº¯Êı£¬Ä¬ÈÏµÄhttpµÄ´¦Àí
-	w.Header().Set("Content-Type", "application/json; charset=utf-8") // ÉèÖÃÊä³öÀàĞÍÎªjson
+func expvarHandler(w http.ResponseWriter, r *http.Request) { // å¤„ç†å‡½æ•°ï¼Œé»˜è®¤çš„httpçš„å¤„ç†
+	w.Header().Set("Content-Type", "application/json; charset=utf-8") // è®¾ç½®è¾“å‡ºç±»å‹ä¸ºjson
 	fmt.Fprintf(w, "{\n")
 	first := true
 	Do(func(kv KeyValue) {
@@ -317,18 +316,18 @@ func expvarHandler(w http.ResponseWriter, r *http.Request) { // ´¦Àíº¯Êı£¬Ä¬ÈÏµÄ
 	fmt.Fprintf(w, "\n}\n")
 }
 
-func cmdline() interface{} { // ·µ»ØÃüÁîĞĞ²ÎÊı
+func cmdline() interface{} { // è¿”å›å‘½ä»¤è¡Œå‚æ•°
 	return os.Args
 }
 
-func memstats() interface{} { // ·µ»ØMemStats½á¹¹£¬»á±»Func×ª»»Îª×Ö·û´®
+func memstats() interface{} { // è¿”å›MemStatsç»“æ„ï¼Œä¼šè¢«Funcè½¬æ¢ä¸ºå­—ç¬¦ä¸²
 	stats := new(runtime.MemStats)
 	runtime.ReadMemStats(stats)
 	return *stats
 }
 
-func init() { // µ¼Èë¸Ã°üÊ±´´½¨
-	http.HandleFunc("/debug/vars", expvarHandler) // ×¢²ádebug/varsÄ¿Â¼£¬´¦Àíº¯ÊıÎªexpvarHandler£¬×Ô¶¯µ¼³öÒ»¸öhttp½Ó¿Ú
+func init() { // å¯¼å…¥è¯¥åŒ…æ—¶åˆ›å»º
+	http.HandleFunc("/debug/vars", expvarHandler) // æ³¨å†Œdebug/varsç›®å½•ï¼Œå¤„ç†å‡½æ•°ä¸ºexpvarHandlerï¼Œè‡ªåŠ¨å¯¼å‡ºä¸€ä¸ªhttpæ¥å£
 	Publish("cmdline", Func(cmdline))
 	Publish("memstats", Func(memstats))
 }

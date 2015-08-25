@@ -23,7 +23,7 @@ type Writer struct {
 
 // NewWriter returns a new multipart Writer with a random boundary,
 // writing to w.
-func NewWriter(w io.Writer) *Writer { // 创建一个新的multipart的writer
+func NewWriter(w io.Writer) *Writer { // 鍒涘缓涓�涓柊鐨刴ultipart鐨剋riter
 	return &Writer{
 		w:        w,
 		boundary: randomBoundary(),
@@ -31,7 +31,7 @@ func NewWriter(w io.Writer) *Writer { // 创建一个新的multipart的writer
 }
 
 // Boundary returns the Writer's boundary.
-func (w *Writer) Boundary() string { // 返回writer的boundary
+func (w *Writer) Boundary() string { // 杩斿洖writer鐨刡oundary
 	return w.boundary
 }
 
@@ -69,7 +69,7 @@ func (w *Writer) FormDataContentType() string {
 	return "multipart/form-data; boundary=" + w.boundary
 }
 
-func randomBoundary() string { // 返回一个随机的Boundary的串
+func randomBoundary() string { // 杩斿洖涓�涓殢鏈虹殑Boundary鐨勪覆
 	var buf [30]byte
 	_, err := io.ReadFull(rand.Reader, buf[:])
 	if err != nil {

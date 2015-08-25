@@ -98,8 +98,8 @@ func initMime() {
 // On Windows, MIME types are extracted from the registry.
 //
 // Text types have the charset parameter set to "utf-8" by default.
-func TypeByExtension(ext string) string { // �����ļ���չ������MIME���ͣ���չ��Ӧ��.��ͷ��û��ʱ���ؿ�
-	once.Do(initMime) // ����ǵ�һ��ִ�У�ִ��initMime
+func TypeByExtension(ext string) string { // 根据文件扩展名返回MIME类型，扩展名应以.开头，没有时返回空
+	once.Do(initMime) // 如果是第一次执行，执行initMime
 	mimeLock.RLock()
 	defer mimeLock.RUnlock()
 
@@ -154,15 +154,15 @@ func ExtensionsByType(typ string) ([]string, error) {
 // AddExtensionType sets the MIME type associated with
 // the extension ext to typ. The extension should begin with
 // a leading dot, as in ".html".
-func AddExtensionType(ext, typ string) error { // ����չ��ext��Ӧ������typ���뵽�б���
+func AddExtensionType(ext, typ string) error { // 将扩展名ext对应的类型typ加入到列表中
 	if !strings.HasPrefix(ext, ".") {
 		return fmt.Errorf("mime: extension %q missing leading dot", ext)
 	}
-	once.Do(initMime) // ����ǵ�һ��ִ�У�ִ��initMime
+	once.Do(initMime) // 如果是第一次执行，执行initMime
 	return setExtensionType(ext, typ)
 }
 
-func setExtensionType(extension, mimeType string) error { // ΪmimeType�������ͺ���չ��
+func setExtensionType(extension, mimeType string) error { // 为mimeType添加类型和扩展名
 	justType, param, err := ParseMediaType(mimeType)
 	if err != nil {
 		return err

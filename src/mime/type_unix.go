@@ -22,34 +22,34 @@ var typeFiles = []string{
 	"/etc/apache/mime.types",
 }
 
-func loadMimeFile(filename string) { // ×°ÔØMIMEÎÄ¼ş
-	f, err := os.Open(filename) // ´ò¿ªÎÄ¼ş
+func loadMimeFile(filename string) { // è£…è½½MIMEæ–‡ä»¶
+	f, err := os.Open(filename) // æ‰“å¼€æ–‡ä»¶
 	if err != nil {
 		return
 	}
 	defer f.Close()
 
-	scanner := bufio.NewScanner(f) // ´´½¨Ò»¸öScanner£¬È±Ê¡ÎªScanLines
+	scanner := bufio.NewScanner(f) // åˆ›å»ºä¸€ä¸ªScannerï¼Œç¼ºçœä¸ºScanLines
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
-		if len(fields) <= 1 || fields[0][0] == '#' { // ÂÔ¹ı¿ÕĞĞºÍ×¢ÊÍĞĞ
+		if len(fields) <= 1 || fields[0][0] == '#' { // ç•¥è¿‡ç©ºè¡Œå’Œæ³¨é‡Šè¡Œ
 			continue
 		}
-		mimeType := fields[0]            // »ñµÃmimeÀàĞÍ
-		for _, ext := range fields[1:] { // »ñµÃÀ©Õ¹Ãû
+		mimeType := fields[0]            // è·å¾—mimeç±»å‹
+		for _, ext := range fields[1:] { // è·å¾—æ‰©å±•å
 			if ext[0] == '#' {
 				break
 			}
-			setExtensionType("."+ext, mimeType) // ÉèÖÃÀ©Õ¹ÃûºÍmimeÀàĞÍ
+			setExtensionType("."+ext, mimeType) // è®¾ç½®æ‰©å±•åå’Œmimeç±»å‹
 		}
 	}
-	if err := scanner.Err(); err != nil { // ²¢²»ÊÇÎÄ¼şµ½½áÊøÁË£¬panic
+	if err := scanner.Err(); err != nil { // å¹¶ä¸æ˜¯æ–‡ä»¶åˆ°ç»“æŸäº†ï¼Œpanic
 		panic(err)
 	}
 }
 
 func initMimeUnix() {
-	for _, filename := range typeFiles { // ×°ÔØÃ¿¸öMimeÎÄ¼ş
+	for _, filename := range typeFiles { // è£…è½½æ¯ä¸ªMimeæ–‡ä»¶
 		loadMimeFile(filename)
 	}
 }

@@ -38,7 +38,7 @@ type Call struct {
 // There may be multiple outstanding Calls associated
 // with a single Client, and a Client may be used by
 // multiple goroutines simultaneously.
-type Client struct { // rpc ClientµÄ½á¹¹±íÊ¾
+type Client struct { // rpc Clientçš„ç»“æ„è¡¨ç¤º
 	codec ClientCodec
 
 	reqMutex sync.Mutex // protects following
@@ -59,7 +59,7 @@ type Client struct { // rpc ClientµÄ½á¹¹±íÊ¾
 // connection. ReadResponseBody may be called with a nil
 // argument to force the body of the response to be read and then
 // discarded.
-type ClientCodec interface { // ClientCodec½Ó¿Ú£¬ÊµÏÖĞ´RPCÇëÇóºÍ¶ÁRPCÏìÓ¦
+type ClientCodec interface { // ClientCodecæ¥å£ï¼Œå®ç°å†™RPCè¯·æ±‚å’Œè¯»RPCå“åº”
 	// WriteRequest must be safe for concurrent use by multiple goroutines.
 	WriteRequest(*Request, interface{}) error
 	ReadResponseHeader(*Response) error
@@ -101,7 +101,7 @@ func (client *Client) send(call *Call) {
 	}
 }
 
-func (client *Client) input() { // µÈ´ı·şÎñ¶ËÏìÓ¦
+func (client *Client) input() { // ç­‰å¾…æœåŠ¡ç«¯å“åº”
 	var err error
 	var response Response
 	for err == nil {
@@ -185,7 +185,7 @@ func (call *Call) done() {
 // set of services at the other end of the connection.
 // It adds a buffer to the write side of the connection so
 // the header and payload are sent as a unit.
-func NewClient(conn io.ReadWriteCloser) *Client { // ´´½¨Ò»¸örpcµÄClient½á¹¹£¬±àÂë¸ñÊ½ÎªgobÀàĞÍ
+func NewClient(conn io.ReadWriteCloser) *Client { // åˆ›å»ºä¸€ä¸ªrpcçš„Clientç»“æ„ï¼Œç¼–ç æ ¼å¼ä¸ºgobç±»å‹
 	encBuf := bufio.NewWriter(conn)
 	client := &gobClientCodec{conn, gob.NewDecoder(conn), gob.NewEncoder(encBuf), encBuf}
 	return NewClientWithCodec(client)
@@ -198,15 +198,15 @@ func NewClientWithCodec(codec ClientCodec) *Client {
 		codec:   codec,
 		pending: make(map[uint64]*Call),
 	}
-	go client.input() // ´´½¨Ò»¸ögoroutine£¬Ö´ĞĞinput
-	return client     // ·µ»Øclient½á¹¹
+	go client.input() // åˆ›å»ºä¸€ä¸ªgoroutineï¼Œæ‰§è¡Œinput
+	return client     // è¿”å›clientç»“æ„
 }
 
 type gobClientCodec struct {
 	rwc    io.ReadWriteCloser
-	dec    *gob.Decoder  // gob½âÂë
-	enc    *gob.Encoder  // gob±àÂë
-	encBuf *bufio.Writer // ÓÃÓÚ±àÂë½âÂëµÄbuf
+	dec    *gob.Decoder  // gobè§£ç 
+	enc    *gob.Encoder  // gobç¼–ç 
+	encBuf *bufio.Writer // ç”¨äºç¼–ç è§£ç çš„buf
 }
 
 func (c *gobClientCodec) WriteRequest(r *Request, body interface{}) (err error) {
@@ -239,9 +239,9 @@ func DialHTTP(network, address string) (*Client, error) {
 
 // DialHTTPPath connects to an HTTP RPC server
 // at the specified network address and path.
-func DialHTTPPath(network, address, path string) (*Client, error) { // Ê¹ÓÃHTTPĞ­ÒéÁ¬½ÓRPC Server
+func DialHTTPPath(network, address, path string) (*Client, error) { // ä½¿ç”¨HTTPåè®®è¿æ¥RPC Server
 	var err error
-	conn, err := net.Dial(network, address) // Á¬½Ó·şÎñÆ÷
+	conn, err := net.Dial(network, address) // è¿æ¥æœåŠ¡å™¨
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func DialHTTPPath(network, address, path string) (*Client, error) { // Ê¹ÓÃHTTPĞ
 }
 
 // Dial connects to an RPC server at the specified network address.
-func Dial(network, address string) (*Client, error) { // Á¬½Óµ½rpc server
+func Dial(network, address string) (*Client, error) { // è¿æ¥åˆ°rpc server
 	conn, err := net.Dial(network, address)
 	if err != nil {
 		return nil, err
@@ -311,7 +311,7 @@ func (client *Client) Go(serviceMethod string, args interface{}, reply interface
 }
 
 // Call invokes the named function, waits for it to complete, and returns its error status.
-func (client *Client) Call(serviceMethod string, args interface{}, reply interface{}) error { // µ÷ÓÃÇëÇó
+func (client *Client) Call(serviceMethod string, args interface{}, reply interface{}) error { // è°ƒç”¨è¯·æ±‚
 	call := <-client.Go(serviceMethod, args, reply, make(chan *Call, 1)).Done
 	return call.Error
 }

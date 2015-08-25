@@ -10,22 +10,22 @@ import (
 
 // isTSpecial reports whether rune is in 'tspecials' as defined by RFC
 // 1521 and RFC 2045.
-func isTSpecial(r rune) bool { // ¼ì²éÊÇ·ñÎªÌØÊâ×Ö·û
+func isTSpecial(r rune) bool { // æ£€æŸ¥æ˜¯å¦ä¸ºç‰¹æ®Šå­—ç¬¦
 	return strings.IndexRune(`()<>@,;:\"/[]?=`, r) != -1
 }
 
 // isTokenChar reports whether rune is in 'token' as defined by RFC
 // 1521 and RFC 2045.
-func isTokenChar(r rune) bool { // ¼ì²éÊÇ·ñÎªtoken×Ö·û
+func isTokenChar(r rune) bool { // æ£€æŸ¥æ˜¯å¦ä¸ºtokenå­—ç¬¦
 	// token := 1*<any (US-ASCII) CHAR except SPACE, CTLs,
 	//             or tspecials>
-	return r > 0x20 && r < 0x7f && !isTSpecial(r) // ÔÚ0x20µ½0x7f¼ä£¬²¢ÇÒ²»ÊÇÌØÊâ×Ö·û
+	return r > 0x20 && r < 0x7f && !isTSpecial(r) // åœ¨0x20åˆ°0x7fé—´ï¼Œå¹¶ä¸”ä¸æ˜¯ç‰¹æ®Šå­—ç¬¦
 }
 
 // isToken reports whether s is a 'token' as defined by RFC 1521
 // and RFC 2045.
-func isToken(s string) bool { // ¼ì²é×Ö·û´®sÊÇ·ñÎªÒ»¸öToken
-	if s == "" { // ¿Õ×Ö·û´®£¬²»ÊÇtoken
+func isToken(s string) bool { // æ£€æŸ¥å­—ç¬¦ä¸²sæ˜¯å¦ä¸ºä¸€ä¸ªToken
+	if s == "" { // ç©ºå­—ç¬¦ä¸²ï¼Œä¸æ˜¯token
 		return false
 	}
 	return strings.IndexFunc(s, isNotTokenChar) < 0

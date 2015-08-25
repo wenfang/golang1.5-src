@@ -23,10 +23,10 @@ import (
 	"net/textproto"
 )
 
-var emptyParams = make(map[string]string) // ¿Õ²ÎÊımap
+var emptyParams = make(map[string]string) // ç©ºå‚æ•°map
 
 // A Part represents a single part in a multipart body.
-type Part struct { // ´ú±ímultipartÌåÖĞµÄµ¥¸öpart
+type Part struct { // ä»£è¡¨multipartä½“ä¸­çš„å•ä¸ªpart
 	// The headers of the body, if any, with the keys canonicalized
 	// in the same fashion that the Go http.Request headers are.
 	// For example, "foo-bar" changes case to "Foo-Bar"
@@ -35,13 +35,13 @@ type Part struct { // ´ú±ímultipartÌåÖĞµÄµ¥¸öpart
 	// has a value of "quoted-printable", that header is instead
 	// hidden from this map and the body is transparently decoded
 	// during Read calls.
-	Header textproto.MIMEHeader // ¸ÃpartµÄheader£¬±»ÕıÔò»¯
+	Header textproto.MIMEHeader // è¯¥partçš„headerï¼Œè¢«æ­£åˆ™åŒ–
 
-	buffer    *bytes.Buffer // »º³å½á¹¹
-	mr        *Reader       // partµÄÊäÈëÊı¾İsBoundaryDelimiterLineÔ´
+	buffer    *bytes.Buffer // ç¼“å†²ç»“æ„
+	mr        *Reader       // partçš„è¾“å…¥æ•°æ®sBoundaryDelimiterLineæº
 	bytesRead int
 
-	disposition       string // dispositionºÍdisposition²ÎÊı
+	disposition       string // dispositionå’Œdispositionå‚æ•°
 	dispositionParams map[string]string
 
 	// r is either a reader directly reading from mr, or it's a
@@ -52,33 +52,33 @@ type Part struct { // ´ú±ímultipartÌåÖĞµÄµ¥¸öpart
 
 // FormName returns the name parameter if p has a Content-Disposition
 // of type "form-data".  Otherwise it returns the empty string.
-func (p *Part) FormName() string { //·µ»Ø±íµ¥Ãû
+func (p *Part) FormName() string { //è¿”å›è¡¨å•å
 	// See http://tools.ietf.org/html/rfc2183 section 2 for EBNF
 	// of Content-Disposition value format.
-	if p.dispositionParams == nil { // Èç¹ûdisposition²ÎÊıÎª¿Õ£¬ÏÈ½âÎödisposition²ÎÊı
-		p.parseContentDisposition() // ÏÈ½âÎöContent-Disposition
+	if p.dispositionParams == nil { // å¦‚æœdispositionå‚æ•°ä¸ºç©ºï¼Œå…ˆè§£ædispositionå‚æ•°
+		p.parseContentDisposition() // å…ˆè§£æContent-Disposition
 	}
-	if p.disposition != "form-data" { // ²»ÊÇ±íµ¥Êı¾İ£¬·µ»Ø¿Õ
+	if p.disposition != "form-data" { // ä¸æ˜¯è¡¨å•æ•°æ®ï¼Œè¿”å›ç©º
 		return ""
 	}
-	return p.dispositionParams["name"] // »ñµÃ±íµ¥Ãû
+	return p.dispositionParams["name"] // è·å¾—è¡¨å•å
 }
 
 // FileName returns the filename parameter of the Part's
 // Content-Disposition header.
-func (p *Part) FileName() string { // »ñµÃÎÄ¼şÃû²ÎÊı
-	if p.dispositionParams == nil { // Èç¹û»¹Ã»ÓĞ½âÎödisposition£¬½âÎödispostion²ÎÊı
+func (p *Part) FileName() string { // è·å¾—æ–‡ä»¶åå‚æ•°
+	if p.dispositionParams == nil { // å¦‚æœè¿˜æ²¡æœ‰è§£ædispositionï¼Œè§£ædispostionå‚æ•°
 		p.parseContentDisposition()
 	}
-	return p.dispositionParams["filename"] // ·µ»ØÎÄ¼şÃû²ÎÊı
+	return p.dispositionParams["filename"] // è¿”å›æ–‡ä»¶åå‚æ•°
 }
 
-func (p *Part) parseContentDisposition() { // ½âÎöpartµÄContent-Disposition
-	v := p.Header.Get("Content-Disposition") // ´ÓpartµÄÍ·²¿ÖĞ»ñµÃContent-Disposition
+func (p *Part) parseContentDisposition() { // è§£æpartçš„Content-Disposition
+	v := p.Header.Get("Content-Disposition") // ä»partçš„å¤´éƒ¨ä¸­è·å¾—Content-Disposition
 	var err error
-	p.disposition, p.dispositionParams, err = mime.ParseMediaType(v) // ¸ù¾İContent-DispositionµÄÖµ½âÎöÃ½ÌåÀàĞÍ
-	if err != nil {                                                  // »ñµÃdispostionºÍdisposition²ÎÊı
-		p.dispositionParams = emptyParams // Èç¹û½âÎöÊ§°Ü£¬·µ»Ø¿Õ²ÎÊı
+	p.disposition, p.dispositionParams, err = mime.ParseMediaType(v) // æ ¹æ®Content-Dispositionçš„å€¼è§£æåª’ä½“ç±»å‹
+	if err != nil {                                                  // è·å¾—dispostionå’Œdispositionå‚æ•°
+		p.dispositionParams = emptyParams // å¦‚æœè§£æå¤±è´¥ï¼Œè¿”å›ç©ºå‚æ•°
 	}
 }
 
@@ -88,10 +88,10 @@ func (p *Part) parseContentDisposition() { // ½âÎöpartµÄContent-Disposition
 // The boundary is usually obtained from the "boundary" parameter of
 // the message's "Content-Type" header. Use mime.ParseMediaType to
 // parse such headers.
-func NewReader(r io.Reader, boundary string) *Reader { // ´´½¨Ò»¸ömultipartµÄReader£¬½çÏŞÎªboundary
+func NewReader(r io.Reader, boundary string) *Reader { // åˆ›å»ºä¸€ä¸ªmultipartçš„Readerï¼Œç•Œé™ä¸ºboundary
 	b := []byte("\r\n--" + boundary + "--") // boundary
-	return &Reader{                         // ´´½¨reader½á¹¹
-		bufReader:        bufio.NewReader(r), // ÓÃbufio°ü×°
+	return &Reader{                         // åˆ›å»ºreaderç»“æ„
+		bufReader:        bufio.NewReader(r), // ç”¨bufioåŒ…è£…
 		nl:               b[:2],
 		nlDashBoundary:   b[:len(b)-2],
 		dashBoundaryDash: b[2:],
@@ -99,8 +99,8 @@ func NewReader(r io.Reader, boundary string) *Reader { // ´´½¨Ò»¸ömultipartµÄRea
 	}
 }
 
-func newPart(mr *Reader) (*Part, error) { // ´ÓmrÖĞĞÂ¶Á³öÒ»¸öpart
-	bp := &Part{ // ´´½¨part½á¹¹
+func newPart(mr *Reader) (*Part, error) { // ä»mrä¸­æ–°è¯»å‡ºä¸€ä¸ªpart
+	bp := &Part{ // åˆ›å»ºpartç»“æ„
 		Header: make(map[string][]string),
 		mr:     mr,
 		buffer: new(bytes.Buffer),
@@ -117,11 +117,11 @@ func newPart(mr *Reader) (*Part, error) { // ´ÓmrÖĞĞÂ¶Á³öÒ»¸öpart
 	return bp, nil
 }
 
-func (bp *Part) populateHeaders() error { // ¶Á³öPartµÄÍ·²¿
-	r := textproto.NewReader(bp.mr.bufReader) // ÓÃÎÄ±¾Ğ­Òé½«reader·â×°Ò»ÏÂ
-	header, err := r.ReadMIMEHeader()         // ¶ÁÈ¡MIMEÍ·²¿
+func (bp *Part) populateHeaders() error { // è¯»å‡ºPartçš„å¤´éƒ¨
+	r := textproto.NewReader(bp.mr.bufReader) // ç”¨æ–‡æœ¬åè®®å°†readerå°è£…ä¸€ä¸‹
+	header, err := r.ReadMIMEHeader()         // è¯»å–MIMEå¤´éƒ¨
 	if err == nil {
-		bp.Header = header // ÉèÖÃMIMEÍ·²¿
+		bp.Header = header // è®¾ç½®MIMEå¤´éƒ¨
 	}
 	return err
 }
@@ -134,11 +134,11 @@ func (p *Part) Read(d []byte) (n int, err error) {
 
 // partReader implements io.Reader by reading raw bytes directly from the
 // wrapped *Part, without doing any Transfer-Encoding decoding.
-type partReader struct { // ¶ÔPartµÄ°ü×°£¬Ö§³Ö¶Á·½·¨
+type partReader struct { // å¯¹Partçš„åŒ…è£…ï¼Œæ”¯æŒè¯»æ–¹æ³•
 	p *Part
 }
 
-func (pr partReader) Read(d []byte) (n int, err error) { // ¶ÁÈ¡Ò»¸öPartÖĞµÄÄÚÈİ
+func (pr partReader) Read(d []byte) (n int, err error) { // è¯»å–ä¸€ä¸ªPartä¸­çš„å†…å®¹
 	p := pr.p
 	defer func() {
 		p.bytesRead += n
@@ -199,7 +199,7 @@ func (pr partReader) Read(d []byte) (n int, err error) { // ¶ÁÈ¡Ò»¸öPartÖĞµÄÄÚÈİ
 	return
 }
 
-func (p *Part) Close() error { // ¹Ø±Õpart
+func (p *Part) Close() error { // å…³é—­part
 	io.Copy(ioutil.Discard, p)
 	return nil
 }
@@ -207,10 +207,10 @@ func (p *Part) Close() error { // ¹Ø±Õpart
 // Reader is an iterator over parts in a MIME multipart body.
 // Reader's underlying parser consumes its input as needed.  Seeking
 // isn't supported.
-type Reader struct { // µü´ú¶ÁÈ¡multipartµÄÏûÏ¢Ìå
+type Reader struct { // è¿­ä»£è¯»å–multipartçš„æ¶ˆæ¯ä½“
 	bufReader *bufio.Reader
 
-	currentPart *Part // µ±Ç°¶Áµ½µÄPart
+	currentPart *Part // å½“å‰è¯»åˆ°çš„Part
 	partsRead   int
 
 	nl               []byte // "\r\n" or "\n" (set after seeing first boundary line)
@@ -221,34 +221,34 @@ type Reader struct { // µü´ú¶ÁÈ¡multipartµÄÏûÏ¢Ìå
 
 // NextPart returns the next part in the multipart or an error.
 // When there are no more parts, the error io.EOF is returned.
-func (r *Reader) NextPart() (*Part, error) { // ´ÓreaderÖĞ¶Á³öÏÂÒ»¸öPart
-	if r.currentPart != nil { // Èç¹ûcurrentPart²»Îª¿Õ
-		r.currentPart.Close() // ÏÈ¹Ø±ÕcurrentPart
+func (r *Reader) NextPart() (*Part, error) { // ä»readerä¸­è¯»å‡ºä¸‹ä¸€ä¸ªPart
+	if r.currentPart != nil { // å¦‚æœcurrentPartä¸ä¸ºç©º
+		r.currentPart.Close() // å…ˆå…³é—­currentPart
 	}
 
 	expectNewPart := false
-	for { // Ñ­»·¶ÁÈ¡
-		line, err := r.bufReader.ReadSlice('\n')      // ÏÈ¶Á³öÒ»ĞĞ
-		if err == io.EOF && r.isFinalBoundary(line) { // Èç¹û¶Áµ½½áÊø£¬»òÕßÕû¸ömultipart½áÊøÁË
+	for { // å¾ªç¯è¯»å–
+		line, err := r.bufReader.ReadSlice('\n')      // å…ˆè¯»å‡ºä¸€è¡Œ
+		if err == io.EOF && r.isFinalBoundary(line) { // å¦‚æœè¯»åˆ°ç»“æŸï¼Œæˆ–è€…æ•´ä¸ªmultipartç»“æŸäº†
 			// If the buffer ends in "--boundary--" without the
 			// trailing "\r\n", ReadSlice will return an error
 			// (since it's missing the '\n'), but this is a valid
 			// multipart EOF so we need to return io.EOF instead of
 			// a fmt-wrapped one.
-			return nil, io.EOF // ·µ»Ø½áÊø
+			return nil, io.EOF // è¿”å›ç»“æŸ
 		}
-		if err != nil { // ¶Á³ö´íÎó
+		if err != nil { // è¯»å‡ºé”™è¯¯
 			return nil, fmt.Errorf("multipart: NextPart: %v", err)
 		}
 
-		if r.isBoundaryDelimiterLine(line) { // Èç¹ûÊÇÒ»¸öpartµÄÆğÊ¼ĞĞ
-			r.partsRead++         // ¶Áµ½µÄpartµÄÊıÁ¿Ôö¼Ó
-			bp, err := newPart(r) // ĞÂ¶Á³öÒ»¸öpart£¬·Åµ½bpÖĞ
+		if r.isBoundaryDelimiterLine(line) { // å¦‚æœæ˜¯ä¸€ä¸ªpartçš„èµ·å§‹è¡Œ
+			r.partsRead++         // è¯»åˆ°çš„partçš„æ•°é‡å¢åŠ 
+			bp, err := newPart(r) // æ–°è¯»å‡ºä¸€ä¸ªpartï¼Œæ”¾åˆ°bpä¸­
 			if err != nil {
 				return nil, err
 			}
-			r.currentPart = bp // ÉèÖÃbpÎªµ±Ç°µÄpart
-			return bp, nil     // ·µ»Øµ±Ç°µÄpart
+			r.currentPart = bp // è®¾ç½®bpä¸ºå½“å‰çš„part
+			return bp, nil     // è¿”å›å½“å‰çš„part
 		}
 
 		if r.isFinalBoundary(line) {
@@ -281,7 +281,7 @@ func (r *Reader) NextPart() (*Part, error) { // ´ÓreaderÖĞ¶Á³öÏÂÒ»¸öPart
 // isFinalBoundary reports whether line is the final boundary line
 // indicating that all parts are over.
 // It matches `^--boundary--[ \t]*(\r\n)?$`
-func (mr *Reader) isFinalBoundary(line []byte) bool { // ÅĞ¶Ï¶Áµ½µÄlineÊÇ·ñÎª×îÖÕµÄboundaryĞĞ£¬±íÃ÷ËùÓĞµÄpart½áÊøÁË
+func (mr *Reader) isFinalBoundary(line []byte) bool { // åˆ¤æ–­è¯»åˆ°çš„lineæ˜¯å¦ä¸ºæœ€ç»ˆçš„boundaryè¡Œï¼Œè¡¨æ˜æ‰€æœ‰çš„partç»“æŸäº†
 	if !bytes.HasPrefix(line, mr.dashBoundaryDash) {
 		return false
 	}
@@ -290,7 +290,7 @@ func (mr *Reader) isFinalBoundary(line []byte) bool { // ÅĞ¶Ï¶Áµ½µÄlineÊÇ·ñÎª×îÖ
 	return len(rest) == 0 || bytes.Equal(rest, mr.nl)
 }
 
-func (mr *Reader) isBoundaryDelimiterLine(line []byte) (ret bool) { // ÅĞ¶ÏÊÇ·ñÎªÒ»¸öpartµÄÆğÊ¼ĞĞ
+func (mr *Reader) isBoundaryDelimiterLine(line []byte) (ret bool) { // åˆ¤æ–­æ˜¯å¦ä¸ºä¸€ä¸ªpartçš„èµ·å§‹è¡Œ
 	// http://tools.ietf.org/html/rfc2046#section-5.1
 	//   The boundary delimiter line is then defined as a line
 	//   consisting entirely of two hyphen characters ("-",

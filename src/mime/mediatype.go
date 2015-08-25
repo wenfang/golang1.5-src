@@ -18,27 +18,27 @@ import (
 // The type and parameter names are written in lower-case.
 // When any of the arguments result in a standard violation then
 // FormatMediaType returns the empty string.
-func FormatMediaType(t string, param map[string]string) string { // ¸ñÊ½»¯Ã½ÌåÀàĞÍ
-	slash := strings.Index(t, "/") // ÔÚtÖĞ²éÕÒ/£¬Èç¹ûÕÒ²»µ½·µ»Ø¿Õ×Ö·û´®
+func FormatMediaType(t string, param map[string]string) string { // æ ¼å¼åŒ–åª’ä½“ç±»å‹
+	slash := strings.Index(t, "/") // åœ¨tä¸­æŸ¥æ‰¾/ï¼Œå¦‚æœæ‰¾ä¸åˆ°è¿”å›ç©ºå­—ç¬¦ä¸²
 	if slash == -1 {
 		return ""
 	}
-	major, sub := t[:slash], t[slash+1:] // ·Ö¸î³ÉmajorºÍsub
+	major, sub := t[:slash], t[slash+1:] // åˆ†å‰²æˆmajorå’Œsub
 	if !isToken(major) || !isToken(sub) {
 		return ""
 	}
 	var b bytes.Buffer
 	b.WriteString(strings.ToLower(major))
 	b.WriteByte('/')
-	b.WriteString(strings.ToLower(sub)) // ×ª»»ÎªĞ¡Ğ´£¬Ğ´ÈëbÖĞ
+	b.WriteString(strings.ToLower(sub)) // è½¬æ¢ä¸ºå°å†™ï¼Œå†™å…¥bä¸­
 
-	attrs := make([]string, 0, len(param)) // ´´½¨Ò»¸öÊôĞÔslice²¢ÅÅĞò
+	attrs := make([]string, 0, len(param)) // åˆ›å»ºä¸€ä¸ªå±æ€§sliceå¹¶æ’åº
 	for a := range param {
 		attrs = append(attrs, a)
 	}
 	sort.Strings(attrs)
 
-	for _, attribute := range attrs { // ±éÀúËùÓĞµÄÊôĞÔ
+	for _, attribute := range attrs { // éå†æ‰€æœ‰çš„å±æ€§
 		value := param[attribute]
 		b.WriteByte(';')
 		b.WriteByte(' ')
@@ -70,22 +70,22 @@ func FormatMediaType(t string, param map[string]string) string { // ¸ñÊ½»¯Ã½ÌåÀà
 	return b.String()
 }
 
-func checkMediaTypeDisposition(s string) error { // ¼ì²éTypeDispositionÊÇ·ñºÏ·¨£¬¿ÉÒÔÖ»ÓĞÃ½ÌåÀàĞÍ£¬Ò²¿ÉÒÔ¼ÈÓĞÃ½ÌåÒ²ÓĞ×ÓÀàĞÍ
-	typ, rest := consumeToken(s) // °´token½«s·Ö¸î
+func checkMediaTypeDisposition(s string) error { // æ£€æŸ¥TypeDispositionæ˜¯å¦åˆæ³•ï¼Œå¯ä»¥åªæœ‰åª’ä½“ç±»å‹ï¼Œä¹Ÿå¯ä»¥æ—¢æœ‰åª’ä½“ä¹Ÿæœ‰å­ç±»å‹
+	typ, rest := consumeToken(s) // æŒ‰tokenå°†såˆ†å‰²
 	if typ == "" {
-		return errors.New("mime: no media type") // Ã»ÓĞÃ½ÌåÀàĞÍ
+		return errors.New("mime: no media type") // æ²¡æœ‰åª’ä½“ç±»å‹
 	}
-	if rest == "" { // ÓĞÃ½ÌåÀàĞÍ£¬Ã»ÓĞ×ÓÀàĞÍ£¬Ò²ºÏ·¨
+	if rest == "" { // æœ‰åª’ä½“ç±»å‹ï¼Œæ²¡æœ‰å­ç±»å‹ï¼Œä¹Ÿåˆæ³•
 		return nil
 	}
-	if !strings.HasPrefix(rest, "/") { // restµÄµÚÒ»¸ö×Ö·û±ØĞëÊÇ/
+	if !strings.HasPrefix(rest, "/") { // restçš„ç¬¬ä¸€ä¸ªå­—ç¬¦å¿…é¡»æ˜¯/
 		return errors.New("mime: expected slash after first token")
 	}
 	subtype, rest := consumeToken(rest[1:])
-	if subtype == "" { // /ºó²»ÄÜÊÇ¸ötoken
+	if subtype == "" { // /åä¸èƒ½æ˜¯ä¸ªtoken
 		return errors.New("mime: expected token after slash")
 	}
-	if rest != "" { // ºóÃæµÄ×ÓÀàĞÍÖĞ²»ÄÜÔÙÓĞtokenÁË
+	if rest != "" { // åé¢çš„å­ç±»å‹ä¸­ä¸èƒ½å†æœ‰tokenäº†
 		return errors.New("mime: unexpected content after media subtype")
 	}
 	return nil
@@ -98,28 +98,28 @@ func checkMediaTypeDisposition(s string) error { // ¼ì²éTypeDispositionÊÇ·ñºÏ·¨£
 // to lowercase and trimmed of white space and a non-nil map.
 // The returned map, params, maps from the lowercase
 // attribute to the attribute value with its case preserved.
-func ParseMediaType(v string) (mediatype string, params map[string]string, err error) { // ½âÎö³öÃ½ÌåÀàĞÍºÍÒ»×é²ÎÊı
-	i := strings.Index(v, ";") // ²é¿´vÖĞÊÇ·ñÓĞ£»
-	if i == -1 {               // Èç¹ûÃ»ÕÒµ½;ÉèÖÃiÎªvµÄ³¤¶È
+func ParseMediaType(v string) (mediatype string, params map[string]string, err error) { // è§£æå‡ºåª’ä½“ç±»å‹å’Œä¸€ç»„å‚æ•°
+	i := strings.Index(v, ";") // æŸ¥çœ‹vä¸­æ˜¯å¦æœ‰ï¼›
+	if i == -1 {               // å¦‚æœæ²¡æ‰¾åˆ°;è®¾ç½®iä¸ºvçš„é•¿åº¦
 		i = len(v)
 	}
-	mediatype = strings.TrimSpace(strings.ToLower(v[0:i])) //;Ç°µÄ×Ö·û´®Ö¸Ê¾Ã½ÌåÀàĞÍ£¬×ª»»³ÉĞ¡Ğ´
+	mediatype = strings.TrimSpace(strings.ToLower(v[0:i])) //;å‰çš„å­—ç¬¦ä¸²æŒ‡ç¤ºåª’ä½“ç±»å‹ï¼Œè½¬æ¢æˆå°å†™
 
-	err = checkMediaTypeDisposition(mediatype) // ¼ì²éÃ½ÌåÀàĞÍ±í´ï·½Ê½ÊÇ·ñºÏ·¨
+	err = checkMediaTypeDisposition(mediatype) // æ£€æŸ¥åª’ä½“ç±»å‹è¡¨è¾¾æ–¹å¼æ˜¯å¦åˆæ³•
 	if err != nil {
 		return "", nil, err
 	}
 
-	params = make(map[string]string) // ÏÂÃæ¿ªÊ¼½âÎö²ÎÊı£¬ÏÈÉú³ÉparamsµÄmap
+	params = make(map[string]string) // ä¸‹é¢å¼€å§‹è§£æå‚æ•°ï¼Œå…ˆç”Ÿæˆparamsçš„map
 
 	// Map of base parameter name -> parameter name -> value
 	// for parameters containing a '*' character.
 	// Lazily initialized.
 	var continuation map[string]map[string]string
 
-	v = v[i:] // È¡³ö²ÎÊıËùÔÚµÄÎ»ÖÃ
+	v = v[i:] // å–å‡ºå‚æ•°æ‰€åœ¨çš„ä½ç½®
 	for len(v) > 0 {
-		v = strings.TrimLeftFunc(v, unicode.IsSpace) // È¥µôv×ó±ß²¿·ÖµÄ¿Õ¸ñ
+		v = strings.TrimLeftFunc(v, unicode.IsSpace) // å»æ‰vå·¦è¾¹éƒ¨åˆ†çš„ç©ºæ ¼
 		if len(v) == 0 {
 			break
 		}
@@ -212,7 +212,7 @@ func decode2231Enc(v string) string {
 	return encv
 }
 
-func isNotTokenChar(r rune) bool { // ¼ì²éÊÇ·ñÎªtoken×Ö·û
+func isNotTokenChar(r rune) bool { // æ£€æŸ¥æ˜¯å¦ä¸ºtokenå­—ç¬¦
 	return !isTokenChar(r)
 }
 
@@ -220,7 +220,7 @@ func isNotTokenChar(r rune) bool { // ¼ì²éÊÇ·ñÎªtoken×Ö·û
 // string, per RFC 2045 section 5.1 (referenced from 2183), and return
 // the token consumed and the rest of the string.  Returns ("", v) on
 // failure to consume at least one character.
-func consumeToken(v string) (token, rest string) { // ¸ù¾İtoken×Ö·û£¬½«v·Ö³ÉÁ½²¿·Ö£¬rest°üº¬token
+func consumeToken(v string) (token, rest string) { // æ ¹æ®tokenå­—ç¬¦ï¼Œå°†våˆ†æˆä¸¤éƒ¨åˆ†ï¼ŒreståŒ…å«token
 	notPos := strings.IndexFunc(v, isNotTokenChar)
 	if notPos == -1 {
 		return v, ""
@@ -267,7 +267,7 @@ func consumeValue(v string) (value, rest string) {
 	return "", v
 }
 
-func consumeMediaParam(v string) (param, value, rest string) { // ½âÎömediatype
+func consumeMediaParam(v string) (param, value, rest string) { // è§£æmediatype
 	rest = strings.TrimLeftFunc(v, unicode.IsSpace)
 	if !strings.HasPrefix(rest, ";") {
 		return "", "", v
@@ -333,7 +333,7 @@ func percentHexUnescape(s string) (string, error) {
 	return string(t), nil
 }
 
-func ishex(c byte) bool { // ²é¿´ÊÇ·ñ16½øÖÆ
+func ishex(c byte) bool { // æŸ¥çœ‹æ˜¯å¦16è¿›åˆ¶
 	switch {
 	case '0' <= c && c <= '9':
 		return true
