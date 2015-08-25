@@ -15,14 +15,14 @@ import (
 const hextable = "0123456789abcdef"
 
 // EncodedLen returns the length of an encoding of n source bytes.
-func EncodedLen(n int) int { return n * 2 } // ±àÂëºóµÄ³¤¶È
+func EncodedLen(n int) int { return n * 2 } // ç¼–ç åçš„é•¿åº¦
 
 // Encode encodes src into EncodedLen(len(src))
 // bytes of dst.  As a convenience, it returns the number
 // of bytes written to dst, but this value is always EncodedLen(len(src)).
 // Encode implements hexadecimal encoding.
-func Encode(dst, src []byte) int { // ±àÂëhex£¬·µ»Ø±àÂëºóµÄ³¤¶È
-	for i, v := range src { // ±éÀúÔ´×Ö·û´®
+func Encode(dst, src []byte) int { // ç¼–ç hexï¼Œè¿”å›ç¼–ç åçš„é•¿åº¦
+	for i, v := range src { // éå†æºå­—ç¬¦ä¸²
 		dst[i*2] = hextable[v>>4]
 		dst[i*2+1] = hextable[v&0x0f]
 	}
@@ -40,7 +40,7 @@ func (e InvalidByteError) Error() string {
 	return fmt.Sprintf("encoding/hex: invalid byte: %#U", rune(e))
 }
 
-func DecodedLen(x int) int { return x / 2 } // ½âÂëºóµÄ³¤¶È
+func DecodedLen(x int) int { return x / 2 } // è§£ç åçš„é•¿åº¦
 
 // Decode decodes src into DecodedLen(len(src)) bytes, returning the actual
 // number of bytes written to dst.
@@ -81,7 +81,7 @@ func fromHexChar(c byte) (byte, bool) {
 }
 
 // EncodeToString returns the hexadecimal encoding of src.
-func EncodeToString(src []byte) string { // ½«src byte±àÂëÎª×Ö·û´®
+func EncodeToString(src []byte) string { // å°†src byteç¼–ç ä¸ºå­—ç¬¦ä¸²
 	dst := make([]byte, EncodedLen(len(src)))
 	Encode(dst, src)
 	return string(dst)

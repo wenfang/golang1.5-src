@@ -300,7 +300,7 @@ retry:
 
 //go:nowritebarrier
 func scanstack(gp *g) {
-	if gp.gcscanvalid {
+	if gp.gcscanvalid { // 如果该goroutine的栈已经被scan了
 		if gcphase == _GCmarktermination {
 			gcRemoveStackBarriers(gp)
 		}
@@ -325,16 +325,16 @@ func scanstack(gp *g) {
 		// ok
 	}
 
-	if gp == getg() {
+	if gp == getg() { // 不能scan自己的栈
 		throw("can't scan our own stack")
 	}
 	mp := gp.m
-	if mp != nil && mp.helpgc != 0 {
+	if mp != nil && mp.helpgc != 0 { // 不能scan gchelper的栈
 		throw("can't scan gchelper stack")
 	}
 
 	var sp, barrierOffset, nextBarrier uintptr
-	if gp.syscallsp != 0 {
+	if gp.syscallsp != 0 { // 获得栈顶的值
 		sp = gp.syscallsp
 	} else {
 		sp = gp.sched.sp
@@ -409,15 +409,16 @@ func scanstack(gp *g) {
 	if gcphase == _GCmarktermination {
 		gcw.dispose()
 	}
-	gp.gcscanvalid = true
+	gp.gcscanvalid = true // 设置该goroutine的栈被scan完成
 }
 
+// scan一个栈帧
 // Scan a stack frame: local variables and function arguments/results.
 //go:nowritebarrier
 func scanframeworker(frame *stkframe, unused unsafe.Pointer, gcw *gcWork) {
 
-	f := frame.fn
-	targetpc := frame.continpc
+	f := frame.fn              // 获得当前该frame要执行的func
+	targetpc := frame.continpc // 获得该frame下一次执行的pc值
 	if targetpc == 0 {
 		// Frame is dead.
 		return
@@ -466,7 +467,7 @@ func scanframeworker(frame *stkframe, unused unsafe.Pointer, gcw *gcWork) {
 	}
 
 	// Scan arguments.
-	if frame.arglen > 0 {
+	if frame.arglen > 0 { // scan参数
 		var bv bitvector
 		if frame.argmap != nil {
 			bv = *frame.argmap
@@ -766,6 +767,7 @@ func gcDrainN(gcw *gcWork, scanWork int64) {
 	}
 }
 
+// scan b做为scanobject
 // scanblock scans b as scanobject would, but using an explicit
 // pointer bitmap instead of the heap bitmap.
 //
@@ -780,7 +782,7 @@ func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) { // scan从b0开始
 	b := b0
 	n := n0
 
-	arena_start := mheap_.arena_start
+	arena_start := mheap_.arena_start // 取出堆得起始和结束地址
 	arena_used := mheap_.arena_used
 
 	for i := uintptr(0); i < n; { // 查找每个word的bit
@@ -806,6 +808,7 @@ func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) { // scan从b0开始
 	}
 }
 
+// scanobject查找从b开始的对象
 // scanobject scans the object starting at b, adding pointers to gcw.
 // b must point to the beginning of a heap object; scanobject consults
 // the GC bitmap for the pointer mask and the spans for the size of the
@@ -829,13 +832,13 @@ func scanobject(b uintptr, gcw *gcWork) {
 	// we can get its bits and span directly.
 	hbits := heapBitsForAddr(b)
 	s := spanOfUnchecked(b)
-	n := s.elemsize
+	n := s.elemsize // 获得该mspan中每个元素的大小
 	if n == 0 {
 		throw("scanobject n == 0")
 	}
 
 	var i uintptr
-	for i = 0; i < n; i += ptrSize {
+	for i = 0; i < n; i += ptrSize { // 一个word一个word的遍历对象
 		// Find bits for this word.
 		if i != 0 {
 			// Avoid needless hbits.next() on last iteration.
@@ -849,20 +852,21 @@ func scanobject(b uintptr, gcw *gcWork) {
 		if i >= 2*ptrSize && bits&bitMarked == 0 {
 			break // no more pointers in this object
 		}
-		if bits&bitPointer == 0 {
+		if bits&bitPointer == 0 { // 不是一个指针，看下一个字节
 			continue // not a pointer
 		}
 
 		// Work here is duplicated in scanblock and above.
 		// If you make changes here, make changes there too.
-		obj := *(*uintptr)(unsafe.Pointer(b + i))
+		obj := *(*uintptr)(unsafe.Pointer(b + i)) // 获得i位置指针的值
 
+		// 在这点，我们找到了下一个隐含的指针。检查这个指针是否指向堆，并且不指向obj本身
 		// At this point we have extracted the next potential pointer.
 		// Check if it points into heap and not back at the current object.
 		if obj != 0 && arena_start <= obj && obj < arena_used && obj-b >= n {
 			// Mark the object.
 			if obj, hbits, span := heapBitsForObject(obj); obj != 0 {
-				greyobject(obj, b, i, hbits, span, gcw)
+				greyobject(obj, b, i, hbits, span, gcw) // 把这个obj变为灰
 			}
 		}
 	}

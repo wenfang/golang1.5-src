@@ -184,24 +184,25 @@ func recordspan(vh unsafe.Pointer, p unsafe.Pointer) {
 	h.nspan = uint32(len(h_allspans))
 }
 
+// inheap指示是否b是一个指向堆对象的指针
 // inheap reports whether b is a pointer into a (potentially dead) heap object.
 // It returns false for pointers into stack spans.
 // Non-preemptible because it is used by write barriers.
 //go:nowritebarrier
 //go:nosplit
 func inheap(b uintptr) bool {
-	if b == 0 || b < mheap_.arena_start || b >= mheap_.arena_used {
+	if b == 0 || b < mheap_.arena_start || b >= mheap_.arena_used { // 如果在堆空间以外，返回false
 		return false
 	}
 	// Not a beginning of a block, consult span table to find the block beginning.
-	k := b >> _PageShift
+	k := b >> _PageShift // 获得指针的页偏移
 	x := k
-	x -= mheap_.arena_start >> _PageShift
-	s := h_spans[x]
-	if s == nil || pageID(k) < s.start || b >= s.limit || s.state != mSpanInUse {
+	x -= mheap_.arena_start >> _PageShift                                         // 获得指针所在页在堆内的偏移
+	s := h_spans[x]                                                               // 根据偏移找到居停对应的mspan
+	if s == nil || pageID(k) < s.start || b >= s.limit || s.state != mSpanInUse { // 如果该页不在有效区域返回false
 		return false
 	}
-	return true
+	return true // 其他情况表明是一个指向堆内对象的指针
 }
 
 // TODO: spanOf and spanOfUnchecked are open-coded in a lot of places.

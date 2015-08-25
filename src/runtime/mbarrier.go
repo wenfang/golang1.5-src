@@ -5,6 +5,8 @@
 // 垃圾收集器: 写屏障
 // Garbage collector: write barriers.
 //
+// 对并发垃圾收集器，Go编译器实现了对指针数值域的更新，通过调用write barrier. 当这些指针在堆对象时
+// 本文件包含了write barrier的实现，markwb和不同的包装
 // For the concurrent garbage collector, the Go compiler implements
 // updates to pointer-valued fields that may be in heap objects by
 // emitting calls to write barriers. This file contains the actual write barrier
@@ -16,6 +18,7 @@ package runtime
 
 import "unsafe"
 
+// markwb是mark阶段的write barrier，也是这个阶段仅有的barrier
 // markwb is the mark-phase write barrier, the only barrier we have.
 // The rest of this file exists only to make calls to this function.
 //
@@ -88,7 +91,7 @@ import "unsafe"
 //go:nowritebarrier
 func gcmarkwb_m(slot *uintptr, ptr uintptr) {
 	if writeBarrierEnabled {
-		if ptr != 0 && inheap(ptr) {
+		if ptr != 0 && inheap(ptr) { // 对指针赋值，如果指针非空，并且ptr指向堆内地址，调用shade
 			shade(ptr)
 		}
 	}

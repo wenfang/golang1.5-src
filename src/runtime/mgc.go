@@ -190,8 +190,8 @@ func gcinit() { // 初始化gc
 		throw("size of Workbuf is suboptimal")
 	}
 
-	work.markfor = parforalloc(_MaxGcproc)
-	_ = setGCPercent(readgogc())
+	work.markfor = parforalloc(_MaxGcproc) // 为parfor结构分配
+	_ = setGCPercent(readgogc())           // 设置gcPercent
 	for datap := &firstmoduledata; datap != nil; datap = datap.next {
 		datap.gcdatamask = progToPointerMask((*byte)(unsafe.Pointer(datap.gcdata)), datap.edata-datap.data)
 		datap.gcbssmask = progToPointerMask((*byte)(unsafe.Pointer(datap.gcbss)), datap.ebss-datap.bss)
@@ -1000,7 +1000,7 @@ func gc(mode int) { // 开始执行gc
 			//
 			// 3) Don't install stack barriers over frame
 			// boundaries where there are up-pointers.
-			setGCPhase(_GCscan)
+			setGCPhase(_GCscan) // 设置启动scan阶段
 
 			gcBgMarkPrepare() // Must happen before assist enable.
 
@@ -1077,7 +1077,7 @@ func gc(mode int) { // 开始执行gc
 		gcController.endCycle()
 	} else {
 		// 对非并发的gc模式，也就是模式非gcBackgroundMode
-		// g的栈已经被scan了，因此清除g的状态，标记mark termination
+		// g的栈没有被scan，因此清除g的状态，保证mark termination阶段scan所有的栈
 		// For non-concurrent GC (mode != gcBackgroundMode)
 		// The g stacks have not been scanned so clear g state
 		// such that mark termination scans all stacks.
@@ -1638,7 +1638,7 @@ func gcResetGState() (numgs int) { // 重置所有goroutine的gc状态，返回a
 	lock(&allglock)
 	for _, gp := range allgs { // 遍历所有的goroutine
 		gp.gcscandone = false  // set to true in gcphasework
-		gp.gcscanvalid = false // stack has not been scanned
+		gp.gcscanvalid = false // stack has not been scanned 表明该goroutine的栈没有被scan
 		gp.gcalloc = 0
 		gp.gcscanwork = 0
 	}
