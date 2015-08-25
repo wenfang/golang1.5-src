@@ -22,7 +22,7 @@ type Compressor func(io.Writer) (io.WriteCloser, error)
 // when they're finished reading.
 type Decompressor func(io.Reader) io.ReadCloser
 
-var flateWriterPool sync.Pool // ´´½¨Ò»¸öflateWriterµÄPool
+var flateWriterPool sync.Pool // åˆ›å»ºä¸€ä¸ªflateWriterçš„Pool
 
 func newFlateWriter(w io.Writer) io.WriteCloser {
 	fw, ok := flateWriterPool.Get().(*flate.Writer)
@@ -75,7 +75,7 @@ var (
 )
 
 // RegisterDecompressor allows custom decompressors for a specified method ID.
-func RegisterDecompressor(method uint16, d Decompressor) { // ×¢²á½âÑ¹º¯Êý
+func RegisterDecompressor(method uint16, d Decompressor) { // æ³¨å†Œè§£åŽ‹å‡½æ•°
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -87,7 +87,7 @@ func RegisterDecompressor(method uint16, d Decompressor) { // ×¢²á½âÑ¹º¯Êý
 
 // RegisterCompressor registers custom compressors for a specified method ID.
 // The common methods Store and Deflate are built in.
-func RegisterCompressor(method uint16, comp Compressor) { // ×¢²áÑ¹Ëõº¯Êý
+func RegisterCompressor(method uint16, comp Compressor) { // æ³¨å†ŒåŽ‹ç¼©å‡½æ•°
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -97,13 +97,13 @@ func RegisterCompressor(method uint16, comp Compressor) { // ×¢²áÑ¹Ëõº¯Êý
 	compressors[method] = comp
 }
 
-func compressor(method uint16) Compressor { // ·µ»ØÑ¹Ëõº¯Êý
+func compressor(method uint16) Compressor { // è¿”å›žåŽ‹ç¼©å‡½æ•°
 	mu.RLock()
 	defer mu.RUnlock()
 	return compressors[method]
 }
 
-func decompressor(method uint16) Decompressor { // ·µ»Ø½âÑ¹º¯Êý
+func decompressor(method uint16) Decompressor { // è¿”å›žè§£åŽ‹å‡½æ•°
 	mu.RLock()
 	defer mu.RUnlock()
 	return decompressors[method]

@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-// Compression methods. Ñ¹ËõµÄ·½·¨
+// Compression methods. å‹ç¼©çš„æ–¹æ³•
 const (
 	Store   uint16 = 0
 	Deflate uint16 = 8
@@ -67,12 +67,12 @@ const (
 
 // FileHeader describes a file within a zip file.
 // See the zip spec for details.
-type FileHeader struct { // ÃèÊö´ò°üµ½zipÖĞµÄÎÄ¼ş
+type FileHeader struct { // æè¿°æ‰“åŒ…åˆ°zipä¸­çš„æ–‡ä»¶
 	// Name is the name of the file.
 	// It must be a relative path: it must not start with a drive
 	// letter (e.g. C:) or leading slash, and only forward slashes
 	// are allowed.
-	Name string // ÎÄ¼şÃû
+	Name string // æ–‡ä»¶å
 
 	CreatorVersion     uint16
 	ReaderVersion      uint16
@@ -83,8 +83,8 @@ type FileHeader struct { // ÃèÊö´ò°üµ½zipÖĞµÄÎÄ¼ş
 	CRC32              uint32
 	CompressedSize     uint32 // Deprecated: Use CompressedSize64 instead.
 	UncompressedSize   uint32 // Deprecated: Use UncompressedSize64 instead.
-	CompressedSize64   uint64 // Ñ¹ËõºóµÄ´óĞ¡
-	UncompressedSize64 uint64 // Î´Ñ¹ËõµÄ´óĞ¡
+	CompressedSize64   uint64 // å‹ç¼©åçš„å¤§å°
+	UncompressedSize64 uint64 // æœªå‹ç¼©çš„å¤§å°
 	Extra              []byte
 	ExternalAttrs      uint32 // Meaning depends on CreatorVersion
 	Comment            string

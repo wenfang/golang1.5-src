@@ -12,7 +12,7 @@
 package list
 
 // Element is an element of a linked list.
-type Element struct { // ÁĞ±íÖĞµÄÔªËØ
+type Element struct { // åˆ—è¡¨ä¸­çš„å…ƒç´ 
 	// Next and previous pointers in the doubly-linked list of elements.
 	// To simplify the implementation, internally a list l is implemented
 	// as a ring, such that &l.root is both the next element of the last
@@ -21,14 +21,14 @@ type Element struct { // ÁĞ±íÖĞµÄÔªËØ
 	next, prev *Element
 
 	// The list to which this element belongs.
-	list *List // ¸ÃÔªËØÊôÓÚÄÄ¸öÁĞ±í
+	list *List // è¯¥å…ƒç´ å±äºå“ªä¸ªåˆ—è¡¨
 
 	// The value stored with this element.
-	Value interface{} // ¶ÔÓ¦µÄÖµ
+	Value interface{} // å¯¹åº”çš„å€¼
 }
 
 // Next returns the next list element or nil.
-func (e *Element) Next() *Element { // Ñ¡ÔñelementËùÔÚÁĞ±íÖĞµÄÏÂÒ»¸öÔªËØ
+func (e *Element) Next() *Element { // é€‰æ‹©elementæ‰€åœ¨åˆ—è¡¨ä¸­çš„ä¸‹ä¸€ä¸ªå…ƒç´ 
 	if p := e.next; e.list != nil && p != &e.list.root {
 		return p
 	}
@@ -36,7 +36,7 @@ func (e *Element) Next() *Element { // Ñ¡ÔñelementËùÔÚÁĞ±íÖĞµÄÏÂÒ»¸öÔªËØ
 }
 
 // Prev returns the previous list element or nil.
-func (e *Element) Prev() *Element { // Ñ¡ÔñelementËùÔÚÁĞ±íÖĞµÄÇ°Ò»¸öÔªËØ
+func (e *Element) Prev() *Element { // é€‰æ‹©elementæ‰€åœ¨åˆ—è¡¨ä¸­çš„å‰ä¸€ä¸ªå…ƒç´ 
 	if p := e.prev; e.list != nil && p != &e.list.root {
 		return p
 	}
@@ -46,12 +46,12 @@ func (e *Element) Prev() *Element { // Ñ¡ÔñelementËùÔÚÁĞ±íÖĞµÄÇ°Ò»¸öÔªËØ
 // List represents a doubly linked list.
 // The zero value for List is an empty list ready to use.
 type List struct {
-	root Element // sentinel list element, only &root, root.prev, and root.next are used ¸ùÔªËØValue²»Ê¹ÓÃ£¬Ö»ÓÃ×÷Õ¼Î»
+	root Element // sentinel list element, only &root, root.prev, and root.next are used æ ¹å…ƒç´ Valueä¸ä½¿ç”¨ï¼Œåªç”¨ä½œå ä½
 	len  int     // current list length excluding (this) sentinel element
 }
 
 // Init initializes or clears list l.
-func (l *List) Init() *List { // ³õÊ¼»¯Ò»¸öList
+func (l *List) Init() *List { // åˆå§‹åŒ–ä¸€ä¸ªList
 	l.root.next = &l.root
 	l.root.prev = &l.root
 	l.len = 0
@@ -59,14 +59,14 @@ func (l *List) Init() *List { // ³õÊ¼»¯Ò»¸öList
 }
 
 // New returns an initialized list.
-func New() *List { return new(List).Init() } // ·µ»ØÒ»¸ö³õÊ¼»¯µÄList
+func New() *List { return new(List).Init() } // è¿”å›ä¸€ä¸ªåˆå§‹åŒ–çš„List
 
 // Len returns the number of elements of list l.
 // The complexity is O(1).
-func (l *List) Len() int { return l.len } // ·µ»Øµ±Ç°ListÖĞµÄÔªËØ
+func (l *List) Len() int { return l.len } // è¿”å›å½“å‰Listä¸­çš„å…ƒç´ 
 
 // Front returns the first element of list l or nil.
-func (l *List) Front() *Element { // Ñ¡ÔñListÖĞµÚÒ»¸öÔªËØ
+func (l *List) Front() *Element { // é€‰æ‹©Listä¸­ç¬¬ä¸€ä¸ªå…ƒç´ 
 	if l.len == 0 {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (l *List) Front() *Element { // Ñ¡ÔñListÖĞµÚÒ»¸öÔªËØ
 }
 
 // Back returns the last element of list l or nil.
-func (l *List) Back() *Element { // Ñ¡ÔñListÖĞ×îºóÒ»¸öÔªËØ
+func (l *List) Back() *Element { // é€‰æ‹©Listä¸­æœ€åä¸€ä¸ªå…ƒç´ 
 	if l.len == 0 {
 		return nil
 	}
@@ -118,7 +118,7 @@ func (l *List) remove(e *Element) *Element {
 
 // Remove removes e from l if e is an element of list l.
 // It returns the element value e.Value.
-func (l *List) Remove(e *Element) interface{} { // É¾³ıÔªËØ
+func (l *List) Remove(e *Element) interface{} { // åˆ é™¤å…ƒç´ 
 	if e.list == l {
 		// if e.list == l, l must have been initialized when e was inserted
 		// in l or l == nil (e is a zero Element) and l.remove will crash
@@ -128,20 +128,20 @@ func (l *List) Remove(e *Element) interface{} { // É¾³ıÔªËØ
 }
 
 // PushFront inserts a new element e with value v at the front of list l and returns e.
-func (l *List) PushFront(v interface{}) *Element { // ÔÚ¶ÓÁĞÇ°²åÈë
+func (l *List) PushFront(v interface{}) *Element { // åœ¨é˜Ÿåˆ—å‰æ’å…¥
 	l.lazyInit()
 	return l.insertValue(v, &l.root)
 }
 
 // PushBack inserts a new element e with value v at the back of list l and returns e.
-func (l *List) PushBack(v interface{}) *Element { // ÔÚ¶ÓÁĞºó²åÈë
+func (l *List) PushBack(v interface{}) *Element { // åœ¨é˜Ÿåˆ—åæ’å…¥
 	l.lazyInit()
 	return l.insertValue(v, l.root.prev)
 }
 
 // InsertBefore inserts a new element e with value v immediately before mark and returns e.
 // If mark is not an element of l, the list is not modified.
-func (l *List) InsertBefore(v interface{}, mark *Element) *Element { // ÔÚÔªËØÇ°²åÈë
+func (l *List) InsertBefore(v interface{}, mark *Element) *Element { // åœ¨å…ƒç´ å‰æ’å…¥
 	if mark.list != l {
 		return nil
 	}
@@ -151,7 +151,7 @@ func (l *List) InsertBefore(v interface{}, mark *Element) *Element { // ÔÚÔªËØÇ°
 
 // InsertAfter inserts a new element e with value v immediately after mark and returns e.
 // If mark is not an element of l, the list is not modified.
-func (l *List) InsertAfter(v interface{}, mark *Element) *Element { // ÔÚÔªËØºó²åÈë
+func (l *List) InsertAfter(v interface{}, mark *Element) *Element { // åœ¨å…ƒç´ åæ’å…¥
 	if mark.list != l {
 		return nil
 	}
@@ -161,7 +161,7 @@ func (l *List) InsertAfter(v interface{}, mark *Element) *Element { // ÔÚÔªËØºó²
 
 // MoveToFront moves element e to the front of list l.
 // If e is not an element of l, the list is not modified.
-func (l *List) MoveToFront(e *Element) { // ÒÆµ½Í·²¿
+func (l *List) MoveToFront(e *Element) { // ç§»åˆ°å¤´éƒ¨
 	if e.list != l || l.root.next == e {
 		return
 	}
@@ -171,7 +171,7 @@ func (l *List) MoveToFront(e *Element) { // ÒÆµ½Í·²¿
 
 // MoveToBack moves element e to the back of list l.
 // If e is not an element of l, the list is not modified.
-func (l *List) MoveToBack(e *Element) { // ÒÆµ½Î²²¿
+func (l *List) MoveToBack(e *Element) { // ç§»åˆ°å°¾éƒ¨
 	if e.list != l || l.root.prev == e {
 		return
 	}

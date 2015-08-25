@@ -18,7 +18,7 @@ import (
 
 // Writer implements a zip file writer.
 type Writer struct {
-	cw     *countWriter // ÄÚ²¿·â×°µÄcountWriter
+	cw     *countWriter // å†…éƒ¨å°è£…çš„countWriter
 	dir    []*header
 	last   *fileWriter
 	closed bool
@@ -30,7 +30,7 @@ type header struct {
 }
 
 // NewWriter returns a new Writer writing a zip file to w.
-func NewWriter(w io.Writer) *Writer { // ´´½¨Ò»¸öĞÂWriterÓÃ×÷Ğ´ÎÄ¼ş
+func NewWriter(w io.Writer) *Writer { // åˆ›å»ºä¸€ä¸ªæ–°Writerç”¨ä½œå†™æ–‡ä»¶
 	return &Writer{cw: &countWriter{w: bufio.NewWriter(w)}}
 }
 
@@ -47,7 +47,7 @@ func (w *Writer) SetOffset(n int64) {
 
 // Flush flushes any buffered data to the underlying writer.
 // Calling Flush is not normally necessary; calling Close is sufficient.
-func (w *Writer) Flush() error { // Ë¢ĞÂbufferÖĞµÄÄÚÈİ
+func (w *Writer) Flush() error { // åˆ·æ–°bufferä¸­çš„å†…å®¹
 	return w.cw.w.(*bufio.Writer).Flush()
 }
 
@@ -184,8 +184,8 @@ func (w *Writer) Close() error {
 // allowed.
 // The file's contents must be written to the io.Writer before the next
 // call to Create, CreateHeader, or Close.
-func (w *Writer) Create(name string) (io.Writer, error) { // ·µ»ØÒ»¸öWriter£¬ÓÃ»§¿ÉÓÃÕâ¸öWriterĞ´ÈëÄÚÈİµ½zipÎÄ¼şÖĞ
-	header := &FileHeader{ // ´´½¨Ò»¸öFileHeader½á¹¹
+func (w *Writer) Create(name string) (io.Writer, error) { // è¿”å›ä¸€ä¸ªWriterï¼Œç”¨æˆ·å¯ç”¨è¿™ä¸ªWriterå†™å…¥å†…å®¹åˆ°zipæ–‡ä»¶ä¸­
+	header := &FileHeader{ // åˆ›å»ºä¸€ä¸ªFileHeaderç»“æ„
 		Name:   name,
 		Method: Deflate,
 	}
@@ -199,7 +199,7 @@ func (w *Writer) Create(name string) (io.Writer, error) { // ·µ»ØÒ»¸öWriter£¬ÓÃ»
 // The file's contents must be written to the io.Writer before the next
 // call to Create, CreateHeader, or Close. The provided FileHeader fh
 // must not be modified after a call to CreateHeader.
-func (w *Writer) CreateHeader(fh *FileHeader) (io.Writer, error) { // ´´½¨Ò»¸öÎÄ¼şÍ·
+func (w *Writer) CreateHeader(fh *FileHeader) (io.Writer, error) { // åˆ›å»ºä¸€ä¸ªæ–‡ä»¶å¤´
 	if w.last != nil && !w.last.closed {
 		if err := w.last.close(); err != nil {
 			return nil, err
@@ -215,12 +215,12 @@ func (w *Writer) CreateHeader(fh *FileHeader) (io.Writer, error) { // ´´½¨Ò»¸öÎÄ
 	fh.CreatorVersion = fh.CreatorVersion&0xff00 | zipVersion20 // preserve compatibility byte
 	fh.ReaderVersion = zipVersion20
 
-	fw := &fileWriter{ // ´´½¨fileWriter½á¹¹
+	fw := &fileWriter{ // åˆ›å»ºfileWriterç»“æ„
 		zipw:      w.cw,
 		compCount: &countWriter{w: w.cw},
 		crc32:     crc32.NewIEEE(),
 	}
-	comp := compressor(fh.Method) // È¡³öÀ´Ñ¹Ëõº¯Êı
+	comp := compressor(fh.Method) // å–å‡ºæ¥å‹ç¼©å‡½æ•°
 	if comp == nil {
 		return nil, ErrAlgorithm
 	}
@@ -273,26 +273,26 @@ func writeHeader(w io.Writer, h *FileHeader) error {
 type fileWriter struct {
 	*header
 	zipw      io.Writer
-	rawCount  *countWriter // ÄÚ²¿°üº¬µÄÒ»¸öcountWriter
+	rawCount  *countWriter // å†…éƒ¨åŒ…å«çš„ä¸€ä¸ªcountWriter
 	comp      io.WriteCloser
 	compCount *countWriter
-	crc32     hash.Hash32 // ÄÚ²¿°üº¬Ò»¸öcrc32µÄhash
-	closed    bool        // fileWriterÊÇ·ñÒÑ¾­±»¹Ø±Õ
+	crc32     hash.Hash32 // å†…éƒ¨åŒ…å«ä¸€ä¸ªcrc32çš„hash
+	closed    bool        // fileWriteræ˜¯å¦å·²ç»è¢«å…³é—­
 }
 
-func (w *fileWriter) Write(p []byte) (int, error) { // ÊµÏÖWrite·½·¨
-	if w.closed { // Ğ´ÈëÎÄ¼şÒÑ¾­¹Ø±Õ
+func (w *fileWriter) Write(p []byte) (int, error) { // å®ç°Writeæ–¹æ³•
+	if w.closed { // å†™å…¥æ–‡ä»¶å·²ç»å…³é—­
 		return 0, errors.New("zip: write to closed file")
 	}
-	w.crc32.Write(p)           // ¼ÆËãhashÖµ
-	return w.rawCount.Write(p) // Ğ´ÈëÊı¾İ£¬Í¬Ê±¼ÆËãĞ´ÈëµÄÊıÁ¿
+	w.crc32.Write(p)           // è®¡ç®—hashå€¼
+	return w.rawCount.Write(p) // å†™å…¥æ•°æ®ï¼ŒåŒæ—¶è®¡ç®—å†™å…¥çš„æ•°é‡
 }
 
 func (w *fileWriter) close() error {
-	if w.closed { // ÎÄ¼şÒÑ¾­±»¹Ø±Õ£¬·µ»Ø¹Ø±ÕÁËÁ½´Î
+	if w.closed { // æ–‡ä»¶å·²ç»è¢«å…³é—­ï¼Œè¿”å›å…³é—­äº†ä¸¤æ¬¡
 		return errors.New("zip: file closed twice")
 	}
-	w.closed = true // ¹Ø±ÕÎÄ¼ş
+	w.closed = true // å…³é—­æ–‡ä»¶
 	if err := w.comp.Close(); err != nil {
 		return err
 	}
@@ -337,12 +337,12 @@ func (w *fileWriter) close() error {
 	return err
 }
 
-type countWriter struct { // ÊµÏÖÁËWrite·½·¨£¬ÄÚ²¿°üº¬Ò»¸öcount
+type countWriter struct { // å®ç°äº†Writeæ–¹æ³•ï¼Œå†…éƒ¨åŒ…å«ä¸€ä¸ªcount
 	w     io.Writer
 	count int64
 }
 
-func (w *countWriter) Write(p []byte) (int, error) { // Ã¿´ÎĞ´µÄÊ±ºò¶ÔĞ´µÄÊıÁ¿½øĞĞ¼ÆÊı
+func (w *countWriter) Write(p []byte) (int, error) { // æ¯æ¬¡å†™çš„æ—¶å€™å¯¹å†™çš„æ•°é‡è¿›è¡Œè®¡æ•°
 	n, err := w.w.Write(p)
 	w.count += int64(n)
 	return n, err

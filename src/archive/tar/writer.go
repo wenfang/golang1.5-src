@@ -44,7 +44,7 @@ type Writer struct {
 }
 
 // NewWriter creates a new Writer writing to w.
-func NewWriter(w io.Writer) *Writer { return &Writer{w: w} } // ĞÂ´´½¨Ò»¸ö¶ÔtarÎÄ¼şµÄWriter
+func NewWriter(w io.Writer) *Writer { return &Writer{w: w} } // æ–°åˆ›å»ºä¸€ä¸ªå¯¹taræ–‡ä»¶çš„Writer
 
 // Flush finishes writing the current file (optional).
 func (tw *Writer) Flush() error {
@@ -135,7 +135,7 @@ var (
 // WriteHeader writes hdr and prepares to accept the file's contents.
 // WriteHeader calls Flush if it is not the first header.
 // Calling after a Close will return ErrWriteAfterClose.
-func (tw *Writer) WriteHeader(hdr *Header) error { // Ğ´ÈëtarÍ·²¿£¬Ìí¼ÓÒ»¸öĞÂÎÄ¼ş½øÈëµ½tarÖĞ
+func (tw *Writer) WriteHeader(hdr *Header) error { // å†™å…¥tarå¤´éƒ¨ï¼Œæ·»åŠ ä¸€ä¸ªæ–°æ–‡ä»¶è¿›å…¥åˆ°tarä¸­
 	return tw.writeHeader(hdr, true)
 }
 
@@ -353,7 +353,7 @@ func paxHeader(msg string) string {
 // Write writes to the current entry in the tar archive.
 // Write returns the error ErrWriteTooLong if more than
 // hdr.Size bytes are written after WriteHeader.
-func (tw *Writer) Write(b []byte) (n int, err error) { // Ğ´ÈëÊı¾İ
+func (tw *Writer) Write(b []byte) (n int, err error) { // å†™å…¥æ•°æ®
 	if tw.closed {
 		err = ErrWriteAfterClose
 		return
@@ -375,7 +375,7 @@ func (tw *Writer) Write(b []byte) (n int, err error) { // Ğ´ÈëÊı¾İ
 
 // Close closes the tar archive, flushing any unwritten
 // data to the underlying writer.
-func (tw *Writer) Close() error { // ¹Ø±ÕWriter£¬tarĞ´Íêºó±ØĞë¹Ø±Õ£¬ÒòÎªÒªĞ´ÈëÁ½¸özeroBlock
+func (tw *Writer) Close() error { // å…³é—­Writerï¼Œtarå†™å®Œåå¿…é¡»å…³é—­ï¼Œå› ä¸ºè¦å†™å…¥ä¸¤ä¸ªzeroBlock
 	if tw.err != nil || tw.closed {
 		return tw.err
 	}

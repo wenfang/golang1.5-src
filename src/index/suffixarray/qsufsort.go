@@ -26,7 +26,7 @@ package suffixarray
 
 import "sort"
 
-func qsufsort(data []byte) []int { // ´´½¨dataµÄÇ°×ºÊı×é
+func qsufsort(data []byte) []int { // åˆ›å»ºdataçš„å‰ç¼€æ•°ç»„
 	// initial sorting by first byte of suffix
 	sa := sortedByFirstByte(data)
 	if len(sa) < 2 {
@@ -74,8 +74,8 @@ func qsufsort(data []byte) []int { // ´´½¨dataµÄÇ°×ºÊı×é
 
 func sortedByFirstByte(data []byte) []int {
 	// total byte counts
-	var count [256]int       // È«²¿×Ö·ûµÄ¼ÆÊı£¬¹²256¸ö×Ö·û
-	for _, b := range data { // ±éÀúdata£¬¼ÆËãÃ¿¸ö×Ö·û³öÏÖµÄ´ÎÊı
+	var count [256]int       // å…¨éƒ¨å­—ç¬¦çš„è®¡æ•°ï¼Œå…±256ä¸ªå­—ç¬¦
+	for _, b := range data { // éå†dataï¼Œè®¡ç®—æ¯ä¸ªå­—ç¬¦å‡ºç°çš„æ¬¡æ•°
 		count[b]++
 	}
 	// make count[b] equal index of first occurrence of b in sorted array

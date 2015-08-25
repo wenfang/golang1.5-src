@@ -25,14 +25,14 @@ import (
 )
 
 // Index implements a suffix array for fast substring search.
-type Index struct { // Ë÷Òı½á¹¹ÊµÏÖ¿ìËÙ×Ó×Ö·û´®²éÕÒ
+type Index struct { // ç´¢å¼•ç»“æ„å®ç°å¿«é€Ÿå­å­—ç¬¦ä¸²æŸ¥æ‰¾
 	data []byte
-	sa   []int // suffix array for data; len(sa) == len(data) dataµÄÇ°×ºÊı×é
+	sa   []int // suffix array for data; len(sa) == len(data) dataçš„å‰ç¼€æ•°ç»„
 }
 
 // New creates a new Index for data.
 // Index creation time is O(N*log(N)) for N = len(data).
-func New(data []byte) *Index { // ´´½¨Ë÷Òı½á¹¹£¬Ë÷ÒıÊı¾İ
+func New(data []byte) *Index { // åˆ›å»ºç´¢å¼•ç»“æ„ï¼Œç´¢å¼•æ•°æ®
 	return &Index{data, qsufsort(data)}
 }
 
@@ -95,7 +95,7 @@ func readSlice(r io.Reader, buf []byte, data []int) (n int, err error) {
 const bufSize = 16 << 10 // reasonable for BenchmarkSaveRestore
 
 // Read reads the index from r into x; x must not be nil.
-func (x *Index) Read(r io.Reader) error { // ´ÓrÖĞ¶ÁË÷ÒıxµÄÊı¾İ
+func (x *Index) Read(r io.Reader) error { // ä»rä¸­è¯»ç´¢å¼•xçš„æ•°æ®
 	// buffer for all reads
 	buf := make([]byte, bufSize)
 
@@ -134,7 +134,7 @@ func (x *Index) Read(r io.Reader) error { // ´ÓrÖĞ¶ÁË÷ÒıxµÄÊı¾İ
 }
 
 // Write writes the index x to w.
-func (x *Index) Write(w io.Writer) error { // ½«Ë÷ÒıxµÄÊı¾İĞ´Èëw
+func (x *Index) Write(w io.Writer) error { // å°†ç´¢å¼•xçš„æ•°æ®å†™å…¥w
 	// buffer for all writes
 	buf := make([]byte, bufSize)
 

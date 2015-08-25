@@ -44,7 +44,7 @@ func (f *File) hasDataDescriptor() bool {
 }
 
 // OpenReader will open the Zip file specified by name and return a ReadCloser.
-func OpenReader(name string) (*ReadCloser, error) { // ´ò¿ªÒ»¸özipÎÄ¼ş
+func OpenReader(name string) (*ReadCloser, error) { // æ‰“å¼€ä¸€ä¸ªzipæ–‡ä»¶
 	f, err := os.Open(name)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func OpenReader(name string) (*ReadCloser, error) { // ´ò¿ªÒ»¸özipÎÄ¼ş
 		return nil, err
 	}
 	r := new(ReadCloser)
-	if err := r.init(f, fi.Size()); err != nil { // ³õÊ¼»¯ÎÄ¼ş
+	if err := r.init(f, fi.Size()); err != nil { // åˆå§‹åŒ–æ–‡ä»¶
 		f.Close()
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (f *File) Open() (rc io.ReadCloser, err error) {
 	}
 	size := int64(f.CompressedSize64)
 	r := io.NewSectionReader(f.zipr, f.headerOffset+bodyOffset, size)
-	dcomp := decompressor(f.Method) // È¡³öÀ´½âÑ¹º¯Êı
+	dcomp := decompressor(f.Method) // å–å‡ºæ¥è§£å‹å‡½æ•°
 	if dcomp == nil {
 		err = ErrAlgorithm
 		return
@@ -452,19 +452,19 @@ func findSignatureInBlock(b []byte) int {
 
 type readBuf []byte
 
-func (b *readBuf) uint16() uint16 { // °´uint16·µ»ØreadBufµÄÖµ
+func (b *readBuf) uint16() uint16 { // æŒ‰uint16è¿”å›readBufçš„å€¼
 	v := binary.LittleEndian.Uint16(*b)
 	*b = (*b)[2:]
 	return v
 }
 
-func (b *readBuf) uint32() uint32 { // °´uint32·µ»ØreadBufµÄÖµ
+func (b *readBuf) uint32() uint32 { // æŒ‰uint32è¿”å›readBufçš„å€¼
 	v := binary.LittleEndian.Uint32(*b)
 	*b = (*b)[4:]
 	return v
 }
 
-func (b *readBuf) uint64() uint64 { // °´uint64·µ»ØreadBufµÄÖµ
+func (b *readBuf) uint64() uint64 { // æŒ‰uint64è¿”å›readBufçš„å€¼
 	v := binary.LittleEndian.Uint64(*b)
 	*b = (*b)[8:]
 	return v

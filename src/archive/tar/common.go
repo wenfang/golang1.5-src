@@ -44,21 +44,21 @@ const (
 // A Header represents a single header in a tar archive.
 // Some fields may not be populated.
 type Header struct { // tar文件的头部
-	Name       string    // name of header file entry 文件名
-	Mode       int64     // permission and mode bits 文件权限模式
-	Uid        int       // user id of owner 文件的owner uid
-	Gid        int       // group id of owner 文件的owner gid
-	Size       int64     // length in bytes 文件大小
-	ModTime    time.Time // modified time 文件更改时间
-	Typeflag   byte      // type of header entry
-	Linkname   string    // target name of link
-	Uname      string    // user name of owner
-	Gname      string    // group name of owner
-	Devmajor   int64     // major number of character or block device
-	Devminor   int64     // minor number of character or block device
-	AccessTime time.Time // access time
-	ChangeTime time.Time // status change time
-	Xattrs     map[string]string
+	Name       string            // name of header file entry 文件名
+	Mode       int64             // permission and mode bits 文件权限模式
+	Uid        int               // user id of owner 文件的owner uid
+	Gid        int               // group id of owner 文件的owner gid
+	Size       int64             // length in bytes 文件大小
+	ModTime    time.Time         // modified time 文件更改时间
+	Typeflag   byte              // type of header entry
+	Linkname   string            // target name of link
+	Uname      string            // user name of owner
+	Gname      string            // group name of owner
+	Devmajor   int64             // major number of character or block device 块设备主设备号
+	Devminor   int64             // minor number of character or block device 块设备次设备号
+	AccessTime time.Time         // access time 访问时间
+	ChangeTime time.Time         // status change time 状态改变时间
+	Xattrs     map[string]string // 其他属性
 }
 
 // File name constants from the tar spec.
@@ -315,12 +315,12 @@ func isASCII(s string) bool { // 判断字符串是否为ascii码
 	return true
 }
 
-func toASCII(s string) string {
-	if isASCII(s) {
+func toASCII(s string) string { // 将s string账号为ASCII
+	if isASCII(s) { // 如果已经是ASCII了直接返回
 		return s
 	}
 	var buf bytes.Buffer
-	for _, c := range s {
+	for _, c := range s { // 过滤所有非ASCII的字符，对ASCII字符写入到buf中
 		if c < 0x80 {
 			buf.WriteByte(byte(c))
 		}

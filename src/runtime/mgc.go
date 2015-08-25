@@ -266,9 +266,9 @@ const (
 )
 
 //go:nosplit
-func setGCPhase(x uint32) {
+func setGCPhase(x uint32) { // 设置gc阶段
 	atomicstore(&gcphase, x)
-	writeBarrierEnabled = gcphase == _GCmark || gcphase == _GCmarktermination || gcphase == _GCscan
+	writeBarrierEnabled = gcphase == _GCmark || gcphase == _GCmarktermination || gcphase == _GCscan // 在GCmark,marktermination和scan阶段启动write barrier
 }
 
 // gcMarkWorkerMode represents the mode that a concurrent mark worker
@@ -302,10 +302,14 @@ const (
 	gcMarkWorkerIdleMode
 )
 
+// gcController实现了GC的节奏控制，它决定了何时触发并发的垃圾收集，
+// 也决定了有多少mark工作需要进行
 // gcController implements the GC pacing controller that determines
 // when to trigger concurrent garbage collection and how much marking
 // work to do in mutator assists and background marking.
 //
+// 它使用反馈控制算法校正memstats.next_gc的触发器，这个算法基于堆的增长
+// 和每轮GC是CPU的利用率来计算。该算法进行了优化，已适应GOGC和CPU的利用率
 // It uses a feedback control algorithm to adjust the memstats.next_gc
 // trigger based on the heap growth and GC CPU utilization each cycle.
 // This algorithm optimizes for heap growth to match GOGC and for CPU
@@ -831,9 +835,9 @@ func GC() {
 }
 
 const (
-	gcBackgroundMode = iota // concurrent GC
-	gcForceMode             // stop-the-world GC now
-	gcForceBlockMode        // stop-the-world GC now and wait for sweep
+	gcBackgroundMode = iota // concurrent GC 并发gc
+	gcForceMode             // stop-the-world GC now stw gc
+	gcForceBlockMode        // stop-the-world GC now and wait for sweep stw gc并且等待stw完成
 )
 
 // startGC启动一次GC周期。如果是gcBackgroundMode，将会在后台启动gc，然后返回
@@ -845,17 +849,18 @@ const (
 // true, it indicates that GC should be started regardless of the
 // current heap size.
 func startGC(mode int, forceTrigger bool) {
+	// 在bootstrap完成前,gc都是关闭的，直到调用enablegc开启
 	// The gc is turned off (via enablegc) until the bootstrap has completed.
 	// Also, malloc gets called in the guts of a number of libraries that might be
 	// holding locks. To avoid deadlocks during stop-the-world, don't bother
 	// trying to run gc while holding a lock. The next mallocgc without a lock
 	// will do the gc instead.
-	mp := acquirem() // 获取当前的m
-	if gp := getg(); gp == mp.g0 || mp.locks > 1 || mp.preemptoff != "" || !memstats.enablegc || panicking != 0 || gcpercent < 0 {
+	mp := acquirem()                                                                                                               // 获取当前的m
+	if gp := getg(); gp == mp.g0 || mp.locks > 1 || mp.preemptoff != "" || !memstats.enablegc || panicking != 0 || gcpercent < 0 { // 如果当前在g0上或者m加锁了或者没有启动gc或者gcpercent<0，直接返回，不进行gc
 		releasem(mp)
 		return
 	}
-	releasem(mp)
+	releasem(mp) // 释放m
 	mp = nil
 
 	if debug.gcstoptheworld == 1 {

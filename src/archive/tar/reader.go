@@ -82,12 +82,12 @@ const (
 )
 
 // NewReader creates a new Reader reading from r.
-func NewReader(r io.Reader) *Reader { return &Reader{r: r} } // 传人一个io.Reader，创建一个对tar文件的Reader
+func NewReader(r io.Reader) *Reader { return &Reader{r: r} } // 浼犲叆涓�涓猧o.Reader锛屽垱寤轰竴涓tar鏂囦欢鐨凴eader
 
 // Next advances to the next entry in the tar archive.
 //
 // io.EOF is returned at the end of the input.
-func (tr *Reader) Next() (*Header, error) { // 使用Next获得tar中一个文件的Header
+func (tr *Reader) Next() (*Header, error) { // 浣跨敤Next鑾峰緱tar涓竴涓枃浠剁殑Header
 	var hdr *Header
 	if tr.err == nil {
 		tr.skipUnread()

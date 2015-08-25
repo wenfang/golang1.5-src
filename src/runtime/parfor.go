@@ -7,9 +7,10 @@
 
 package runtime
 
+// parfor结构保存并行操作的状态信息
 // A parfor holds state for the parallel for operation.
 type parfor struct {
-	body   func(*parfor, uint32) // executed for each element
+	body   func(*parfor, uint32) // executed for each element 每个元素执行的函数
 	done   uint32                // number of idle threads
 	nthr   uint32                // total number of threads
 	thrseq uint32                // thread id sequencer
@@ -17,7 +18,7 @@ type parfor struct {
 	wait   bool                  // if true, wait while all threads finish processing,
 	// otherwise parfor may return while other threads are still working
 
-	thr []parforthread // thread descriptors
+	thr []parforthread // thread descriptors 线程描述slice
 
 	// stats
 	nsteal     uint64
@@ -41,7 +42,7 @@ type parforthread struct {
 }
 
 func parforalloc(nthrmax uint32) *parfor {
-	return &parfor{
+	return &parfor{ // 生成parfor结构，可以保存nthrmax个线程描述
 		thr: make([]parforthread, nthrmax),
 	}
 }
