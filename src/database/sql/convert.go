@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Type conversions for Scan. ÓÃ×÷Scanº¯ÊıµÄÀàĞÍ×ª»»
+// Type conversions for Scan. ç”¨ä½œScanå‡½æ•°çš„ç±»å‹è½¬æ¢
 
 package sql
 
@@ -84,7 +84,7 @@ func driverArgs(ds *driverStmt, args []interface{}) ([]driver.Value, error) {
 // dest should be a pointer type.
 func convertAssign(dest, src interface{}) error {
 	// Common cases, without reflect.
-	switch s := src.(type) { // ½âÎöÔ´ÀàĞÍ
+	switch s := src.(type) { // è§£ææºç±»å‹
 	case string:
 		switch d := dest.(type) {
 		case *string:
@@ -152,7 +152,7 @@ func convertAssign(dest, src interface{}) error {
 
 	var sv reflect.Value
 
-	switch d := dest.(type) { // ½âÎöÄ¿±êÀàĞÍ
+	switch d := dest.(type) { // è§£æç›®æ ‡ç±»å‹
 	case *string:
 		sv = reflect.ValueOf(src)
 		switch sv.Kind() {

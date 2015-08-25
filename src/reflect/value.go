@@ -169,13 +169,13 @@ func methodName() string {
 }
 
 // emptyInterface is the header for an interface{} value.
-type emptyInterface struct { // �սӿڽṹ
+type emptyInterface struct { // 空接口结构
 	typ  *rtype
 	word unsafe.Pointer
 }
 
 // nonEmptyInterface is the header for a interface value with methods.
-type nonEmptyInterface struct { // �ǿսӿڽṹ
+type nonEmptyInterface struct { // 非空接口结构
 	// see ../runtime/iface.go:/Itab
 	itab *struct {
 		ityp   *rtype // static interface type

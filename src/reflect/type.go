@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// 实现了运行时反射，运行程序操作任意类型的对象。
 // Package reflect implements run-time reflection, allowing a program to
 // manipulate objects with arbitrary types.  The typical use is to take a value
 // with static type interface{} and extract its dynamic type information by

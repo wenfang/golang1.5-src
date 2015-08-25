@@ -3670,7 +3670,7 @@ func procPin() int {
 	_g_ := getg()
 	mp := _g_.m
 
-	mp.locks++
+	mp.locks++ // 获取当前的m然后加锁，避免调度
 	return int(mp.p.ptr().id)
 }
 

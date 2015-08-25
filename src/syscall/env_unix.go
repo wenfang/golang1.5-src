@@ -68,7 +68,7 @@ func Unsetenv(key string) error {
 	return nil
 }
 
-func Getenv(key string) (value string, found bool) { // 获取环境变量
+func Getenv(key string) (value string, found bool) { // 鑾峰彇鐜鍙橀噺
 	envOnce.Do(copyenv)
 	if len(key) == 0 {
 		return "", false
@@ -90,7 +90,7 @@ func Getenv(key string) (value string, found bool) { // 获取环境变量
 	return "", false
 }
 
-func Setenv(key, value string) error { // 设置环境变量
+func Setenv(key, value string) error { // 璁剧疆鐜鍙橀噺
 	envOnce.Do(copyenv)
 	if len(key) == 0 {
 		return EINVAL
@@ -122,7 +122,7 @@ func Setenv(key, value string) error { // 设置环境变量
 	return nil
 }
 
-func Clearenv() { // 清除环境变量
+func Clearenv() { // 娓呴櫎鐜鍙橀噺
 	envOnce.Do(copyenv) // prevent copyenv in Getenv/Setenv
 
 	envLock.Lock()
@@ -135,7 +135,7 @@ func Clearenv() { // 清除环境变量
 	envs = []string{}
 }
 
-func Environ() []string { // 获得环境变量列表
+func Environ() []string { // 鑾峰緱鐜鍙橀噺鍒楄〃
 	envOnce.Do(copyenv)
 	envLock.RLock()
 	defer envLock.RUnlock()

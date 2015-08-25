@@ -97,14 +97,14 @@ func (p *Pool) Get() interface{} { // 从Pool中获取一个元素
 		}
 		return nil
 	}
-	l := p.pin()   // 获得对应的poolLocal
-	x := l.private // 获得poolLocal中的private部分
-	l.private = nil
-	runtime_procUnpin()
-	if x != nil { // 如果获得了元素，返回
+	l := p.pin()        // 获得对应的poolLocal
+	x := l.private      // 获得poolLocal中的private部分
+	l.private = nil     // 取出来private了，将原private变为空
+	runtime_procUnpin() // P解锁，可以调度了
+	if x != nil {       // 如果获得了元素，返回
 		return x
 	}
-	l.Lock()
+	l.Lock()                  // private部分没有了，从shared部分获取，需要加锁
 	last := len(l.shared) - 1 // 如果没有private从共享部分获得元素
 	if last >= 0 {
 		x = l.shared[last]

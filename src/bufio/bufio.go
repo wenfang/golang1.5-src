@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	defaultBufSize = 4096 // È±Ê¡µÄbuf´óĞ¡4K
+	defaultBufSize = 4096 // ç¼ºçœçš„bufå¤§å°4K
 )
 
 var (
@@ -28,47 +28,47 @@ var (
 // Buffered input.
 
 // Reader implements buffering for an io.Reader object.
-type Reader struct { // io.ReaderµÄ»º´æ°æ±¾
-	buf          []byte    // ±£´æ»º´æÇøÓò
+type Reader struct { // io.Readerçš„ç¼“å­˜ç‰ˆæœ¬
+	buf          []byte    // ä¿å­˜ç¼“å­˜åŒºåŸŸ
 	rd           io.Reader // reader provided by the client
 	r, w         int       // buf read and write positions
-	err          error     // ¶ÁÈ¡´íÎóÏûÏ¢
+	err          error     // è¯»å–é”™è¯¯æ¶ˆæ¯
 	lastByte     int
 	lastRuneSize int
 }
 
-const minReadBufferSize = 16 // ×îĞ¡µÄ¶ÁBuffer´óĞ¡16¸ö×Ö½Ú
+const minReadBufferSize = 16 // æœ€å°çš„è¯»Bufferå¤§å°16ä¸ªå­—èŠ‚
 const maxConsecutiveEmptyReads = 100
 
 // NewReaderSize returns a new Reader whose buffer has at least the specified
 // size. If the argument io.Reader is already a Reader with large enough
 // size, it returns the underlying Reader.
-func NewReaderSize(rd io.Reader, size int) *Reader { // ´´½¨ĞÂµÄbufio.Reader£¬Éè¶¨bufµÄ´óĞ¡Îªsize
+func NewReaderSize(rd io.Reader, size int) *Reader { // åˆ›å»ºæ–°çš„bufio.Readerï¼Œè®¾å®šbufçš„å¤§å°ä¸ºsize
 	// Is it already a Reader?
-	b, ok := rd.(*Reader)         // rdÒÑ¾­ÊÇÒ»¸öbufio.ReaderÁË
-	if ok && len(b.buf) >= size { // Èç¹ûÒÑ¾­ÊÇbufio.ReaderÁË£¬²¢ÇÒbufµÄ´óĞ¡±Èsize´ó,·µ»Ø×ÔÉí
+	b, ok := rd.(*Reader)         // rdå·²ç»æ˜¯ä¸€ä¸ªbufio.Readeräº†
+	if ok && len(b.buf) >= size { // å¦‚æœå·²ç»æ˜¯bufio.Readeräº†ï¼Œå¹¶ä¸”bufçš„å¤§å°æ¯”sizeå¤§,è¿”å›è‡ªèº«
 		return b
 	}
-	if size < minReadBufferSize { // Éè¶¨buffer´óĞ¡£¬×îĞ¡ÎªminReadBufferSize,16¸ö×Ö½Ú
+	if size < minReadBufferSize { // è®¾å®šbufferå¤§å°ï¼Œæœ€å°ä¸ºminReadBufferSize,16ä¸ªå­—èŠ‚
 		size = minReadBufferSize
 	}
 	r := new(Reader)
-	r.reset(make([]byte, size), rd) // ´´½¨Ò»¸öReader½á¹¹£¬·ÖÅäµ×²ãReaderÎªrd
+	r.reset(make([]byte, size), rd) // åˆ›å»ºä¸€ä¸ªReaderç»“æ„ï¼Œåˆ†é…åº•å±‚Readerä¸ºrd
 	return r
 }
 
 // NewReader returns a new Reader whose buffer has the default size.
-func NewReader(rd io.Reader) *Reader { // ´´½¨Ò»¸öĞÂµÄbufio.Reader£¬ÓÃÈ±Ê¡´óĞ¡4KµÄ»º³åÊı¾İ
-	return NewReaderSize(rd, defaultBufSize) //  È±Ê¡bufferÎª4K
+func NewReader(rd io.Reader) *Reader { // åˆ›å»ºä¸€ä¸ªæ–°çš„bufio.Readerï¼Œç”¨ç¼ºçœå¤§å°4Kçš„ç¼“å†²æ•°æ®
+	return NewReaderSize(rd, defaultBufSize) //  ç¼ºçœbufferä¸º4K
 }
 
 // Reset discards any buffered data, resets all state, and switches
 // the buffered reader to read from r.
-func (b *Reader) Reset(r io.Reader) { // ·ÅÆúËùÓĞbufferÖĞµÄÊı¾İ£¬²¢ÇÒÉèÖÃbufio´ÓrÖĞ¶ÁÈ¡
+func (b *Reader) Reset(r io.Reader) { // æ”¾å¼ƒæ‰€æœ‰bufferä¸­çš„æ•°æ®ï¼Œå¹¶ä¸”è®¾ç½®bufioä»rä¸­è¯»å–
 	b.reset(b.buf, r)
 }
 
-func (b *Reader) reset(buf []byte, r io.Reader) { // ÉèÖÃbufºÍµ×²ãµÄio.Reader
+func (b *Reader) reset(buf []byte, r io.Reader) { // è®¾ç½®bufå’Œåº•å±‚çš„io.Reader
 	*b = Reader{
 		buf:          buf,
 		rd:           r,
@@ -80,37 +80,37 @@ func (b *Reader) reset(buf []byte, r io.Reader) { // ÉèÖÃbufºÍµ×²ãµÄio.Reader
 var errNegativeRead = errors.New("bufio: reader returned negative count from Read")
 
 // fill reads a new chunk into the buffer.
-func (b *Reader) fill() { // ÓÃÊı¾İ³äÂúbuf½á¹¹
+func (b *Reader) fill() { // ç”¨æ•°æ®å……æ»¡bufç»“æ„
 	// Slide existing data to beginning.
-	if b.r > 0 { // Èç¹ûrÎ»ÖÃ´óÓÚ0
-		copy(b.buf, b.buf[b.r:b.w]) // ½«Êı¾İ¶ÔÆëµ½bufµÄ¿ªÊ¼
-		b.w -= b.r                  // ¸üĞÂwºÍrµÄÖ¸Õë
+	if b.r > 0 { // å¦‚æœrä½ç½®å¤§äº0
+		copy(b.buf, b.buf[b.r:b.w]) // å°†æ•°æ®å¯¹é½åˆ°bufçš„å¼€å§‹
+		b.w -= b.r                  // æ›´æ–°wå’Œrçš„æŒ‡é’ˆ
 		b.r = 0
 	}
 
-	if b.w >= len(b.buf) { // bufÒÑ¾­±»ÌîÂúÁË£¬Ã»°ì·¨ÔÙfillÁË
+	if b.w >= len(b.buf) { // bufå·²ç»è¢«å¡«æ»¡äº†ï¼Œæ²¡åŠæ³•å†filläº†
 		panic("bufio: tried to fill full buffer")
 	}
 
 	// Read new data: try a limited number of times.
-	for i := maxConsecutiveEmptyReads; i > 0; i-- { // ÖØ¸´³¢ÊÔ100´Ê
-		n, err := b.rd.Read(b.buf[b.w:]) // ¶Á¿ªÊ¼Ìî³ä´Ów¿ªÊ¼µ½buf½áÊøÎ»ÖÃµÄÊı¾İ
-		if n < 0 {                       // ¶Á·¢ÉúÊ§°Ü£¬panic
+	for i := maxConsecutiveEmptyReads; i > 0; i-- { // é‡å¤å°è¯•100è¯
+		n, err := b.rd.Read(b.buf[b.w:]) // è¯»å¼€å§‹å¡«å……ä»wå¼€å§‹åˆ°bufç»“æŸä½ç½®çš„æ•°æ®
+		if n < 0 {                       // è¯»å‘ç”Ÿå¤±è´¥ï¼Œpanic
 			panic(errNegativeRead)
 		}
-		b.w += n        // ¶Á³öÀ´n´óĞ¡µÄÊı¾İ
-		if err != nil { // Èç¹ûerr·Çnil£¬ÉèÖÃerr
+		b.w += n        // è¯»å‡ºæ¥nå¤§å°çš„æ•°æ®
+		if err != nil { // å¦‚æœerrénilï¼Œè®¾ç½®err
 			b.err = err
 			return
 		}
-		if n > 0 { // Èç¹û¶Á³öÀ´Êı¾İÁË£¬·µ»Ø
+		if n > 0 { // å¦‚æœè¯»å‡ºæ¥æ•°æ®äº†ï¼Œè¿”å›
 			return
 		}
 	}
 	b.err = io.ErrNoProgress
 }
 
-func (b *Reader) readErr() error { // ·µ»Ø¶ÁÈ¡´íÎóµÄ·µ»ØÖµ£¬²¢½«errÇå¿Õ
+func (b *Reader) readErr() error { // è¿”å›è¯»å–é”™è¯¯çš„è¿”å›å€¼ï¼Œå¹¶å°†erræ¸…ç©º
 	err := b.err
 	b.err = nil
 	return err
@@ -120,15 +120,15 @@ func (b *Reader) readErr() error { // ·µ»Ø¶ÁÈ¡´íÎóµÄ·µ»ØÖµ£¬²¢½«errÇå¿Õ
 // being valid at the next read call. If Peek returns fewer than n bytes, it
 // also returns an error explaining why the read is short. The error is
 // ErrBufferFull if n is larger than b's buffer size.
-func (b *Reader) Peek(n int) ([]byte, error) { // ·µ»Øºón¸öbyte£¬µ«ÊÇ²¢²»ÏòÇ°ÍÆ½øÖ¸Õë
-	if n < 0 { // n²»ÄÜĞ¡ÓÚ0
+func (b *Reader) Peek(n int) ([]byte, error) { // è¿”å›ånä¸ªbyteï¼Œä½†æ˜¯å¹¶ä¸å‘å‰æ¨è¿›æŒ‡é’ˆ
+	if n < 0 { // nä¸èƒ½å°äº0
 		return nil, ErrNegativeCount
 	}
-	if n > len(b.buf) { // n²»ÄÜ±ÈbufferµÄ¿Õ¼ä´ó
+	if n > len(b.buf) { // nä¸èƒ½æ¯”bufferçš„ç©ºé—´å¤§
 		return nil, ErrBufferFull
 	}
 	// 0 <= n <= len(b.buf)
-	for b.w-b.r < n && b.err == nil { // Èç¹û¿ÉÓÃ¿Õ¼ä²»×ãÒÔpeek£¬fillÒ»´Î
+	for b.w-b.r < n && b.err == nil { // å¦‚æœå¯ç”¨ç©ºé—´ä¸è¶³ä»¥peekï¼Œfillä¸€æ¬¡
 		b.fill() // b.w-b.r < len(b.buf) => buffer is not full
 	}
 
@@ -137,7 +137,7 @@ func (b *Reader) Peek(n int) ([]byte, error) { // ·µ»Øºón¸öbyte£¬µ«ÊÇ²¢²»ÏòÇ°ÍÆ½
 		// not enough data in buffer
 		n = avail
 		err = b.readErr()
-		if err == nil { // Èç¹ûÉÏ´Î¶ÁÈ¡µÄÊ±ºò·¢Éú´íÎó£¬·µ»Ø´íÎóµÄÄÚÈİ
+		if err == nil { // å¦‚æœä¸Šæ¬¡è¯»å–çš„æ—¶å€™å‘ç”Ÿé”™è¯¯ï¼Œè¿”å›é”™è¯¯çš„å†…å®¹
 			err = ErrBufferFull
 		}
 	}
@@ -149,7 +149,7 @@ func (b *Reader) Peek(n int) ([]byte, error) { // ·µ»Øºón¸öbyte£¬µ«ÊÇ²¢²»ÏòÇ°ÍÆ½
 // If Discard skips fewer than n bytes, it also returns an error.
 // If 0 <= n <= b.Buffered(), Discard is guaranteed to succeed without
 // reading from the underlying io.Reader.
-func (b *Reader) Discard(n int) (discarded int, err error) {
+func (b *Reader) Discard(n int) (discarded int, err error) { // Discardä¸‹é¢nä¸ªå­—èŠ‚ï¼Œè¿”å›è¢«discardedçš„å­—èŠ‚æ•°é‡
 	if n < 0 {
 		return 0, ErrNegativeCount
 	}
@@ -182,7 +182,7 @@ func (b *Reader) Discard(n int) (discarded int, err error) {
 // It calls Read at most once on the underlying Reader,
 // hence n may be less than len(p).
 // At EOF, the count will be zero and err will be io.EOF.
-func (b *Reader) Read(p []byte) (n int, err error) { // °ÑÊı¾İ¶Áµ½pÖĞ£¬×î¶à¶Álen(p)¸ö
+func (b *Reader) Read(p []byte) (n int, err error) { // æŠŠæ•°æ®è¯»åˆ°pä¸­ï¼Œæœ€å¤šè¯»len(p)ä¸ª
 	n = len(p)
 	if n == 0 {
 		return 0, b.readErr()
@@ -220,7 +220,7 @@ func (b *Reader) Read(p []byte) (n int, err error) { // °ÑÊı¾İ¶Áµ½pÖĞ£¬×î¶à¶Álen
 
 // ReadByte reads and returns a single byte.
 // If no byte is available, returns an error.
-func (b *Reader) ReadByte() (c byte, err error) {
+func (b *Reader) ReadByte() (c byte, err error) { // ä»bufio.Readerä¸­è¯»å–ä¸€ä¸ªå­—èŠ‚
 	b.lastRuneSize = -1
 	for b.r == b.w {
 		if b.err != nil {
@@ -235,7 +235,7 @@ func (b *Reader) ReadByte() (c byte, err error) {
 }
 
 // UnreadByte unreads the last byte.  Only the most recently read byte can be unread.
-func (b *Reader) UnreadByte() error { //unreadÒ»¸ö×Ö½Ú
+func (b *Reader) UnreadByte() error { //unreadä¸€ä¸ªå­—èŠ‚
 	if b.lastByte < 0 || b.r == 0 && b.w > 0 {
 		return ErrInvalidUnreadByte
 	}
@@ -255,7 +255,7 @@ func (b *Reader) UnreadByte() error { //unreadÒ»¸ö×Ö½Ú
 // ReadRune reads a single UTF-8 encoded Unicode character and returns the
 // rune and its size in bytes. If the encoded rune is invalid, it consumes one byte
 // and returns unicode.ReplacementChar (U+FFFD) with a size of 1.
-func (b *Reader) ReadRune() (r rune, size int, err error) { // ¶ÁÒ»¸örune
+func (b *Reader) ReadRune() (r rune, size int, err error) { // è¯»ä¸€ä¸ªrune
 	for b.r+utf8.UTFMax > b.w && !utf8.FullRune(b.buf[b.r:b.w]) && b.err == nil && b.w-b.r < len(b.buf) {
 		b.fill() // b.w-b.r < len(buf) => buffer is not full
 	}
@@ -277,7 +277,7 @@ func (b *Reader) ReadRune() (r rune, size int, err error) { // ¶ÁÒ»¸örune
 // the buffer was not a ReadRune, UnreadRune returns an error.  (In this
 // regard it is stricter than UnreadByte, which will unread the last byte
 // from any read operation.)
-func (b *Reader) UnreadRune() error { // unreadÒ»¸örune
+func (b *Reader) UnreadRune() error { // unreadä¸€ä¸ªrune
 	if b.lastRuneSize < 0 || b.r < b.lastRuneSize {
 		return ErrInvalidUnreadRune
 	}
@@ -288,7 +288,7 @@ func (b *Reader) UnreadRune() error { // unreadÒ»¸örune
 }
 
 // Buffered returns the number of bytes that can be read from the current buffer.
-func (b *Reader) Buffered() int { return b.w - b.r } // µ±Ç°buffer¿É¶ÁµÄÊı¾İµÄÊıÁ¿
+func (b *Reader) Buffered() int { return b.w - b.r } // å½“å‰bufferå¯è¯»çš„æ•°æ®çš„æ•°é‡
 
 // ReadSlice reads until the first occurrence of delim in the input,
 // returning a slice pointing at the bytes in the buffer.
@@ -300,7 +300,7 @@ func (b *Reader) Buffered() int { return b.w - b.r } // µ±Ç°buffer¿É¶ÁµÄÊı¾İµÄÊı
 // by the next I/O operation, most clients should use
 // ReadBytes or ReadString instead.
 // ReadSlice returns err != nil if and only if line does not end in delim.
-func (b *Reader) ReadSlice(delim byte) (line []byte, err error) { // ¶Á³öÒ»¸öslice£¬ÒÔdelim×÷Îª·Ö¸î
+func (b *Reader) ReadSlice(delim byte) (line []byte, err error) { // è¯»å‡ºä¸€ä¸ªsliceï¼Œä»¥delimä½œä¸ºåˆ†å‰²
 	for {
 		// Search buffer.
 		if i := bytes.IndexByte(b.buf[b.r:b.w], delim); i >= 0 {
@@ -353,7 +353,7 @@ func (b *Reader) ReadSlice(delim byte) (line []byte, err error) { // ¶Á³öÒ»¸ösli
 // Calling UnreadByte after ReadLine will always unread the last byte read
 // (possibly a character belonging to the line end) even if that byte is not
 // part of the line returned by ReadLine.
-func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error) { // ¶Á³öÒ»ĞĞ£¬ÒÔ\n×÷Îª·Ö¸î£¬²¢²»°üÀ¨½áÎ²×Ö·û
+func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error) { // è¯»å‡ºä¸€è¡Œï¼Œä»¥\nä½œä¸ºåˆ†å‰²ï¼Œå¹¶ä¸åŒ…æ‹¬ç»“å°¾å­—ç¬¦
 	line, err = b.ReadSlice('\n')
 	if err == ErrBufferFull {
 		// Handle the case where "\r\n" straddles the buffer.
@@ -395,7 +395,7 @@ func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error) { // ¶Á³öÒ»Ğ
 // ReadBytes returns err != nil if and only if the returned data does not end in
 // delim.
 // For simple uses, a Scanner may be more convenient.
-func (b *Reader) ReadBytes(delim byte) (line []byte, err error) { // ¶Á³ö×Ö½Ú£¬ÒÔdelim½øĞĞ·Ö¸î
+func (b *Reader) ReadBytes(delim byte) (line []byte, err error) { // è¯»å‡ºå­—èŠ‚ï¼Œä»¥delimè¿›è¡Œåˆ†å‰²
 	// Use ReadSlice to look for array,
 	// accumulating full buffers.
 	var frag []byte
@@ -442,14 +442,14 @@ func (b *Reader) ReadBytes(delim byte) (line []byte, err error) { // ¶Á³ö×Ö½Ú£¬Ò
 // ReadString returns err != nil if and only if the returned data does not end in
 // delim.
 // For simple uses, a Scanner may be more convenient.
-func (b *Reader) ReadString(delim byte) (line string, err error) { // ¶Á³ö×Ö·û´®
+func (b *Reader) ReadString(delim byte) (line string, err error) { // è¯»å‡ºå­—ç¬¦ä¸²
 	bytes, err := b.ReadBytes(delim)
 	line = string(bytes)
 	return line, err
 }
 
 // WriteTo implements io.WriterTo.
-func (b *Reader) WriteTo(w io.Writer) (n int64, err error) { // ½«bufÄÚÈİĞ´µ½io.WriterÖĞ£¬·µ»ØĞ´ÈëÁË¶àÉÙ×Ö½Ú
+func (b *Reader) WriteTo(w io.Writer) (n int64, err error) { // å°†bufå†…å®¹å†™åˆ°io.Writerä¸­ï¼Œè¿”å›å†™å…¥äº†å¤šå°‘å­—èŠ‚
 	n, err = b.writeBuf(w)
 	if err != nil {
 		return
@@ -508,9 +508,9 @@ func (b *Reader) writeBuf(w io.Writer) (int64, error) {
 // After all data has been written, the client should call the
 // Flush method to guarantee all data has been forwarded to
 // the underlying io.Writer.
-type Writer struct { // »º´æ°æ±¾µÄio.Writer
+type Writer struct { // ç¼“å­˜ç‰ˆæœ¬çš„io.Writer
 	err error
-	buf []byte // Ğ´buffer
+	buf []byte // å†™buffer
 	n   int
 	wr  io.Writer
 }
@@ -518,7 +518,7 @@ type Writer struct { // »º´æ°æ±¾µÄio.Writer
 // NewWriterSize returns a new Writer whose buffer has at least the specified
 // size. If the argument io.Writer is already a Writer with large enough
 // size, it returns the underlying Writer.
-func NewWriterSize(w io.Writer, size int) *Writer { // Éú³ÉÒ»¸öĞÂµÄbuf Writer, sizeÎªbuf´óĞ¡
+func NewWriterSize(w io.Writer, size int) *Writer { // ç”Ÿæˆä¸€ä¸ªæ–°çš„buf Writer, sizeä¸ºbufå¤§å°
 	// Is it already a Writer?
 	b, ok := w.(*Writer)
 	if ok && len(b.buf) >= size {
@@ -534,25 +534,25 @@ func NewWriterSize(w io.Writer, size int) *Writer { // Éú³ÉÒ»¸öĞÂµÄbuf Writer, s
 }
 
 // NewWriter returns a new Writer whose buffer has the default size.
-func NewWriter(w io.Writer) *Writer { // Éú³ÉÒ»¸öĞÂWriter
+func NewWriter(w io.Writer) *Writer { // ç”Ÿæˆä¸€ä¸ªæ–°Writer
 	return NewWriterSize(w, defaultBufSize)
 }
 
 // Reset discards any unflushed buffered data, clears any error, and
 // resets b to write its output to w.
-func (b *Writer) Reset(w io.Writer) { // ÖØÖÃWriter
+func (b *Writer) Reset(w io.Writer) { // é‡ç½®Writer
 	b.err = nil
 	b.n = 0
 	b.wr = w
 }
 
 // Flush writes any buffered data to the underlying io.Writer.
-func (b *Writer) Flush() error { // °ÑÊı¾İË¢ĞÂµ½io.WriterÖĞ
-	err := b.flush() // µ÷ÓÃflushÖ´ĞĞÊı¾İË¢ĞÂ
+func (b *Writer) Flush() error { // æŠŠæ•°æ®åˆ·æ–°åˆ°io.Writerä¸­
+	err := b.flush() // è°ƒç”¨flushæ‰§è¡Œæ•°æ®åˆ·æ–°
 	return err
 }
 
-func (b *Writer) flush() error { // Ö´ĞĞÊı¾İË¢ĞÂ
+func (b *Writer) flush() error { // æ‰§è¡Œæ•°æ®åˆ·æ–°
 	if b.err != nil {
 		return b.err
 	}
@@ -576,16 +576,16 @@ func (b *Writer) flush() error { // Ö´ĞĞÊı¾İË¢ĞÂ
 }
 
 // Available returns how many bytes are unused in the buffer.
-func (b *Writer) Available() int { return len(b.buf) - b.n } // ·µ»ØbufferÖĞ¿ÉÓÃ¿Õ¼ä´óĞ¡
+func (b *Writer) Available() int { return len(b.buf) - b.n } // è¿”å›bufferä¸­å¯ç”¨ç©ºé—´å¤§å°
 
 // Buffered returns the number of bytes that have been written into the current buffer.
-func (b *Writer) Buffered() int { return b.n } // ·µ»ØbufferÖĞµÄÊı¾İÁ¿
+func (b *Writer) Buffered() int { return b.n } // è¿”å›bufferä¸­çš„æ•°æ®é‡
 
 // Write writes the contents of p into the buffer.
 // It returns the number of bytes written.
 // If nn < len(p), it also returns an error explaining
 // why the write is short.
-func (b *Writer) Write(p []byte) (nn int, err error) { // ½«ÄÚÈİpĞ´µ½bufÖĞ£¬Êı¾İ¹ı¶àÔòflush
+func (b *Writer) Write(p []byte) (nn int, err error) { // å°†å†…å®¹på†™åˆ°bufä¸­ï¼Œæ•°æ®è¿‡å¤šåˆ™flush
 	for len(p) > b.Available() && b.err == nil {
 		var n int
 		if b.Buffered() == 0 {
@@ -610,7 +610,7 @@ func (b *Writer) Write(p []byte) (nn int, err error) { // ½«ÄÚÈİpĞ´µ½bufÖĞ£¬Êı¾İ
 }
 
 // WriteByte writes a single byte.
-func (b *Writer) WriteByte(c byte) error { // Ğ´Ò»¸ö×Ö½Ú
+func (b *Writer) WriteByte(c byte) error { // å†™ä¸€ä¸ªå­—èŠ‚
 	if b.err != nil {
 		return b.err
 	}
@@ -624,7 +624,7 @@ func (b *Writer) WriteByte(c byte) error { // Ğ´Ò»¸ö×Ö½Ú
 
 // WriteRune writes a single Unicode code point, returning
 // the number of bytes written and any error.
-func (b *Writer) WriteRune(r rune) (size int, err error) { // Ğ´Ò»¸örune
+func (b *Writer) WriteRune(r rune) (size int, err error) { // å†™ä¸€ä¸ªrune
 	if r < utf8.RuneSelf {
 		err = b.WriteByte(byte(r))
 		if err != nil {
@@ -655,7 +655,7 @@ func (b *Writer) WriteRune(r rune) (size int, err error) { // Ğ´Ò»¸örune
 // It returns the number of bytes written.
 // If the count is less than len(s), it also returns an error explaining
 // why the write is short.
-func (b *Writer) WriteString(s string) (int, error) { // Ğ´×Ö·û´®
+func (b *Writer) WriteString(s string) (int, error) { // å†™å­—ç¬¦ä¸²
 	nn := 0
 	for len(s) > b.Available() && b.err == nil {
 		n := copy(b.buf[b.n:], s)
@@ -674,7 +674,7 @@ func (b *Writer) WriteString(s string) (int, error) { // Ğ´×Ö·û´®
 }
 
 // ReadFrom implements io.ReaderFrom.
-func (b *Writer) ReadFrom(r io.Reader) (n int64, err error) { // ´Óio.Reader¶Á£¬Ğ´ÈëWriter
+func (b *Writer) ReadFrom(r io.Reader) (n int64, err error) { // ä»io.Readerè¯»ï¼Œå†™å…¥Writer
 	if b.Buffered() == 0 {
 		if w, ok := b.wr.(io.ReaderFrom); ok {
 			return w.ReadFrom(r)
@@ -719,12 +719,12 @@ func (b *Writer) ReadFrom(r io.Reader) (n int64, err error) { // ´Óio.Reader¶Á£¬
 
 // ReadWriter stores pointers to a Reader and a Writer.
 // It implements io.ReadWriter.
-type ReadWriter struct { // bufioµÄReader Writer½Ó¿Ú£¬°üº¬Reader WriterÁ½¸ö½á¹¹
+type ReadWriter struct { // bufioçš„Reader Writeræ¥å£ï¼ŒåŒ…å«Reader Writerä¸¤ä¸ªç»“æ„
 	*Reader
 	*Writer
 }
 
 // NewReadWriter allocates a new ReadWriter that dispatches to r and w.
-func NewReadWriter(r *Reader, w *Writer) *ReadWriter { // ´´½¨ĞÂµÄReaderWriter
+func NewReadWriter(r *Reader, w *Writer) *ReadWriter { // åˆ›å»ºæ–°çš„ReaderWriter
 	return &ReadWriter{r, w}
 }

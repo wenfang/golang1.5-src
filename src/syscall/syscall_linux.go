@@ -260,7 +260,7 @@ func Wait4(pid int, wstatus *WaitStatus, options int, rusage *Rusage) (wpid int,
 	return
 }
 
-func Mkfifo(path string, mode uint32) (err error) { // ´´½¨fifo
+func Mkfifo(path string, mode uint32) (err error) { // åˆ›å»ºfifo
 	return Mknod(path, mode|S_IFIFO, 0)
 }
 

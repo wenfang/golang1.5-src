@@ -31,19 +31,19 @@ var (
 // Register makes a database driver available by the provided name.
 // If Register is called twice with the same name or if driver is nil,
 // it panics.
-func Register(name string, driver driver.Driver) { // ×¢²ádriver
+func Register(name string, driver driver.Driver) { // æ³¨å†Œdriver
 	driversMu.Lock()
 	defer driversMu.Unlock()
 	if driver == nil {
 		panic("sql: Register driver is nil")
 	}
-	if _, dup := drivers[name]; dup { // Èç¹ûÓĞÖØ¸´µÄ£¬panic
+	if _, dup := drivers[name]; dup { // å¦‚æœæœ‰é‡å¤çš„ï¼Œpanic
 		panic("sql: Register called twice for driver " + name)
 	}
-	drivers[name] = driver // Îªdriver¸³Öµ
+	drivers[name] = driver // ä¸ºdriverèµ‹å€¼
 }
 
-func unregisterAllDrivers() { // ·´×¢²áËùÓĞµÄdriver
+func unregisterAllDrivers() { // åæ³¨å†Œæ‰€æœ‰çš„driver
 	driversMu.Lock()
 	defer driversMu.Unlock()
 	// For tests.
@@ -51,7 +51,7 @@ func unregisterAllDrivers() { // ·´×¢²áËùÓĞµÄdriver
 }
 
 // Drivers returns a sorted list of the names of the registered drivers.
-func Drivers() []string { // ·µ»ØdriverµÄÁĞ±í
+func Drivers() []string { // è¿”å›driverçš„åˆ—è¡¨
 	driversMu.Lock()
 	defer driversMu.Unlock()
 	var list []string
@@ -80,13 +80,13 @@ type RawBytes []byte
 //     // NULL value
 //  }
 //
-type NullString struct { // ´ú±í¿ÉÄÜÖµÎª¿ÕµÄ×Ö·û´®
+type NullString struct { // ä»£è¡¨å¯èƒ½å€¼ä¸ºç©ºçš„å­—ç¬¦ä¸²
 	String string
-	Valid  bool // Valid is true if String is not NULL ×Ö·û´®ÊÇ·ñÎª¿Õ
+	Valid  bool // Valid is true if String is not NULL å­—ç¬¦ä¸²æ˜¯å¦ä¸ºç©º
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullString) Scan(value interface{}) error { // ÊµÏÖScan½Ó¿Ú
+func (ns *NullString) Scan(value interface{}) error { // å®ç°Scanæ¥å£
 	if value == nil {
 		ns.String, ns.Valid = "", false
 		return nil
@@ -106,7 +106,7 @@ func (ns NullString) Value() (driver.Value, error) {
 // NullInt64 represents an int64 that may be null.
 // NullInt64 implements the Scanner interface so
 // it can be used as a scan destination, similar to NullString.
-type NullInt64 struct { // ´ú±í¿ÉÄÜÖµÎª¿ÕµÄInt64
+type NullInt64 struct { // ä»£è¡¨å¯èƒ½å€¼ä¸ºç©ºçš„Int64
 	Int64 int64
 	Valid bool // Valid is true if Int64 is not NULL
 }
@@ -132,7 +132,7 @@ func (n NullInt64) Value() (driver.Value, error) {
 // NullFloat64 represents a float64 that may be null.
 // NullFloat64 implements the Scanner interface so
 // it can be used as a scan destination, similar to NullString.
-type NullFloat64 struct { // ´ú±íÖµ¿ÉÄÜÎª¿ÕµÄFloat64
+type NullFloat64 struct { // ä»£è¡¨å€¼å¯èƒ½ä¸ºç©ºçš„Float64
 	Float64 float64
 	Valid   bool // Valid is true if Float64 is not NULL
 }
@@ -158,7 +158,7 @@ func (n NullFloat64) Value() (driver.Value, error) {
 // NullBool represents a bool that may be null.
 // NullBool implements the Scanner interface so
 // it can be used as a scan destination, similar to NullString.
-type NullBool struct { // ´ú±íÖµ¿ÉÄÜÎª¿ÕµÄ²¼¶ûÖµ
+type NullBool struct { // ä»£è¡¨å€¼å¯èƒ½ä¸ºç©ºçš„å¸ƒå°”å€¼
 	Bool  bool
 	Valid bool // Valid is true if Bool is not NULL
 }
@@ -182,7 +182,7 @@ func (n NullBool) Value() (driver.Value, error) {
 }
 
 // Scanner is an interface used by Scan.
-type Scanner interface { // Scanner½Ó¿Ú£¬ÒªÇóÊµÏÖScan·½·¨£¬¿ÉÒÔ±»ScanµÄÖµ
+type Scanner interface { // Scanneræ¥å£ï¼Œè¦æ±‚å®ç°Scanæ–¹æ³•ï¼Œå¯ä»¥è¢«Scançš„å€¼
 	// Scan assigns a value from a database driver.
 	//
 	// The src value will be of one of the following restricted
@@ -198,7 +198,7 @@ type Scanner interface { // Scanner½Ó¿Ú£¬ÒªÇóÊµÏÖScan·½·¨£¬¿ÉÒÔ±»ScanµÄÖµ
 	//
 	// An error should be returned if the value can not be stored
 	// without loss of information.
-	Scan(src interface{}) error // ÊµÏÖscan·½·¨
+	Scan(src interface{}) error // å®ç°scanæ–¹æ³•
 }
 
 // ErrNoRows is returned by Scan when QueryRow doesn't return a
@@ -219,15 +219,15 @@ var ErrNoRows = errors.New("sql: no rows in result set")
 // connection is returned to DB's idle connection pool. The pool size
 // can be controlled with SetMaxIdleConns.
 type DB struct {
-	driver driver.Driver // ËùÊ¹ÓÃµÄÊı¾İ¿âdriver
-	dsn    string        // dsn×Ö·û´®
+	driver driver.Driver // æ‰€ä½¿ç”¨çš„æ•°æ®åº“driver
+	dsn    string        // dsnå­—ç¬¦ä¸²
 	// numClosed is an atomic counter which represents a total number of
 	// closed connections. Stmt.openStmt checks it before cleaning closed
 	// connections in Stmt.css.
 	numClosed uint64
 
-	mu           sync.Mutex    // protects following fields ÄÚ½¨¶ÔdbµÄÁ¬½Ó³Ø
-	freeConn     []*driverConn // µ½¸ÃDBµÄÁ¬½Ó
+	mu           sync.Mutex    // protects following fields å†…å»ºå¯¹dbçš„è¿æ¥æ± 
+	freeConn     []*driverConn // åˆ°è¯¥DBçš„è¿æ¥
 	connRequests []chan connRequest
 	numOpen      int
 	pendingOpens int
@@ -241,7 +241,7 @@ type DB struct {
 	dep      map[finalCloser]depSet
 	lastPut  map[*driverConn]string // stacktrace of last conn's put; debug only
 	maxIdle  int                    // zero means defaultMaxIdleConns; negative means 0
-	maxOpen  int                    // <= 0 means unlimited ×î´ó´ò¿ªÁ¬½ÓµÄÊıÁ¿£¬Ğ¡ÓÚµÈÓÚ0±íÊ¾Ã»ÏŞÖÆ
+	maxOpen  int                    // <= 0 means unlimited æœ€å¤§æ‰“å¼€è¿æ¥çš„æ•°é‡ï¼Œå°äºç­‰äº0è¡¨ç¤ºæ²¡é™åˆ¶
 }
 
 // connReuseStrategy determines how (*DB).conn returns database connections.
@@ -260,13 +260,13 @@ const (
 // be held during all calls into the Conn. (including any calls onto
 // interfaces returned via that Conn, such as calls on Tx, Stmt,
 // Result, Rows)
-type driverConn struct { // ´ú±íµ½Êı¾İ¿âµÄÁ¬½Ó
-	db *DB // Ö¸ÏòÊı¾İ¿â½á¹¹
+type driverConn struct { // ä»£è¡¨åˆ°æ•°æ®åº“çš„è¿æ¥
+	db *DB // æŒ‡å‘æ•°æ®åº“ç»“æ„
 
-	sync.Mutex  // guards following
-	ci          driver.Conn // ¶ÔÓ¦Çı¶¯µÄÁ¬½Ó
-	closed      bool        // ¸ÃÁ¬½ÓÊÇ·ñÒÑ¹Ø±Õ
-	finalClosed bool // ci.Close has been called
+	sync.Mutex              // guards following
+	ci          driver.Conn // å¯¹åº”é©±åŠ¨çš„è¿æ¥
+	closed      bool        // è¯¥è¿æ¥æ˜¯å¦å·²å…³é—­
+	finalClosed bool        // ci.Close has been called
 	openStmt    map[driver.Stmt]bool
 
 	// guarded by db.mu
@@ -465,16 +465,16 @@ var connectionRequestQueueSize = 1000000
 // and maintains its own pool of idle connections. Thus, the Open
 // function should be called just once. It is rarely necessary to
 // close a DB.
-func Open(driverName, dataSourceName string) (*DB, error) { // ´ò¿ªÒ»¸ödriver£¬·µ»ØÒ»¸öDB½á¹¹µÄÖ¸Õë
+func Open(driverName, dataSourceName string) (*DB, error) { // æ‰“å¼€ä¸€ä¸ªdriverï¼Œè¿”å›ä¸€ä¸ªDBç»“æ„çš„æŒ‡é’ˆ
 	driversMu.Lock()
-	driveri, ok := drivers[driverName] // ´ÓdriversÖĞ²éÕÒµ½¶ÔÓ¦µÄdriver
+	driveri, ok := drivers[driverName] // ä»driversä¸­æŸ¥æ‰¾åˆ°å¯¹åº”çš„driver
 	driversMu.Unlock()
 	if !ok {
 		return nil, fmt.Errorf("sql: unknown driver %q (forgotten import?)", driverName)
 	}
-	db := &DB{ // ·µ»ØÒ»¸öDB½á¹¹
-		driver:   driveri,        // ¶ÔÓ¦µÄdriver
-		dsn:      dataSourceName, // Êı¾İÔ´Ãû
+	db := &DB{ // è¿”å›ä¸€ä¸ªDBç»“æ„
+		driver:   driveri,        // å¯¹åº”çš„driver
+		dsn:      dataSourceName, // æ•°æ®æºå
 		openerCh: make(chan struct{}, connectionRequestQueueSize),
 		lastPut:  make(map[*driverConn]string),
 	}
@@ -484,7 +484,7 @@ func Open(driverName, dataSourceName string) (*DB, error) { // ´ò¿ªÒ»¸ödriver£¬·
 
 // Ping verifies a connection to the database is still alive,
 // establishing a connection if necessary.
-func (db *DB) Ping() error { // Ğ£ÑéÁ¬½Ó
+func (db *DB) Ping() error { // æ ¡éªŒè¿æ¥
 	// TODO(bradfitz): give drivers an optional hook to implement
 	// this in a more efficient or more reliable way, if they
 	// have one.
@@ -500,7 +500,7 @@ func (db *DB) Ping() error { // Ğ£ÑéÁ¬½Ó
 //
 // It is rare to Close a DB, as the DB handle is meant to be
 // long-lived and shared between many goroutines.
-func (db *DB) Close() error { // ¹Ø±Õdatabase
+func (db *DB) Close() error { // å…³é—­database
 	db.mu.Lock()
 	if db.closed { // Make DB.Close idempotent
 		db.mu.Unlock()
@@ -549,7 +549,7 @@ func (db *DB) maxIdleConnsLocked() int {
 // then the new MaxIdleConns will be reduced to match the MaxOpenConns limit
 //
 // If n <= 0, no idle connections are retained.
-func (db *DB) SetMaxIdleConns(n int) { // ÉèÖÃ×î´óµÄidleÁ¬½Ó
+func (db *DB) SetMaxIdleConns(n int) { // è®¾ç½®æœ€å¤§çš„idleè¿æ¥
 	db.mu.Lock()
 	if n > 0 {
 		db.maxIdle = n
@@ -582,7 +582,7 @@ func (db *DB) SetMaxIdleConns(n int) { // ÉèÖÃ×î´óµÄidleÁ¬½Ó
 //
 // If n <= 0, then there is no limit on the number of open connections.
 // The default is 0 (unlimited).
-func (db *DB) SetMaxOpenConns(n int) { // ÉèÖÃ×î´óµÄ´ò¿ªÁ¬½ÓÊıÁ¿
+func (db *DB) SetMaxOpenConns(n int) { // è®¾ç½®æœ€å¤§çš„æ‰“å¼€è¿æ¥æ•°é‡
 	db.mu.Lock()
 	db.maxOpen = n
 	if n < 0 {
@@ -888,7 +888,7 @@ func (db *DB) prepare(query string, strategy connReuseStrategy) (*Stmt, error) {
 
 // Exec executes a query without returning any rows.
 // The args are for any placeholder parameters in the query.
-func (db *DB) Exec(query string, args ...interface{}) (Result, error) { // Ö´ĞĞÒ»¸ösqlÇëÇó£¬·µ»ØResult
+func (db *DB) Exec(query string, args ...interface{}) (Result, error) { // æ‰§è¡Œä¸€ä¸ªsqlè¯·æ±‚ï¼Œè¿”å›Result
 	var res Result
 	var err error
 	for i := 0; i < maxBadConnRetries; i++ {
@@ -940,7 +940,7 @@ func (db *DB) exec(query string, args []interface{}, strategy connReuseStrategy)
 
 // Query executes a query that returns rows, typically a SELECT.
 // The args are for any placeholder parameters in the query.
-func (db *DB) Query(query string, args ...interface{}) (*Rows, error) { // Ö´ĞĞÒ»¸ösql²éÑ¯
+func (db *DB) Query(query string, args ...interface{}) (*Rows, error) { // æ‰§è¡Œä¸€ä¸ªsqlæŸ¥è¯¢
 	var rows *Rows
 	var err error
 	for i := 0; i < maxBadConnRetries; i++ {
@@ -1024,14 +1024,14 @@ func (db *DB) queryConn(dc *driverConn, releaseConn func(error), query string, a
 // QueryRow executes a query that is expected to return at most one row.
 // QueryRow always return a non-nil value. Errors are deferred until
 // Row's Scan method is called.
-func (db *DB) QueryRow(query string, args ...interface{}) *Row { // ²éÑ¯£¬ÆÚÍû×î¶à·µ»ØÒ»ĞĞ
+func (db *DB) QueryRow(query string, args ...interface{}) *Row { // æŸ¥è¯¢ï¼ŒæœŸæœ›æœ€å¤šè¿”å›ä¸€è¡Œ
 	rows, err := db.Query(query, args...)
 	return &Row{rows: rows, err: err}
 }
 
 // Begin starts a transaction. The isolation level is dependent on
 // the driver.
-func (db *DB) Begin() (*Tx, error) { // ¿ªÆôÒ»¸öÊÂÎñ
+func (db *DB) Begin() (*Tx, error) { // å¼€å¯ä¸€ä¸ªäº‹åŠ¡
 	var tx *Tx
 	var err error
 	for i := 0; i < maxBadConnRetries; i++ {
@@ -1066,7 +1066,7 @@ func (db *DB) begin(strategy connReuseStrategy) (tx *Tx, err error) {
 }
 
 // Driver returns the database's underlying driver.
-func (db *DB) Driver() driver.Driver { // ·µ»ØdatabaseËùÊ¹ÓÃµÄdriver
+func (db *DB) Driver() driver.Driver { // è¿”å›databaseæ‰€ä½¿ç”¨çš„driver
 	return db.driver
 }
 
@@ -1130,7 +1130,7 @@ func (tx *Tx) closePrepared() {
 }
 
 // Commit commits the transaction.
-func (tx *Tx) Commit() error { // Ìá½»Ò»¸öÊÂÎñ
+func (tx *Tx) Commit() error { // æäº¤ä¸€ä¸ªäº‹åŠ¡
 	if tx.done {
 		return ErrTxDone
 	}
@@ -1145,7 +1145,7 @@ func (tx *Tx) Commit() error { // Ìá½»Ò»¸öÊÂÎñ
 }
 
 // Rollback aborts the transaction.
-func (tx *Tx) Rollback() error { // »ØÍËÒ»¸öÊÂÎñ
+func (tx *Tx) Rollback() error { // å›é€€ä¸€ä¸ªäº‹åŠ¡
 	if tx.done {
 		return ErrTxDone
 	}
@@ -1311,10 +1311,10 @@ type connStmt struct {
 
 // Stmt is a prepared statement.
 // A Stmt is safe for concurrent use by multiple goroutines.
-type Stmt struct { // ´ú±íÒ»¸öpreparedµÄÓï¾ä£¬goroutine safe
-	// Immutable: ²»¿É±äµÄÓò
-	db        *DB    // where we came from Ö¸Ïò¶ÔÓ¦µÄdb
-	query     string // that created the Stmt ²éÑ¯×Ö·û´®
+type Stmt struct { // ä»£è¡¨ä¸€ä¸ªpreparedçš„è¯­å¥ï¼Œgoroutine safe
+	// Immutable: ä¸å¯å˜çš„åŸŸ
+	db        *DB    // where we came from æŒ‡å‘å¯¹åº”çš„db
+	query     string // that created the Stmt æŸ¥è¯¢å­—ç¬¦ä¸²
 	stickyErr error  // if non-nil, this error is returned for all operations
 
 	closemu sync.RWMutex // held exclusively during close, for read otherwise.
@@ -1339,7 +1339,7 @@ type Stmt struct { // ´ú±íÒ»¸öpreparedµÄÓï¾ä£¬goroutine safe
 
 // Exec executes a prepared statement with the given arguments and
 // returns a Result summarizing the effect of the statement.
-func (s *Stmt) Exec(args ...interface{}) (Result, error) { // prepared statementÖ´ĞĞ
+func (s *Stmt) Exec(args ...interface{}) (Result, error) { // prepared statementæ‰§è¡Œ
 	s.closemu.RLock()
 	defer s.closemu.RUnlock()
 
@@ -1552,7 +1552,7 @@ func rowsiFromStatement(ds driverStmt, args ...interface{}) (driver.Rows, error)
 //
 //  var name string
 //  err := nameByUseridStmt.QueryRow(id).Scan(&name)
-func (s *Stmt) QueryRow(args ...interface{}) *Row { // ²éÑ¯prepared statement£¬»ñµÃÒ»ĞĞ
+func (s *Stmt) QueryRow(args ...interface{}) *Row { // æŸ¥è¯¢prepared statementï¼Œè·å¾—ä¸€è¡Œ
 	rows, err := s.Query(args...)
 	if err != nil {
 		return &Row{err: err}
@@ -1561,7 +1561,7 @@ func (s *Stmt) QueryRow(args ...interface{}) *Row { // ²éÑ¯prepared statement£¬»
 }
 
 // Close closes the statement.
-func (s *Stmt) Close() error { // ¹Ø±Õprepared statement
+func (s *Stmt) Close() error { // å…³é—­prepared statement
 	s.closemu.Lock()
 	defer s.closemu.Unlock()
 
@@ -1629,7 +1629,7 @@ type Rows struct {
 // the two cases.
 //
 // Every call to Scan, even the first one, must be preceded by a call to Next.
-func (rs *Rows) Next() bool { // ²é¿´RowsÊÇ·ñ»¹ÓĞÏÂÒ»ĞĞ
+func (rs *Rows) Next() bool { // æŸ¥çœ‹Rowsæ˜¯å¦è¿˜æœ‰ä¸‹ä¸€è¡Œ
 	if rs.closed {
 		return false
 	}
@@ -1656,7 +1656,7 @@ func (rs *Rows) Err() error {
 // Columns returns the column names.
 // Columns returns an error if the rows are closed, or if the rows
 // are from QueryRow and there was a deferred error.
-func (rs *Rows) Columns() ([]string, error) { // ·µ»Ø¸÷ÓòµÄÃû³Æ
+func (rs *Rows) Columns() ([]string, error) { // è¿”å›å„åŸŸçš„åç§°
 	if rs.closed {
 		return nil, errors.New("sql: Rows are closed")
 	}
@@ -1678,17 +1678,17 @@ func (rs *Rows) Columns() ([]string, error) { // ·µ»Ø¸÷ÓòµÄÃû³Æ
 // If an argument has type *interface{}, Scan copies the value
 // provided by the underlying driver without conversion. If the value
 // is of type []byte, a copy is made and the caller owns the result.
-func (rs *Rows) Scan(dest ...interface{}) error { // scan rowµÄ½á¹û
-	if rs.closed { // rowsÒÑ¾­±»¹Ø±Õ
+func (rs *Rows) Scan(dest ...interface{}) error { // scan rowçš„ç»“æœ
+	if rs.closed { // rowså·²ç»è¢«å…³é—­
 		return errors.New("sql: Rows are closed")
 	}
-	if rs.lastcols == nil { // ±ØĞëÏÈµ÷ÓÃNextÔÙµ÷ÓÃScan
+	if rs.lastcols == nil { // å¿…é¡»å…ˆè°ƒç”¨Nextå†è°ƒç”¨Scan
 		return errors.New("sql: Scan called without calling Next")
 	}
-	if len(dest) != len(rs.lastcols) { // ĞèÒª½âÎöµÄÓòµÄÊıÁ¿²»ÏàÍ¬
+	if len(dest) != len(rs.lastcols) { // éœ€è¦è§£æçš„åŸŸçš„æ•°é‡ä¸ç›¸åŒ
 		return fmt.Errorf("sql: expected %d destination arguments in Scan, not %d", len(rs.lastcols), len(dest))
 	}
-	for i, sv := range rs.lastcols { // ±éÀúËùÓĞµÄÓò
+	for i, sv := range rs.lastcols { // éå†æ‰€æœ‰çš„åŸŸ
 		err := convertAssign(dest[i], sv)
 		if err != nil {
 			return fmt.Errorf("sql: Scan error on column index %d: %v", i, err)
@@ -1702,7 +1702,7 @@ var rowsCloseHook func(*Rows, *error)
 // Close closes the Rows, preventing further enumeration. If Next returns
 // false, the Rows are closed automatically and it will suffice to check the
 // result of Err. Close is idempotent and does not affect the result of Err.
-func (rs *Rows) Close() error { // ¹Ø±Õrows
+func (rs *Rows) Close() error { // å…³é—­rows
 	if rs.closed {
 		return nil
 	}
@@ -1719,7 +1719,7 @@ func (rs *Rows) Close() error { // ¹Ø±Õrows
 }
 
 // Row is the result of calling QueryRow to select a single row.
-type Row struct { // RowĞĞ½á¹¹
+type Row struct { // Rowè¡Œç»“æ„
 	// One of these two will be non-nil:
 	err  error // deferred error for easy chaining
 	rows *Rows
@@ -1729,7 +1729,7 @@ type Row struct { // RowĞĞ½á¹¹
 // pointed at by dest.  If more than one row matches the query,
 // Scan uses the first row and discards the rest.  If no row matches
 // the query, Scan returns ErrNoRows.
-func (r *Row) Scan(dest ...interface{}) error { // ½«ĞĞ²éÑ¯µÄ½á¹û·ÅÈëdestÖĞ
+func (r *Row) Scan(dest ...interface{}) error { // å°†è¡ŒæŸ¥è¯¢çš„ç»“æœæ”¾å…¥destä¸­
 	if r.err != nil {
 		return r.err
 	}
@@ -1773,21 +1773,21 @@ func (r *Row) Scan(dest ...interface{}) error { // ½«ĞĞ²éÑ¯µÄ½á¹û·ÅÈëdestÖĞ
 }
 
 // A Result summarizes an executed SQL command.
-type Result interface { // Ö´ĞĞSQLÓï¾äºó·µ»Ø½á¹û½Ó¿Ú
+type Result interface { // æ‰§è¡ŒSQLè¯­å¥åè¿”å›ç»“æœæ¥å£
 	// LastInsertId returns the integer generated by the database
 	// in response to a command. Typically this will be from an
 	// "auto increment" column when inserting a new row. Not all
 	// databases support this feature, and the syntax of such
 	// statements varies.
-	LastInsertId() (int64, error) //  ·µ»ØÉÏ´Î²åÈëµÄidºÅ
+	LastInsertId() (int64, error) //  è¿”å›ä¸Šæ¬¡æ’å…¥çš„idå·
 
 	// RowsAffected returns the number of rows affected by an
 	// update, insert, or delete. Not every database or database
 	// driver may support this.
-	RowsAffected() (int64, error) // ·µ»ØÖ´ĞĞÃüÁîÓ°ÏìµÄĞĞÊı
+	RowsAffected() (int64, error) // è¿”å›æ‰§è¡Œå‘½ä»¤å½±å“çš„è¡Œæ•°
 }
 
-type driverResult struct { // driverResultÊµÏÖÁËResult½Ó¿Ú
+type driverResult struct { // driverResultå®ç°äº†Resultæ¥å£
 	sync.Locker // the *driverConn
 	resi        driver.Result
 }

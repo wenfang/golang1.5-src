@@ -6,15 +6,15 @@
 package errors
 
 // New returns an error that formats as the given text.
-func New(text string) error { // ´´½¨ÐÂµÄerrorÀàÐÍ
+func New(text string) error { // åˆ›å»ºæ–°çš„errorç±»åž‹
 	return &errorString{text}
 }
 
 // errorString is a trivial implementation of error.
-type errorString struct { // ÄÚÇ¶µÄerrorString½á¹¹£¬ÊµÏÖÁËError·½·¨
+type errorString struct { // å†…åµŒçš„errorStringç»“æž„ï¼Œå®žçŽ°äº†Erroræ–¹æ³•
 	s string
 }
 
-func (e *errorString) Error() string { // Ö±½Ó·µ»Ø×Ö·û´®
+func (e *errorString) Error() string { // ç›´æŽ¥è¿”å›žå­—ç¬¦ä¸²
 	return e.s
 }

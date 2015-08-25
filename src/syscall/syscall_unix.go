@@ -146,7 +146,7 @@ type Signal int
 
 func (s Signal) Signal() {}
 
-func (s Signal) String() string { // ¸ù¾İSignal·µ»Østring×Ö·û´®
+func (s Signal) String() string { // æ ¹æ®Signalè¿”å›stringå­—ç¬¦ä¸²
 	if 0 <= s && int(s) < len(signals) {
 		str := signals[s]
 		if str != "" {
@@ -313,7 +313,7 @@ func Socketpair(domain, typ, proto int) (fd [2]int, err error) {
 	return
 }
 
-func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err error) { // µ÷ÓÃSendfile·¢ËÍÎÄ¼ş
+func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err error) { // è°ƒç”¨Sendfileå‘é€æ–‡ä»¶
 	if raceenabled {
 		raceReleaseMerge(unsafe.Pointer(&ioSync))
 	}
