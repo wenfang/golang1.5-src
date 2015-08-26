@@ -18,7 +18,7 @@ import (
 // and panics if the error is non-nil. It is intended for use in variable
 // initializations such as
 //	var t = template.Must(template.New("name").Parse("text"))
-func Must(t *Template, err error) *Template { // ¼ÓÔØÄ£°å£¬±ØĞë³É¹¦·ñÔòÅ×³öÒì³££¬ºÍParseºÏ²¢Ê¹ÓÃ
+func Must(t *Template, err error) *Template { // åŠ è½½æ¨¡æ¿ï¼Œå¿…é¡»æˆåŠŸå¦åˆ™æŠ›å‡ºå¼‚å¸¸ï¼Œå’ŒParseåˆå¹¶ä½¿ç”¨
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +29,7 @@ func Must(t *Template, err error) *Template { // ¼ÓÔØÄ£°å£¬±ØĞë³É¹¦·ñÔòÅ×³öÒì³££
 // the named files. The returned template's name will have the base name and
 // parsed contents of the first file. There must be at least one file.
 // If an error occurs, parsing stops and the returned *Template is nil.
-func ParseFiles(filenames ...string) (*Template, error) { // ½âÎöÒ»×éÎÄ¼ş£¬Éú³ÉÄ£°å
+func ParseFiles(filenames ...string) (*Template, error) { // è§£æä¸€ç»„æ–‡ä»¶ï¼Œç”Ÿæˆæ¨¡æ¿
 	return parseFiles(nil, filenames...)
 }
 
@@ -41,7 +41,7 @@ func ParseFiles(filenames ...string) (*Template, error) { // ½âÎöÒ»×éÎÄ¼ş£¬Éú³ÉÄ
 // of the (base) names of the files. If it does not, depending on t's
 // contents before calling ParseFiles, t.Execute may fail. In that
 // case use t.ExecuteTemplate to execute a valid template.
-func (t *Template) ParseFiles(filenames ...string) (*Template, error) { // ½âÎöÄ£°åÎÄ¼ş
+func (t *Template) ParseFiles(filenames ...string) (*Template, error) { // è§£ææ¨¡æ¿æ–‡ä»¶
 	t.init()
 	return parseFiles(t, filenames...)
 }
@@ -49,12 +49,12 @@ func (t *Template) ParseFiles(filenames ...string) (*Template, error) { // ½âÎöÄ
 // parseFiles is the helper for the method and function. If the argument
 // template is nil, it is created from the first file.
 func parseFiles(t *Template, filenames ...string) (*Template, error) {
-	if len(filenames) == 0 { /// Èç¹ûÎÄ¼şÃû³¤¶ÈÎª0£¬·µ»Ø´íÎó
+	if len(filenames) == 0 { /// å¦‚æœæ–‡ä»¶åé•¿åº¦ä¸º0ï¼Œè¿”å›é”™è¯¯
 		// Not really a problem, but be consistent.
 		return nil, fmt.Errorf("template: no files named in call to ParseFiles")
 	}
-	for _, filename := range filenames { // ±éÀúËùÓĞµÄÄ£°åÎÄ¼ş£¬È«²¿¶¼Ìí¼ÓÎªÖ÷Ä£°åµÄÏà¹ØÄ£°å
-		b, err := ioutil.ReadFile(filename) // ¶ÁÎÄ¼şÄÚÈİ
+	for _, filename := range filenames { // éå†æ‰€æœ‰çš„æ¨¡æ¿æ–‡ä»¶ï¼Œå…¨éƒ¨éƒ½æ·»åŠ ä¸ºä¸»æ¨¡æ¿çš„ç›¸å…³æ¨¡æ¿
+		b, err := ioutil.ReadFile(filename) // è¯»æ–‡ä»¶å†…å®¹
 		if err != nil {
 			return nil, err
 		}
@@ -68,14 +68,14 @@ func parseFiles(t *Template, filenames ...string) (*Template, error) {
 		// works. Otherwise we create a new template associated with t.
 		var tmpl *Template
 		if t == nil {
-			t = New(name) // ĞÂ´´½¨Ò»¸öÄ£°å
+			t = New(name) // æ–°åˆ›å»ºä¸€ä¸ªæ¨¡æ¿
 		}
 		if name == t.Name() {
 			tmpl = t
 		} else {
 			tmpl = t.New(name)
 		}
-		_, err = tmpl.Parse(s) // ½âÎöÄÚÈİÉú³ÉÄ£°å
+		_, err = tmpl.Parse(s) // è§£æå†…å®¹ç”Ÿæˆæ¨¡æ¿
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func parseFiles(t *Template, filenames ...string) (*Template, error) {
 // returned template will have the (base) name and (parsed) contents of the
 // first file matched by the pattern. ParseGlob is equivalent to calling
 // ParseFiles with the list of files matched by the pattern.
-func ParseGlob(pattern string) (*Template, error) { // ½âÎöÒ»×éÂú×ãÄ³ÖÖÄ£Ê½µÄÄ£°åÎÄ¼ş
+func ParseGlob(pattern string) (*Template, error) { // è§£æä¸€ç»„æ»¡è¶³æŸç§æ¨¡å¼çš„æ¨¡æ¿æ–‡ä»¶
 	return parseGlob(nil, pattern)
 }
 

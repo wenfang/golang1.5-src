@@ -79,7 +79,7 @@ var debug = false
 
 // Regexp is the representation of a compiled regular expression.
 // A Regexp is safe for concurrent use by multiple goroutines.
-type Regexp struct { // ¶¨ÒåÕýÔò±í´ïÊ½½á¹¹
+type Regexp struct { // å®šä¹‰æ­£åˆ™è¡¨è¾¾å¼ç»“æž„
 	// read-only after Compile
 	expr           string         // as passed to Compile
 	prog           *syntax.Prog   // compiled program
@@ -114,8 +114,8 @@ func (re *Regexp) String() string {
 // that Perl, Python, and other implementations use, although this
 // package implements it without the expense of backtracking.
 // For POSIX leftmost-longest matching, see CompilePOSIX.
-// ±àÒëÉú³ÉÒ»¸öÕýÔò±í´ïÊ½½âÎö¹¤¾ß
-func Compile(expr string) (*Regexp, error) { // Perl·ç¸ñµÄÕýÔò£¬·µ»ØRegexp½á¹¹
+// ç¼–è¯‘ç”Ÿæˆä¸€ä¸ªæ­£åˆ™è¡¨è¾¾å¼è§£æžå·¥å…·
+func Compile(expr string) (*Regexp, error) { // Perlé£Žæ ¼çš„æ­£åˆ™ï¼Œè¿”å›žRegexpç»“æž„
 	return compile(expr, syntax.Perl, false)
 }
 
@@ -138,7 +138,7 @@ func Compile(expr string) (*Regexp, error) { // Perl·ç¸ñµÄÕýÔò£¬·µ»ØRegexp½á¹¹
 // subexpression, then the second, and so on from left to right.
 // The POSIX rule is computationally prohibitive and not even well-defined.
 // See http://swtch.com/~rsc/regexp/regexp2.html#posix for details.
-func CompilePOSIX(expr string) (*Regexp, error) { // ±àÒëPOSIX·ç¸ñµÄÕýÔò
+func CompilePOSIX(expr string) (*Regexp, error) { // ç¼–è¯‘POSIXé£Žæ ¼çš„æ­£åˆ™
 	return compile(expr, syntax.POSIX, true)
 }
 
@@ -146,7 +146,7 @@ func CompilePOSIX(expr string) (*Regexp, error) { // ±àÒëPOSIX·ç¸ñµÄÕýÔò
 // That is, when matching against text, the regexp returns a match that
 // begins as early as possible in the input (leftmost), and among those
 // it chooses a match that is as long as possible.
-func (re *Regexp) Longest() { // ÉèÖÃ×î³¤Æ¥Åä
+func (re *Regexp) Longest() { // è®¾ç½®æœ€é•¿åŒ¹é…
 	re.longest = true
 }
 
@@ -163,7 +163,7 @@ func compile(expr string, mode syntax.Flags, longest bool) (*Regexp, error) {
 	if err != nil {
 		return nil, err
 	}
-	regexp := &Regexp{ // ±íÊ¾ÕýÔò±í´ïÊ½µÄ½á¹¹
+	regexp := &Regexp{ // è¡¨ç¤ºæ­£åˆ™è¡¨è¾¾å¼çš„ç»“æž„
 		expr:        expr,
 		prog:        prog,
 		onepass:     compileOnePass(prog),
@@ -216,7 +216,7 @@ func (re *Regexp) put(z *machine) {
 // MustCompile is like Compile but panics if the expression cannot be parsed.
 // It simplifies safe initialization of global variables holding compiled regular
 // expressions.
-func MustCompile(str string) *Regexp { // ÒªÇó±ØÐë±àÒë³É¹¦£¬·ñÔòÅ×³öÒì³££¬Perl·ç¸ñ
+func MustCompile(str string) *Regexp { // è¦æ±‚å¿…é¡»ç¼–è¯‘æˆåŠŸï¼Œå¦åˆ™æŠ›å‡ºå¼‚å¸¸ï¼ŒPerlé£Žæ ¼
 	regexp, error := Compile(str)
 	if error != nil {
 		panic(`regexp: Compile(` + quote(str) + `): ` + error.Error())
@@ -227,7 +227,7 @@ func MustCompile(str string) *Regexp { // ÒªÇó±ØÐë±àÒë³É¹¦£¬·ñÔòÅ×³öÒì³££¬Perl·ç
 // MustCompilePOSIX is like CompilePOSIX but panics if the expression cannot be parsed.
 // It simplifies safe initialization of global variables holding compiled regular
 // expressions.
-func MustCompilePOSIX(str string) *Regexp { // ±àÒëPOSIX·ç¸ñÕýÔò£¬·ñÔòÅ×³öÒì³£
+func MustCompilePOSIX(str string) *Regexp { // ç¼–è¯‘POSIXé£Žæ ¼æ­£åˆ™ï¼Œå¦åˆ™æŠ›å‡ºå¼‚å¸¸
 	regexp, error := CompilePOSIX(str)
 	if error != nil {
 		panic(`regexp: CompilePOSIX(` + quote(str) + `): ` + error.Error())
@@ -243,7 +243,7 @@ func quote(s string) string {
 }
 
 // NumSubexp returns the number of parenthesized subexpressions in this Regexp.
-func (re *Regexp) NumSubexp() int { // ·µ»Ø×ÓÕýÔò±í´ïÊ½µÄÊýÁ¿
+func (re *Regexp) NumSubexp() int { // è¿”å›žå­æ­£åˆ™è¡¨è¾¾å¼çš„æ•°é‡
 	return re.numSubexp
 }
 
@@ -397,19 +397,19 @@ func (re *Regexp) MatchReader(r io.RuneReader) bool {
 }
 
 // MatchString reports whether the Regexp matches the string s.
-func (re *Regexp) MatchString(s string) bool { // ²éÕÒstringÖÐÊÇ·ñ°üº¬
+func (re *Regexp) MatchString(s string) bool { // æŸ¥æ‰¾stringä¸­æ˜¯å¦åŒ…å«
 	return re.doExecute(nil, nil, s, 0, 0) != nil
 }
 
 // Match reports whether the Regexp matches the byte slice b.
-func (re *Regexp) Match(b []byte) bool { // ²éÕÒbyte sliceÖÐÊÇ·ñ°üº¬
+func (re *Regexp) Match(b []byte) bool { // æŸ¥æ‰¾byte sliceä¸­æ˜¯å¦åŒ…å«
 	return re.doExecute(nil, b, "", 0, 0) != nil
 }
 
 // MatchReader checks whether a textual regular expression matches the text
 // read by the RuneReader.  More complicated queries need to use Compile and
 // the full Regexp interface.
-func MatchReader(pattern string, r io.RuneReader) (matched bool, err error) { // CompileºÍMatchReaderµÄ»ìºÏ
+func MatchReader(pattern string, r io.RuneReader) (matched bool, err error) { // Compileå’ŒMatchReaderçš„æ··åˆ
 	re, err := Compile(pattern)
 	if err != nil {
 		return false, err
@@ -442,7 +442,7 @@ func Match(pattern string, b []byte) (matched bool, err error) {
 // ReplaceAllString returns a copy of src, replacing matches of the Regexp
 // with the replacement string repl.  Inside repl, $ signs are interpreted as
 // in Expand, so for instance $1 represents the text of the first submatch.
-func (re *Regexp) ReplaceAllString(src, repl string) string { // ´úÌæ×Ö·û´®
+func (re *Regexp) ReplaceAllString(src, repl string) string { // ä»£æ›¿å­—ç¬¦ä¸²
 	n := 2
 	if strings.Index(repl, "$") >= 0 {
 		n = 2 * (re.numSubexp + 1)
@@ -880,7 +880,7 @@ func (re *Regexp) FindSubmatchIndex(b []byte) []int {
 // its subexpressions, as defined by the 'Submatch' description in the
 // package comment.
 // A return value of nil indicates no match.
-func (re *Regexp) FindStringSubmatch(s string) []string { // »ñµÃ³É×éÆ¥Åä½á¹û
+func (re *Regexp) FindStringSubmatch(s string) []string { // èŽ·å¾—æˆç»„åŒ¹é…ç»“æžœ
 	a := re.doExecute(nil, nil, s, 0, re.prog.NumCap)
 	if a == nil {
 		return nil
@@ -899,7 +899,7 @@ func (re *Regexp) FindStringSubmatch(s string) []string { // »ñµÃ³É×éÆ¥Åä½á¹û
 // matches, if any, of its subexpressions, as defined by the 'Submatch' and
 // 'Index' descriptions in the package comment.
 // A return value of nil indicates no match.
-func (re *Regexp) FindStringSubmatchIndex(s string) []int { // »ñµÃ³É×éÆ¥ÅäË÷Òý
+func (re *Regexp) FindStringSubmatchIndex(s string) []int { // èŽ·å¾—æˆç»„åŒ¹é…ç´¢å¼•
 	return re.pad(re.doExecute(nil, nil, s, 0, re.prog.NumCap))
 }
 
@@ -1086,7 +1086,7 @@ func (re *Regexp) FindAllStringSubmatchIndex(s string, n int) [][]int {
 //   n > 0: at most n substrings; the last substring will be the unsplit remainder.
 //   n == 0: the result is nil (zero substrings)
 //   n < 0: all substrings
-func (re *Regexp) Split(s string, n int) []string { // Í¨¹ýÕýÔò±í´ïÊ½½«×Ö·û´®s·ÖÁÑ³ÉnÏî£¬n<0Ôò·Ö¸î³ÉËùÓÐ×Ó×Ö·û´®
+func (re *Regexp) Split(s string, n int) []string { // é€šè¿‡æ­£åˆ™è¡¨è¾¾å¼å°†å­—ç¬¦ä¸²såˆ†è£‚æˆné¡¹ï¼Œn<0åˆ™åˆ†å‰²æˆæ‰€æœ‰å­å­—ç¬¦ä¸²
 
 	if n == 0 {
 		return nil

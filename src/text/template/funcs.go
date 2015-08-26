@@ -21,7 +21,7 @@ import (
 // which the second has type error. In that case, if the second (error)
 // return value evaluates to non-nil during execution, execution terminates and
 // Execute returns that error.
-type FuncMap map[string]interface{} // ÉèÖÃstringµ½¿Õ½Ó¿ÚµÄÓ³Éä
+type FuncMap map[string]interface{} // è®¾ç½®stringåˆ°ç©ºæ¥å£çš„æ˜ å°„
 
 var builtins = FuncMap{
 	"and":      and,
@@ -444,9 +444,9 @@ var (
 // HTMLEscape writes to w the escaped HTML equivalent of the plain text data b.
 func HTMLEscape(w io.Writer, b []byte) {
 	last := 0
-	for i, c := range b { // ±éÀúbÖĞµÄÃ¿¸ö×Ö·û
+	for i, c := range b { // éå†bä¸­çš„æ¯ä¸ªå­—ç¬¦
 		var html []byte
-		switch c { // ½«"\&<>½øĞĞ×ªÒå
+		switch c { // å°†"\&<>è¿›è¡Œè½¬ä¹‰
 		case '"':
 			html = htmlQuot
 		case '\'':

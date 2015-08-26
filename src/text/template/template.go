@@ -12,7 +12,7 @@ import (
 )
 
 // common holds the information shared by related templates.
-type common struct { // ±»Ïà¹ØÄ£°å¹²ÏíµÄ½á¹¹
+type common struct { // è¢«ç›¸å…³æ¨¡æ¿å…±äº«çš„ç»“æ„
 	tmpl   map[string]*Template // Map from name to defined templates.
 	option option
 	// We use two maps, one for parsing and one for execution.
@@ -26,16 +26,16 @@ type common struct { // ±»Ïà¹ØÄ£°å¹²ÏíµÄ½á¹¹
 // Template is the representation of a parsed template. The *parse.Tree
 // field is exported only for use by html/template and should be treated
 // as unexported by all other clients.
-type Template struct { // Template½á¹¹
-	name        string // Ä£°åµÄÃû³Æ
-	*parse.Tree        // ½âÎöÊ÷
-	*common            // Ö¸ÏòÏà¹ØÄ£°åµÄÖ¸Õë
-	leftDelim   string // ×óÓÒ·Ö¸î·û
-	rightDelim string
+type Template struct { // Templateç»“æ„
+	name        string // æ¨¡æ¿çš„åç§°
+	*parse.Tree        // è§£ææ ‘
+	*common            // æŒ‡å‘ç›¸å…³æ¨¡æ¿çš„æŒ‡é’ˆ
+	leftDelim   string // å·¦å³åˆ†å‰²ç¬¦
+	rightDelim  string
 }
 
 // New allocates a new, undefined template with the given name.
-func New(name string) *Template { // ´´½¨ĞÂÄ£°å£¬¸ù¾İ×Ö·û´®£¬´´½¨Ò»¸öÃû×ÖÎªnameµÄÄ£°å
+func New(name string) *Template { // åˆ›å»ºæ–°æ¨¡æ¿ï¼Œæ ¹æ®å­—ç¬¦ä¸²ï¼Œåˆ›å»ºä¸€ä¸ªåå­—ä¸ºnameçš„æ¨¡æ¿
 	t := &Template{
 		name: name,
 	}
@@ -44,27 +44,27 @@ func New(name string) *Template { // ´´½¨ĞÂÄ£°å£¬¸ù¾İ×Ö·û´®£¬´´½¨Ò»¸öÃû×ÖÎªnameµ
 }
 
 // Name returns the name of the template.
-func (t *Template) Name() string { // ·µ»ØÄ£°åµÄÃû³Æ
+func (t *Template) Name() string { // è¿”å›æ¨¡æ¿çš„åç§°
 	return t.name
 }
 
 // New allocates a new, undefined template associated with the given one and with the same
 // delimiters. The association, which is transitive, allows one template to
 // invoke another with a {{template}} action.
-func (t *Template) New(name string) *Template { // ¸ù¾İÖ¸¶¨µÄÄ£°åt´´½¨Ò»¸öĞÂTemplate¶ÔÏó£¬¹²Ïícommon
-	t.init()          // Èç¹ûÃ»ÓĞÉèÖÃ£¬Ôò¿ªÊ¼ÉèÖÃÏà¹ØÄ£°å½á¹¹
+func (t *Template) New(name string) *Template { // æ ¹æ®æŒ‡å®šçš„æ¨¡æ¿tåˆ›å»ºä¸€ä¸ªæ–°Templateå¯¹è±¡ï¼Œå…±äº«common
+	t.init() // å¦‚æœæ²¡æœ‰è®¾ç½®ï¼Œåˆ™å¼€å§‹è®¾ç½®ç›¸å…³æ¨¡æ¿ç»“æ„
 	nt := &Template{
 		name:       name,
-		common:     t.common,    // ¹²ÏíÏà¹ØÄ£°åºÍ×óÓÒ·Ö¸ô·û
-		leftDelim:  t.leftDelim, // ÉèÖÃ×óÓÒ·Ö¸î
+		common:     t.common,    // å…±äº«ç›¸å…³æ¨¡æ¿å’Œå·¦å³åˆ†éš”ç¬¦
+		leftDelim:  t.leftDelim, // è®¾ç½®å·¦å³åˆ†å‰²
 		rightDelim: t.rightDelim,
 	}
 	return nt
 }
 
 // init guarantees that t has a valid common structure.
-func (t *Template) init() { // ³õÊ¼»¯ÎÄ±¾Ä£°å
-	if t.common == nil { // Èç¹ûÏà¹ØÄ£°å½á¹¹Îª¿Õ£¬ÉèÖÃÏà¹ØÄ£°å½á¹¹
+func (t *Template) init() { // åˆå§‹åŒ–æ–‡æœ¬æ¨¡æ¿
+	if t.common == nil { // å¦‚æœç›¸å…³æ¨¡æ¿ç»“æ„ä¸ºç©ºï¼Œè®¾ç½®ç›¸å…³æ¨¡æ¿ç»“æ„
 		c := new(common)
 		c.tmpl = make(map[string]*Template)
 		c.parseFuncs = make(FuncMap)
@@ -79,7 +79,7 @@ func (t *Template) init() { // ³õÊ¼»¯ÎÄ±¾Ä£°å
 // templates to the copy but not to the original. Clone can be used to prepare
 // common templates and use them with variant definitions for other templates
 // by adding the variants after the clone is made.
-func (t *Template) Clone() (*Template, error) { // ·µ»ØÒ»¸ötemplateµÄ¿½±´
+func (t *Template) Clone() (*Template, error) { // è¿”å›ä¸€ä¸ªtemplateçš„æ‹·è´
 	nt := t.copy(nil)
 	nt.init()
 	if t.common == nil {
@@ -107,7 +107,7 @@ func (t *Template) Clone() (*Template, error) { // ·µ»ØÒ»¸ötemplateµÄ¿½±´
 
 // copy returns a shallow copy of t, with common set to the argument.
 func (t *Template) copy(c *common) *Template {
-	nt := New(t.name) // ´´½¨Ò»¸öĞÂTemplate
+	nt := New(t.name) // åˆ›å»ºä¸€ä¸ªæ–°Template
 	nt.Tree = t.Tree
 	nt.common = c
 	nt.leftDelim = t.leftDelim
@@ -136,7 +136,7 @@ func (t *Template) AddParseTree(name string, tree *parse.Tree) (*Template, error
 }
 
 // Templates returns a slice of defined templates associated with t.
-func (t *Template) Templates() []*Template { // ·µ»ØtµÄËùÓĞÏà¹ØÄ£°åµÄslice
+func (t *Template) Templates() []*Template { // è¿”å›tçš„æ‰€æœ‰ç›¸å…³æ¨¡æ¿çš„slice
 	if t.common == nil {
 		return nil
 	}
@@ -153,7 +153,7 @@ func (t *Template) Templates() []*Template { // ·µ»ØtµÄËùÓĞÏà¹ØÄ£°åµÄslice
 // definitions will inherit the settings. An empty delimiter stands for the
 // corresponding default: {{ or }}.
 // The return value is the template, so calls can be chained.
-func (t *Template) Delims(left, right string) *Template { // ÉèÖÃÄ£°åµÄ·Ö¸ô·û
+func (t *Template) Delims(left, right string) *Template { // è®¾ç½®æ¨¡æ¿çš„åˆ†éš”ç¬¦
 	t.init()
 	t.leftDelim = left
 	t.rightDelim = right
@@ -175,7 +175,7 @@ func (t *Template) Funcs(funcMap FuncMap) *Template {
 
 // Lookup returns the template with the given name that is associated with t.
 // It returns nil if there is no such template or the template has no definition.
-func (t *Template) Lookup(name string) *Template { // ÔÚtµÄÏà¹ØÄ£°åÖĞ£¬²éÕÒ¾ßÓĞ¸ø¶¨nameµÄÄ£°å
+func (t *Template) Lookup(name string) *Template { // åœ¨tçš„ç›¸å…³æ¨¡æ¿ä¸­ï¼ŒæŸ¥æ‰¾å…·æœ‰ç»™å®šnameçš„æ¨¡æ¿
 	if t.common == nil {
 		return nil
 	}
@@ -189,7 +189,7 @@ func (t *Template) Lookup(name string) *Template { // ÔÚtµÄÏà¹ØÄ£°åÖĞ£¬²éÕÒ¾ßÓĞ¸
 // definitions) and would replace a non-empty template with the same name.
 // (In multiple calls to Parse with the same receiver template, only one call
 // can contain text other than space, comments, and template definitions.)
-func (t *Template) Parse(text string) (*Template, error) { // °ÑÒ»¸ö×Ö·û´®½âÎöÎªÒ»¸öÄ£°å
+func (t *Template) Parse(text string) (*Template, error) { // æŠŠä¸€ä¸ªå­—ç¬¦ä¸²è§£æä¸ºä¸€ä¸ªæ¨¡æ¿
 	t.init()
 	t.muFuncs.RLock()
 	trees, err := parse.Parse(t.name, text, t.leftDelim, t.rightDelim, t.parseFuncs, builtins)
@@ -210,7 +210,7 @@ func (t *Template) Parse(text string) (*Template, error) { // °ÑÒ»¸ö×Ö·û´®½âÎöÎª
 // with t. It is an error to reuse a name except to overwrite an empty
 // template. The two are already known to share the common structure.
 // The boolean return value reports wither to store this tree as t.Tree.
-func (t *Template) associate(new *Template, tree *parse.Tree) (bool, error) { // ÉèÖÃÁ½¸öÄ£°åÏà¹Ø
+func (t *Template) associate(new *Template, tree *parse.Tree) (bool, error) { // è®¾ç½®ä¸¤ä¸ªæ¨¡æ¿ç›¸å…³
 	if new.common != t.common {
 		panic("internal error: associate not common")
 	}

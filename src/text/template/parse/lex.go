@@ -12,13 +12,13 @@ import (
 )
 
 // item represents a token or text string returned from the scanner.
-type item struct { // ´ú±íÒ»¸ötoken»òÕß´Óscanner·µ»ØµÄÎÄ±¾×Ö·û´®
-	typ itemType // The type of this item. itemÀàĞÍ
-	pos Pos      // The starting position, in bytes, of this item in the input string. Î»ÖÃ
-	val string   // The value of this item. itemµÄÖµ
+type item struct { // ä»£è¡¨ä¸€ä¸ªtokenæˆ–è€…ä»scannerè¿”å›çš„æ–‡æœ¬å­—ç¬¦ä¸²
+	typ itemType // The type of this item. itemç±»å‹
+	pos Pos      // The starting position, in bytes, of this item in the input string. ä½ç½®
+	val string   // The value of this item. itemçš„å€¼
 }
 
-func (i item) String() string { // ½«item×ª»»Îª×Ö·û´®
+func (i item) String() string { // å°†itemè½¬æ¢ä¸ºå­—ç¬¦ä¸²
 	switch {
 	case i.typ == itemEOF:
 		return "EOF"
@@ -69,7 +69,7 @@ const (
 	itemWith     // with keyword
 )
 
-var key = map[string]itemType{ // ´Ó×Ö·û´®µ½itemÀàĞÍµÄÓ³Éä
+var key = map[string]itemType{ // ä»å­—ç¬¦ä¸²åˆ°itemç±»å‹çš„æ˜ å°„
 	".":        itemDot,
 	"define":   itemDefine,
 	"else":     itemElse,
@@ -87,7 +87,7 @@ const eof = -1
 type stateFn func(*lexer) stateFn
 
 // lexer holds the state of the scanner.
-type lexer struct { // ±£³ÖscannerµÄ×´Ì¬
+type lexer struct { // ä¿æŒscannerçš„çŠ¶æ€
 	name       string    // the name of the input; used only for error reports
 	input      string    // the string being scanned
 	leftDelim  string    // start of action
@@ -155,7 +155,7 @@ func (l *lexer) acceptRun(valid string) {
 // lineNumber reports which line we're on, based on the position of
 // the previous item returned by nextItem. Doing it this way
 // means we don't have to worry about peek double counting.
-func (l *lexer) lineNumber() int { // ·µ»Øµ±Ç°µÄĞĞºÅ
+func (l *lexer) lineNumber() int { // è¿”å›å½“å‰çš„è¡Œå·
 	return 1 + strings.Count(l.input[:l.lastPos], "\n")
 }
 
@@ -211,10 +211,10 @@ func (l *lexer) run() {
 // state functions
 
 const (
-	leftDelim    = "{{" // ×ó±êÊ¾
-	rightDelim   = "}}" // ÓÒ±êÊ¾
-	leftComment  = "/*" // ×ó×¢ÊÍ
-	rightComment = "*/" // ÓÒ×¢ÊÍ
+	leftDelim    = "{{" // å·¦æ ‡ç¤º
+	rightDelim   = "}}" // å³æ ‡ç¤º
+	leftComment  = "/*" // å·¦æ³¨é‡Š
+	rightComment = "*/" // å³æ³¨é‡Š
 )
 
 // lexText scans until an opening action delimiter, "{{".
