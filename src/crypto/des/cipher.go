@@ -24,21 +24,21 @@ type desCipher struct {
 }
 
 // NewCipher creates and returns a new cipher.Block.
-func NewCipher(key []byte) (cipher.Block, error) { // ´´½¨²¢·µ»ØÒ»¸öĞÂµÄcipher.Block
-	if len(key) != 8 { // keyµÄ´óĞ¡±ØĞëÎª8
+func NewCipher(key []byte) (cipher.Block, error) { // åˆ›å»ºå¹¶è¿”å›ä¸€ä¸ªæ–°çš„cipher.Block
+	if len(key) != 8 { // keyçš„å¤§å°å¿…é¡»ä¸º8
 		return nil, KeySizeError(len(key))
 	}
 
-	c := new(desCipher) // ´´½¨Ò»¸ödesCiper½á¹¹
+	c := new(desCipher) // åˆ›å»ºä¸€ä¸ªdesCiperç»“æ„
 	c.generateSubkeys(key)
 	return c, nil
 }
 
-func (c *desCipher) BlockSize() int { return BlockSize } // ·µ»Ø¿é´óĞ¡
+func (c *desCipher) BlockSize() int { return BlockSize } // è¿”å›å—å¤§å°
 
-func (c *desCipher) Encrypt(dst, src []byte) { encryptBlock(c.subkeys[:], dst, src) } // des¼ÓÃÜ
+func (c *desCipher) Encrypt(dst, src []byte) { encryptBlock(c.subkeys[:], dst, src) } // desåŠ å¯†
 
-func (c *desCipher) Decrypt(dst, src []byte) { decryptBlock(c.subkeys[:], dst, src) } // des½âÃÜ
+func (c *desCipher) Decrypt(dst, src []byte) { decryptBlock(c.subkeys[:], dst, src) } // desè§£å¯†
 
 // A tripleDESCipher is an instance of TripleDES encryption.
 type tripleDESCipher struct {
@@ -46,7 +46,7 @@ type tripleDESCipher struct {
 }
 
 // NewTripleDESCipher creates and returns a new cipher.Block.
-func NewTripleDESCipher(key []byte) (cipher.Block, error) { // ´´½¨3DES¼Ó½âÃÜ½Ó¿Ú
+func NewTripleDESCipher(key []byte) (cipher.Block, error) { // åˆ›å»º3DESåŠ è§£å¯†æ¥å£
 	if len(key) != 24 {
 		return nil, KeySizeError(len(key))
 	}

@@ -17,30 +17,30 @@ import (
 type lazybuf struct {
 	s   string
 	buf []byte
-	w   int // µ±Ç°Ğ´µ½µÄÎ»ÖÃ
+	w   int // å½“å‰å†™åˆ°çš„ä½ç½®
 }
 
-func (b *lazybuf) index(i int) byte { // ²éÕÒbufÖĞiÎ»ÖÃµÄbyte£¬Èç¹ûbufÎª¿Õ£¬·µ»ØstringÖĞiÎ»ÖÃµÄbyte
+func (b *lazybuf) index(i int) byte { // æŸ¥æ‰¾bufä¸­iä½ç½®çš„byteï¼Œå¦‚æœbufä¸ºç©ºï¼Œè¿”å›stringä¸­iä½ç½®çš„byte
 	if b.buf != nil {
 		return b.buf[i]
 	}
 	return b.s[i]
 }
 
-func (b *lazybuf) append(c byte) { // ÏòbufÖĞÌí¼Óbyte c
-	if b.buf == nil { // Èç¹ûbufferÎª¿Õ
-		if b.w < len(b.s) && b.s[b.w] == c { // Èç¹ûcÓëb.sÖĞ¶ÔÓ¦Î»ÖÃµÄ×Ö·ûÏàÍ¬£¬»¹ÊÇÊ¹ÓÃb.s
+func (b *lazybuf) append(c byte) { // å‘bufä¸­æ·»åŠ byte c
+	if b.buf == nil { // å¦‚æœbufferä¸ºç©º
+		if b.w < len(b.s) && b.s[b.w] == c { // å¦‚æœcä¸b.sä¸­å¯¹åº”ä½ç½®çš„å­—ç¬¦ç›¸åŒï¼Œè¿˜æ˜¯ä½¿ç”¨b.s
 			b.w++
 			return
 		}
-		b.buf = make([]byte, len(b.s)) // ´´½¨Ò»¸öbuffer£¬³¤¶ÈÎªb.s
-		copy(b.buf, b.s[:b.w])         // ½«stringÖĞÇ°b.w¸ö×Ö·û¿½±´¹ıÀ´
+		b.buf = make([]byte, len(b.s)) // åˆ›å»ºä¸€ä¸ªbufferï¼Œé•¿åº¦ä¸ºb.s
+		copy(b.buf, b.s[:b.w])         // å°†stringä¸­å‰b.wä¸ªå­—ç¬¦æ‹·è´è¿‡æ¥
 	}
 	b.buf[b.w] = c
 	b.w++
 }
 
-func (b *lazybuf) string() string { // ·µ»Ø×ª»¯ºóµÄ×Ö·û´®
+func (b *lazybuf) string() string { // è¿”å›è½¬åŒ–åçš„å­—ç¬¦ä¸²
 	if b.buf == nil {
 		return b.s[:b.w]
 	}
@@ -66,20 +66,20 @@ func (b *lazybuf) string() string { // ·µ»Ø×ª»¯ºóµÄ×Ö·û´®
 // See also Rob Pike, ``Lexical File Names in Plan 9 or
 // Getting Dot-Dot Right,''
 // http://plan9.bell-labs.com/sys/doc/lexnames.html
-func Clean(path string) string { // ·µ»ØÓëpathÏàÍ¬µÄ×î¶ÌÂ·¾¶×Ö·û´®
-	if path == "" { // Èç¹ûpathÎª¿Õ£¬·µ»Øµ±Ç°Ä¿Â¼
+func Clean(path string) string { // è¿”å›ä¸pathç›¸åŒçš„æœ€çŸ­è·¯å¾„å­—ç¬¦ä¸²
+	if path == "" { // å¦‚æœpathä¸ºç©ºï¼Œè¿”å›å½“å‰ç›®å½•
 		return "."
 	}
 
-	rooted := path[0] == '/' // ²é¿´ÊÇ·ñÊÇÒÔ/¿ªÍ·µÄ¾ø¶ÔÂ·¾¶
-	n := len(path)           // »ñµÃÂ·¾¶µÄ³¤¶È
+	rooted := path[0] == '/' // æŸ¥çœ‹æ˜¯å¦æ˜¯ä»¥/å¼€å¤´çš„ç»å¯¹è·¯å¾„
+	n := len(path)           // è·å¾—è·¯å¾„çš„é•¿åº¦
 
 	// Invariants:
 	//	reading from path; r is index of next byte to process.
 	//	writing to buf; w is index of next byte to write.
 	//	dotdot is index in buf where .. must stop, either because
 	//		it is the leading slash or it is a leading ../../.. prefix.
-	out := lazybuf{s: path} // ´´½¨Ò»¸ölazybuf½á¹¹
+	out := lazybuf{s: path} // åˆ›å»ºä¸€ä¸ªlazybufç»“æ„
 	r, dotdot := 0, 0
 	if rooted {
 		out.append('/')
@@ -173,16 +173,16 @@ func Ext(path string) string {
 // Trailing slashes are removed before extracting the last element.
 // If the path is empty, Base returns ".".
 // If the path consists entirely of slashes, Base returns "/".
-func Base(path string) string { // Â·¾¶ÖĞ×îºóÒ»¼¶µÄÃû³Æ
+func Base(path string) string { // è·¯å¾„ä¸­æœ€åä¸€çº§çš„åç§°
 	if path == "" {
 		return "."
 	}
 	// Strip trailing slashes.
-	for len(path) > 0 && path[len(path)-1] == '/' { // È¥µôÎ»ÓÚ×îºóµÄ/
+	for len(path) > 0 && path[len(path)-1] == '/' { // å»æ‰ä½äºæœ€åçš„/
 		path = path[0 : len(path)-1]
 	}
 	// Find the last element
-	if i := strings.LastIndex(path, "/"); i >= 0 { // ²éÕÒ×îºóÒ»¸ö/
+	if i := strings.LastIndex(path, "/"); i >= 0 { // æŸ¥æ‰¾æœ€åä¸€ä¸ª/
 		path = path[i+1:]
 	}
 	// If empty now, it had only slashes.
@@ -193,7 +193,7 @@ func Base(path string) string { // Â·¾¶ÖĞ×îºóÒ»¼¶µÄÃû³Æ
 }
 
 // IsAbs reports whether the path is absolute.
-func IsAbs(path string) bool { // ÅĞ¶ÏÂ·¾¶pathÊÇ·ñÎª¾ø¶ÔÂ·¾¶
+func IsAbs(path string) bool { // åˆ¤æ–­è·¯å¾„pathæ˜¯å¦ä¸ºç»å¯¹è·¯å¾„
 	return len(path) > 0 && path[0] == '/'
 }
 
@@ -204,7 +204,7 @@ func IsAbs(path string) bool { // ÅĞ¶ÏÂ·¾¶pathÊÇ·ñÎª¾ø¶ÔÂ·¾¶
 // If the path consists entirely of slashes followed by non-slash bytes, Dir
 // returns a single slash. In any other case, the returned path does not end in a
 // slash.
-func Dir(path string) string { // ·µ»ØÄ¿Â¼Ãû
+func Dir(path string) string { // è¿”å›ç›®å½•å
 	dir, _ := Split(path)
 	return Clean(dir)
 }

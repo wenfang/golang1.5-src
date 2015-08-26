@@ -154,7 +154,7 @@ func isCSSSpace(b byte) bool {
 }
 
 // cssEscaper escapes HTML and CSS special characters using \<hex>+ escapes.
-func cssEscaper(args ...interface{}) string { // Ö´ÐÐcssµÄEscape
+func cssEscaper(args ...interface{}) string { // æ‰§è¡Œcssçš„Escape
 	s, _ := stringify(args...)
 	var b bytes.Buffer
 	r, w, written := rune(0), 0, 0

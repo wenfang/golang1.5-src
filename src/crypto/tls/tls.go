@@ -22,7 +22,7 @@ import (
 // using conn as the underlying transport.
 // The configuration config must be non-nil and must have
 // at least one certificate.
-func Server(conn net.Conn, config *Config) *Conn { // ·µ»Øtls server¶ËÁ¬½Ó£¬½«conn½øĞĞ°ü×°
+func Server(conn net.Conn, config *Config) *Conn { // è¿”å›tls serverç«¯è¿æ¥ï¼Œå°†connè¿›è¡ŒåŒ…è£…
 	return &Conn{conn: conn, config: config}
 }
 
@@ -30,24 +30,24 @@ func Server(conn net.Conn, config *Config) *Conn { // ·µ»Øtls server¶ËÁ¬½Ó£¬½«co
 // using conn as the underlying transport.
 // The config cannot be nil: users must set either ServerName or
 // InsecureSkipVerify in the config.
-func Client(conn net.Conn, config *Config) *Conn { // ·µ»Øtls client¶ËÁ¬½Ó
+func Client(conn net.Conn, config *Config) *Conn { // è¿”å›tls clientç«¯è¿æ¥
 	return &Conn{conn: conn, config: config, isClient: true}
 }
 
 // A listener implements a network listener (net.Listener) for TLS connections.
-type listener struct { // tlsµÄlistener½á¹¹£¬ÊµÏÖÁËnet.Listener½Ó¿Ú
-	net.Listener         // ¶Ônet.ListenerµÄ·â×°
-	config       *Config // Ôö¼ÓÁËÒ»¸ötls.Config
+type listener struct { // tlsçš„listenerç»“æ„ï¼Œå®ç°äº†net.Listeneræ¥å£
+	net.Listener         // å¯¹net.Listenerçš„å°è£…
+	config       *Config // å¢åŠ äº†ä¸€ä¸ªtls.Config
 }
 
 // Accept waits for and returns the next incoming TLS connection.
 // The returned connection c is a *tls.Conn.
-func (l *listener) Accept() (c net.Conn, err error) { // ·µ»Øserver¶ËÁ¬½Ó£¬ÊµÏÖÁËnet.Conn½Ó¿Ú
+func (l *listener) Accept() (c net.Conn, err error) { // è¿”å›serverç«¯è¿æ¥ï¼Œå®ç°äº†net.Connæ¥å£
 	c, err = l.Listener.Accept()
 	if err != nil {
 		return
 	}
-	c = Server(c, l.config) // ·µ»ØÒ»¸önet.Conn°üº¬tlsÅäÖÃ
+	c = Server(c, l.config) // è¿”å›ä¸€ä¸ªnet.ConnåŒ…å«tlsé…ç½®
 	return
 }
 
@@ -55,7 +55,7 @@ func (l *listener) Accept() (c net.Conn, err error) { // ·µ»Øserver¶ËÁ¬½Ó£¬ÊµÏÖÁ
 // Listener and wraps each connection with Server.
 // The configuration config must be non-nil and must have
 // at least one certificate.
-func NewListener(inner net.Listener, config *Config) net.Listener { // °ü×°Listener£¬¸ù¾İConfig´´½¨ĞÂµÄListener
+func NewListener(inner net.Listener, config *Config) net.Listener { // åŒ…è£…Listenerï¼Œæ ¹æ®Configåˆ›å»ºæ–°çš„Listener
 	l := new(listener)
 	l.Listener = inner
 	l.config = config
@@ -66,15 +66,15 @@ func NewListener(inner net.Listener, config *Config) net.Listener { // °ü×°Liste
 // given network address using net.Listen.
 // The configuration config must be non-nil and must have
 // at least one certificate.
-func Listen(network, laddr string, config *Config) (net.Listener, error) { // ListenÒ»¸öÍøÂçµØÖ·£¬µ«¼ÓÈëTLSÅäÖÃ
-	if config == nil || len(config.Certificates) == 0 { // configºÍÖ¤Êé±ØĞëÓĞĞ§
+func Listen(network, laddr string, config *Config) (net.Listener, error) { // Listenä¸€ä¸ªç½‘ç»œåœ°å€ï¼Œä½†åŠ å…¥TLSé…ç½®
+	if config == nil || len(config.Certificates) == 0 { // configå’Œè¯ä¹¦å¿…é¡»æœ‰æ•ˆ
 		return nil, errors.New("tls.Listen: no certificates in configuration")
 	}
-	l, err := net.Listen(network, laddr) // ÏÈ´´½¨Ò»¸ö²»°²È«µÄListener
+	l, err := net.Listen(network, laddr) // å…ˆåˆ›å»ºä¸€ä¸ªä¸å®‰å…¨çš„Listener
 	if err != nil {
 		return nil, err
 	}
-	return NewListener(l, config), nil // ½«²»°²È«µÄListener·â×°Îª°²È«µÄListener
+	return NewListener(l, config), nil // å°†ä¸å®‰å…¨çš„Listenerå°è£…ä¸ºå®‰å…¨çš„Listener
 }
 
 type timeoutError struct{}
@@ -90,11 +90,11 @@ func (timeoutError) Temporary() bool { return true }
 //
 // DialWithDialer interprets a nil configuration as equivalent to the zero
 // configuration; see the documentation of Config for the defaults.
-func DialWithDialer(dialer *net.Dialer, network, addr string, config *Config) (*Conn, error) { // ×÷Îªclient¶ËdialÒ»¸öÁ¬½Ó
+func DialWithDialer(dialer *net.Dialer, network, addr string, config *Config) (*Conn, error) { // ä½œä¸ºclientç«¯dialä¸€ä¸ªè¿æ¥
 	// We want the Timeout and Deadline values from dialer to cover the
 	// whole process: TCP connection and TLS handshake. This means that we
 	// also need to start our own timers now.
-	timeout := dialer.Timeout // »ñµÃdialerµÄTimeout
+	timeout := dialer.Timeout // è·å¾—dialerçš„Timeout
 
 	if !dialer.Deadline.IsZero() {
 		deadlineTimeout := dialer.Deadline.Sub(time.Now())
@@ -107,12 +107,12 @@ func DialWithDialer(dialer *net.Dialer, network, addr string, config *Config) (*
 
 	if timeout != 0 {
 		errChannel = make(chan error, 2)
-		time.AfterFunc(timeout, func() { // ´´½¨³¬Ê±»úÖÆ£¬³¬Ê±ºóÏòerrChannel¹ÜµÀ·¢ËÍ³¬Ê±´íÎó
+		time.AfterFunc(timeout, func() { // åˆ›å»ºè¶…æ—¶æœºåˆ¶ï¼Œè¶…æ—¶åå‘errChannelç®¡é“å‘é€è¶…æ—¶é”™è¯¯
 			errChannel <- timeoutError{}
 		})
 	}
 
-	rawConn, err := dialer.Dial(network, addr) // DialÁ¬½Ó£¬·µ»ØÁ¬½Ó½á¹¹
+	rawConn, err := dialer.Dial(network, addr) // Dialè¿æ¥ï¼Œè¿”å›è¿æ¥ç»“æ„
 	if err != nil {
 		return nil, err
 	}
@@ -123,12 +123,12 @@ func DialWithDialer(dialer *net.Dialer, network, addr string, config *Config) (*
 	}
 	hostname := addr[:colonPos]
 
-	if config == nil { // Èç¹ûÃ»ÓĞÉèÖÃconfig£¬Ê¹ÓÃÈ±Ê¡Config
+	if config == nil { // å¦‚æœæ²¡æœ‰è®¾ç½®configï¼Œä½¿ç”¨ç¼ºçœConfig
 		config = defaultConfig()
 	}
 	// If no ServerName is set, infer the ServerName
 	// from the hostname we're connecting to.
-	if config.ServerName == "" { // Èç¹ûÃ»ÓĞÉèÖÃ·şÎñÆ÷Ãû
+	if config.ServerName == "" { // å¦‚æœæ²¡æœ‰è®¾ç½®æœåŠ¡å™¨å
 		// Make a copy to avoid polluting argument or default.
 		c := *config
 		c.ServerName = hostname
@@ -138,9 +138,9 @@ func DialWithDialer(dialer *net.Dialer, network, addr string, config *Config) (*
 	conn := Client(rawConn, config)
 
 	if timeout == 0 {
-		err = conn.Handshake() // ÎÕÊÖÁ¬½Ó
+		err = conn.Handshake() // æ¡æ‰‹è¿æ¥
 	} else {
-		go func() { // ·ñÔòÔÚÒ»¸ögoroutineÖĞ½øĞĞÁ¬½ÓÎÕÊÖ
+		go func() { // å¦åˆ™åœ¨ä¸€ä¸ªgoroutineä¸­è¿›è¡Œè¿æ¥æ¡æ‰‹
 			errChannel <- conn.Handshake()
 		}()
 
@@ -161,18 +161,18 @@ func DialWithDialer(dialer *net.Dialer, network, addr string, config *Config) (*
 // Dial interprets a nil configuration as equivalent to
 // the zero configuration; see the documentation of Config
 // for the defaults.
-func Dial(network, addr string, config *Config) (*Conn, error) { // ¸ù¾İconfigÅäÖÃµÄ°²È«Ñ¡Ïî£¬Á¬½ÓĞÂµØÖ·
+func Dial(network, addr string, config *Config) (*Conn, error) { // æ ¹æ®configé…ç½®çš„å®‰å…¨é€‰é¡¹ï¼Œè¿æ¥æ–°åœ°å€
 	return DialWithDialer(new(net.Dialer), network, addr, config)
 }
 
 // LoadX509KeyPair reads and parses a public/private key pair from a pair of
 // files. The files must contain PEM encoded data.
 func LoadX509KeyPair(certFile, keyFile string) (Certificate, error) {
-	certPEMBlock, err := ioutil.ReadFile(certFile) // ¶Á¹«Ô¿ÎÄ¼ş
+	certPEMBlock, err := ioutil.ReadFile(certFile) // è¯»å…¬é’¥æ–‡ä»¶
 	if err != nil {
 		return Certificate{}, err
 	}
-	keyPEMBlock, err := ioutil.ReadFile(keyFile) // ¶ÁË½Ô¿ÎÄ¼ş
+	keyPEMBlock, err := ioutil.ReadFile(keyFile) // è¯»ç§é’¥æ–‡ä»¶
 	if err != nil {
 		return Certificate{}, err
 	}
@@ -186,23 +186,23 @@ func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (Certificate, error) {
 	var certDERBlock *pem.Block
 	fail := func(err error) (Certificate, error) { return Certificate{}, err }
 	for {
-		certDERBlock, certPEMBlock = pem.Decode(certPEMBlock) // ½âÂë¹«Ô¿¿é
+		certDERBlock, certPEMBlock = pem.Decode(certPEMBlock) // è§£ç å…¬é’¥å—
 		if certDERBlock == nil {
 			break
 		}
-		if certDERBlock.Type == "CERTIFICATE" { // Ìí¼ÓÖ¤Êé£¬Èç¹ûÀàĞÍÎªÖ¤Êé
+		if certDERBlock.Type == "CERTIFICATE" { // æ·»åŠ è¯ä¹¦ï¼Œå¦‚æœç±»å‹ä¸ºè¯ä¹¦
 			cert.Certificate = append(cert.Certificate, certDERBlock.Bytes)
 		}
 	}
 
-	if len(cert.Certificate) == 0 { // Èç¹ûÃ»ÓĞÖ¤Êé£¬·µ»Ø´íÎó
+	if len(cert.Certificate) == 0 { // å¦‚æœæ²¡æœ‰è¯ä¹¦ï¼Œè¿”å›é”™è¯¯
 		return fail(errors.New("crypto/tls: failed to parse certificate PEM data"))
 	}
 
 	var keyDERBlock *pem.Block
 	for {
-		keyDERBlock, keyPEMBlock = pem.Decode(keyPEMBlock) // ½âÂëË½Ô¿¿é
-		if keyDERBlock == nil {                            // ½âÂëË½Ô¿¿éÊ§°Ü
+		keyDERBlock, keyPEMBlock = pem.Decode(keyPEMBlock) // è§£ç ç§é’¥å—
+		if keyDERBlock == nil {                            // è§£ç ç§é’¥å—å¤±è´¥
 			return fail(errors.New("crypto/tls: failed to parse key PEM data"))
 		}
 		if keyDERBlock.Type == "PRIVATE KEY" || strings.HasSuffix(keyDERBlock.Type, " PRIVATE KEY") {
@@ -211,20 +211,20 @@ func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (Certificate, error) {
 	}
 
 	var err error
-	cert.PrivateKey, err = parsePrivateKey(keyDERBlock.Bytes) // ½âÎöË½Ô¿£¬»ñµÃÖ¤ÊéË½Ô¿
+	cert.PrivateKey, err = parsePrivateKey(keyDERBlock.Bytes) // è§£æç§é’¥ï¼Œè·å¾—è¯ä¹¦ç§é’¥
 	if err != nil {
 		return fail(err)
 	}
 
 	// We don't need to parse the public key for TLS, but we so do anyway
 	// to check that it looks sane and matches the private key.
-	x509Cert, err := x509.ParseCertificate(cert.Certificate[0]) // ½âÎöÖ¤Êé£¬»ñµÃÖ¤Êé½á¹¹
+	x509Cert, err := x509.ParseCertificate(cert.Certificate[0]) // è§£æè¯ä¹¦ï¼Œè·å¾—è¯ä¹¦ç»“æ„
 	if err != nil {
 		return fail(err)
 	}
 
-	switch pub := x509Cert.PublicKey.(type) { // ¸ù¾İ¹«Ô¿µÄÀàĞÍÅĞ¶ÏË½Ô¿£¬±ØĞëÀàĞÍÒ»ÖÂ
-	case *rsa.PublicKey: // rsa¹«Ô¿
+	switch pub := x509Cert.PublicKey.(type) { // æ ¹æ®å…¬é’¥çš„ç±»å‹åˆ¤æ–­ç§é’¥ï¼Œå¿…é¡»ç±»å‹ä¸€è‡´
+	case *rsa.PublicKey: // rsaå…¬é’¥
 		priv, ok := cert.PrivateKey.(*rsa.PrivateKey)
 		if !ok {
 			return fail(errors.New("crypto/tls: private key type does not match public key type"))
@@ -241,7 +241,7 @@ func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (Certificate, error) {
 		if pub.X.Cmp(priv.X) != 0 || pub.Y.Cmp(priv.Y) != 0 {
 			return fail(errors.New("crypto/tls: private key does not match public key"))
 		}
-	default: // Î´ÖªµÄ¹«Ô¿Ëã·¨
+	default: // æœªçŸ¥çš„å…¬é’¥ç®—æ³•
 		return fail(errors.New("crypto/tls: unknown public key algorithm"))
 	}
 
@@ -251,7 +251,7 @@ func X509KeyPair(certPEMBlock, keyPEMBlock []byte) (Certificate, error) {
 // Attempt to parse the given private key DER block. OpenSSL 0.9.8 generates
 // PKCS#1 private keys by default, while OpenSSL 1.0.0 generates PKCS#8 keys.
 // OpenSSL ecparam generates SEC1 EC private keys for ECDSA. We try all three.
-func parsePrivateKey(der []byte) (crypto.PrivateKey, error) { // ½âÎöË½Ô¿key
+func parsePrivateKey(der []byte) (crypto.PrivateKey, error) { // è§£æç§é’¥key
 	if key, err := x509.ParsePKCS1PrivateKey(der); err == nil {
 		return key, nil
 	}

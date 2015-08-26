@@ -21,8 +21,8 @@ type hchan struct {
 	elemsize uint16
 	closed   uint32
 	elemtype *_type // element type
-	sendx    uint   // send index
-	recvx    uint   // receive index
+	sendx    uint   // send index 发送索引
+	recvx    uint   // receive index 接收索引
 	recvq    waitq  // list of recv waiters
 	sendq    waitq  // list of send waiters
 	lock     mutex
@@ -34,11 +34,11 @@ type waitq struct {
 }
 
 //go:linkname reflect_makechan reflect.makechan
-func reflect_makechan(t *chantype, size int64) *hchan {
+func reflect_makechan(t *chantype, size int64) *hchan { // 反射创建chan
 	return makechan(t, size)
 }
 
-func makechan(t *chantype, size int64) *hchan {
+func makechan(t *chantype, size int64) *hchan { // 创建hchan结构指针
 	elem := t.elem // 获得元素
 
 	// compiler checks this but be safe.
@@ -48,7 +48,7 @@ func makechan(t *chantype, size int64) *hchan {
 	if hchanSize%maxAlign != 0 || elem.align > maxAlign { // 元素对齐错误
 		throw("makechan: bad alignment")
 	}
-	if size < 0 || int64(uintptr(size)) != size || (elem.size > 0 && uintptr(size) > (_MaxMem-hchanSize)/uintptr(elem.size)) {
+	if size < 0 || int64(uintptr(size)) != size || (elem.size > 0 && uintptr(size) > (_MaxMem-hchanSize)/uintptr(elem.size)) { // 大小越界
 		panic("makechan: size out of range")
 	}
 
@@ -60,16 +60,16 @@ func makechan(t *chantype, size int64) *hchan {
 		// SudoG's are referenced from their owning thread so they can't be collected.
 		// TODO(dvyukov,rlh): Rethink when collector can move allocated objects.
 		c = (*hchan)(mallocgc(hchanSize+uintptr(size)*uintptr(elem.size), nil, flagNoScan))
-		if size > 0 && elem.size != 0 {
+		if size > 0 && elem.size != 0 { // 对于有buffer的chan，为buf分配空间
 			c.buf = add(unsafe.Pointer(c), hchanSize)
-		} else {
+		} else { // 没有buf的chan，指向自身
 			// race detector uses this location for synchronization
 			// Also prevents us from pointing beyond the allocation (see issue 9401).
 			c.buf = unsafe.Pointer(c)
 		}
 	} else { // 如果包含指针，用new分配结构
-		c = new(hchan) // 创建hchan结构
-		c.buf = newarray(elem, uintptr(size))
+		c = new(hchan)                        // 创建hchan结构
+		c.buf = newarray(elem, uintptr(size)) // 分配数组
 	}
 	c.elemsize = uint16(elem.size) // 设置每个元素的大小
 	c.elemtype = elem              // 设置元素类型

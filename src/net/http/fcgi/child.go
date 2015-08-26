@@ -42,7 +42,7 @@ func newRequest(reqId uint16, flags uint8) *request {
 }
 
 // parseParams reads an encoded []byte into Params.
-func (r *request) parseParams() { // ½âÎö²ÎÊı
+func (r *request) parseParams() { // è§£æå‚æ•°
 	text := r.rawParams
 	r.rawParams = nil
 	for len(text) > 0 {
@@ -126,31 +126,31 @@ func (r *response) Close() error {
 	return r.w.Close()
 }
 
-type child struct { // child½á¹¹
-	conn    *conn        // Á¬½Ó
-	handler http.Handler // ´¦ÀíµÄhandler
+type child struct { // childç»“æ„
+	conn    *conn        // è¿æ¥
+	handler http.Handler // å¤„ç†çš„handler
 
 	mu       sync.Mutex          // protects requests:
 	requests map[uint16]*request // keyed by request ID
 }
 
-func newChild(rwc io.ReadWriteCloser, handler http.Handler) *child { // ĞÂ´´½¨Ò»¸öChild½á¹¹
+func newChild(rwc io.ReadWriteCloser, handler http.Handler) *child { // æ–°åˆ›å»ºä¸€ä¸ªChildç»“æ„
 	return &child{
-		conn:     newConn(rwc), // °ü×°ÎªĞÂÁ¬½Ó
+		conn:     newConn(rwc), // åŒ…è£…ä¸ºæ–°è¿æ¥
 		handler:  handler,
-		requests: make(map[uint16]*request), // ´´½¨requestµÄmap
+		requests: make(map[uint16]*request), // åˆ›å»ºrequestçš„map
 	}
 }
 
-func (c *child) serve() { // ´¦ÀíÇëÇó
+func (c *child) serve() { // å¤„ç†è¯·æ±‚
 	defer c.conn.Close()
 	defer c.cleanUp()
 	var rec record
 	for {
-		if err := rec.read(c.conn.rwc); err != nil { // ÏÈ¶ÁÈërecordµÄÄÚÈİ
+		if err := rec.read(c.conn.rwc); err != nil { // å…ˆè¯»å…¥recordçš„å†…å®¹
 			return
 		}
-		if err := c.handleRecord(&rec); err != nil { // ´¦Àírecord
+		if err := c.handleRecord(&rec); err != nil { // å¤„ç†record
 			return
 		}
 	}
@@ -168,18 +168,18 @@ var ErrRequestAborted = errors.New("fcgi: request aborted by web server")
 // a request after the connection to the web server has been closed.
 var ErrConnClosed = errors.New("fcgi: connection to web server closed")
 
-func (c *child) handleRecord(rec *record) error { // ´¦ÀífcgiÇëÇó¼ÇÂ¼
+func (c *child) handleRecord(rec *record) error { // å¤„ç†fcgiè¯·æ±‚è®°å½•
 	c.mu.Lock()
-	req, ok := c.requests[rec.h.Id] // È¡µÃ¶ÔÓ¦µÄreq½á¹¹
+	req, ok := c.requests[rec.h.Id] // å–å¾—å¯¹åº”çš„reqç»“æ„
 	c.mu.Unlock()
-	if !ok && rec.h.Type != typeBeginRequest && rec.h.Type != typeGetValues { // ºöÂÔµôÎ´ÖªµÄÇëÇóid
+	if !ok && rec.h.Type != typeBeginRequest && rec.h.Type != typeGetValues { // å¿½ç•¥æ‰æœªçŸ¥çš„è¯·æ±‚id
 		// The spec says to ignore unknown request IDs.
 		return nil
 	}
 
-	switch rec.h.Type { // ¸ù¾İrecordµÄÀàĞÍ½øĞĞ´¦Àí
-	case typeBeginRequest: // ÀàĞÍÎªÇëÇó¿ªÊ¼
-		if req != nil { // ÊÕµ½ÁËidÖØ¸´µÄÇëÇó£¬³ö´íÁË
+	switch rec.h.Type { // æ ¹æ®recordçš„ç±»å‹è¿›è¡Œå¤„ç†
+	case typeBeginRequest: // ç±»å‹ä¸ºè¯·æ±‚å¼€å§‹
+		if req != nil { // æ”¶åˆ°äº†idé‡å¤çš„è¯·æ±‚ï¼Œå‡ºé”™äº†
 			// The server is trying to begin a request with the same ID
 			// as an in-progress request. This is an error.
 			return errors.New("fcgi: received ID that is already in-flight")
@@ -193,21 +193,21 @@ func (c *child) handleRecord(rec *record) error { // ´¦ÀífcgiÇëÇó¼ÇÂ¼
 			c.conn.writeEndRequest(rec.h.Id, 0, statusUnknownRole)
 			return nil
 		}
-		req = newRequest(rec.h.Id, br.flags) // ´´½¨Ò»¸öĞÂµÄÇëÇó½á¹¹
+		req = newRequest(rec.h.Id, br.flags) // åˆ›å»ºä¸€ä¸ªæ–°çš„è¯·æ±‚ç»“æ„
 		c.mu.Lock()
 		c.requests[rec.h.Id] = req
 		c.mu.Unlock()
 		return nil
-	case typeParams: // ¼ÇÂ¼µÄÀàĞÍÎª´«Êä²ÎÊı
+	case typeParams: // è®°å½•çš„ç±»å‹ä¸ºä¼ è¾“å‚æ•°
 		// NOTE(eds): Technically a key-value pair can straddle the boundary
 		// between two packets. We buffer until we've received all parameters.
 		if len(rec.content()) > 0 {
 			req.rawParams = append(req.rawParams, rec.content()...)
 			return nil
 		}
-		req.parseParams() // ÇëÇó½âÎö²ÎÊı
+		req.parseParams() // è¯·æ±‚è§£æå‚æ•°
 		return nil
-	case typeStdin: // ´¦ÀíÇëÇóÄÚÈİ
+	case typeStdin: // å¤„ç†è¯·æ±‚å†…å®¹
 		content := rec.content()
 		if req.pw == nil {
 			var body io.ReadCloser
@@ -218,7 +218,7 @@ func (c *child) handleRecord(rec *record) error { // ´¦ÀífcgiÇëÇó¼ÇÂ¼
 			} else {
 				body = emptyBody
 			}
-			go c.serveRequest(req, body) // ¿ªÊ¼´¦ÀíÇëÇó
+			go c.serveRequest(req, body) // å¼€å§‹å¤„ç†è¯·æ±‚
 		}
 		if len(content) > 0 {
 			// TODO(eds): This blocks until the handler reads from the pipe.
@@ -235,7 +235,7 @@ func (c *child) handleRecord(rec *record) error { // ´¦ÀífcgiÇëÇó¼ÇÂ¼
 	case typeData:
 		// If the filter role is implemented, read the data stream here.
 		return nil
-	case typeAbortRequest: // abortµôÇëÇó
+	case typeAbortRequest: // abortæ‰è¯·æ±‚
 		c.mu.Lock()
 		delete(c.requests, rec.h.Id)
 		c.mu.Unlock()
@@ -258,7 +258,7 @@ func (c *child) handleRecord(rec *record) error { // ´¦ÀífcgiÇëÇó¼ÇÂ¼
 
 func (c *child) serveRequest(req *request, body io.ReadCloser) {
 	r := newResponse(c, req)
-	httpReq, err := cgi.RequestFromMap(req.params) // ¸ù¾İ²ÎÊı¹¹½¨httpÇëÇó
+	httpReq, err := cgi.RequestFromMap(req.params) // æ ¹æ®å‚æ•°æ„å»ºhttpè¯·æ±‚
 	if err != nil {
 		// there was an error reading the request
 		r.WriteHeader(http.StatusInternalServerError)
@@ -305,8 +305,8 @@ func (c *child) cleanUp() {
 // to reply to them.
 // If l is nil, Serve accepts connections from os.Stdin.
 // If handler is nil, http.DefaultServeMux is used.
-func Serve(l net.Listener, handler http.Handler) error { // ½ÓÊÕÒ»¸öFCGIÁ¬½ÓÔÚListenerÉÏ£¬ÓÃhandler´¦ÀíÁ¬½Ó
-	if l == nil { // Èç¹ûListenerÎª¿Õ£¬¹¹½¨±ê×¼ÊäÈëµÄListener
+func Serve(l net.Listener, handler http.Handler) error { // æ¥æ”¶ä¸€ä¸ªFCGIè¿æ¥åœ¨Listenerä¸Šï¼Œç”¨handlerå¤„ç†è¿æ¥
+	if l == nil { // å¦‚æœListenerä¸ºç©ºï¼Œæ„å»ºæ ‡å‡†è¾“å…¥çš„Listener
 		var err error
 		l, err = net.FileListener(os.Stdin)
 		if err != nil {
@@ -314,15 +314,15 @@ func Serve(l net.Listener, handler http.Handler) error { // ½ÓÊÕÒ»¸öFCGIÁ¬½ÓÔÚLi
 		}
 		defer l.Close()
 	}
-	if handler == nil { // Èç¹ûhandlerÎª¿Õ£¬ÓÃÈ±Ê¡µÄServeMux
+	if handler == nil { // å¦‚æœhandlerä¸ºç©ºï¼Œç”¨ç¼ºçœçš„ServeMux
 		handler = http.DefaultServeMux
 	}
 	for {
-		rw, err := l.Accept() // acceptÒ»¸öĞÂÁ¬½Ó, ·ÅÈërw
+		rw, err := l.Accept() // acceptä¸€ä¸ªæ–°è¿æ¥, æ”¾å…¥rw
 		if err != nil {
 			return err
 		}
-		c := newChild(rw, handler) // ĞÂ´´½¨Ò»¸öChild
-		go c.serve()               // Ö´ĞĞfastcgiµÄ·şÎñ
+		c := newChild(rw, handler) // æ–°åˆ›å»ºä¸€ä¸ªChild
+		go c.serve()               // æ‰§è¡Œfastcgiçš„æœåŠ¡
 	}
 }

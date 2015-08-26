@@ -49,7 +49,7 @@ var (
 // It recovers the panic, logs a stack trace to the server error log,
 // and hangs up the connection.
 //
-type Handler interface {
+type Handler interface { // Handler接口，只包含一个ServeHTTP方法
 	ServeHTTP(ResponseWriter, *Request)
 }
 
@@ -123,7 +123,7 @@ type CloseNotifier interface {
 type conn struct {
 	remoteAddr string               // network address of remote side
 	server     *Server              // the Server on which the connection arrived
-	rwc        net.Conn             // i/o connection
+	rwc        net.Conn             // i/o connection 底层的io连接
 	w          io.Writer            // checkConnErrorWriter's copy of wrc, not zeroed on Hijack
 	werr       error                // any errors writing to w
 	sr         liveSwitchReader     // where the LimitReader reads from; usually the rwc
@@ -312,7 +312,7 @@ func (cw *chunkWriter) close() {
 }
 
 // A response represents the server side of an HTTP response.
-type response struct {
+type response struct { // 代表服务端对http请求的响应
 	conn          *conn
 	req           *Request // request for this response
 	wroteHeader   bool     // reply header has been (logically) written
@@ -461,7 +461,7 @@ const noLimit int64 = (1 << 63) - 1
 
 // debugServerConnections controls whether all server connections are wrapped
 // with a verbose logging wrapper.
-const debugServerConnections = false
+const debugServerConnections = false // 设置是否debug http连接
 
 // Create new connection from rwc.
 func (srv *Server) newConn(rwc net.Conn) (c *conn, err error) {
@@ -487,7 +487,7 @@ var (
 	bufioWriter4kPool sync.Pool
 )
 
-func bufioWriterPool(size int) *sync.Pool {
+func bufioWriterPool(size int) *sync.Pool { // 获取对应size的bufio的pool
 	switch size {
 	case 2 << 10:
 		return &bufioWriter2kPool
@@ -609,12 +609,12 @@ func appendTime(b []byte, t time.Time) []byte {
 var errTooLarge = errors.New("http: request too large")
 
 // Read next request from connection.
-func (c *conn) readRequest() (w *response, err error) {
+func (c *conn) readRequest() (w *response, err error) { // 读出请求返回响应结构
 	if c.hijacked() {
 		return nil, ErrHijacked
 	}
 
-	if d := c.server.ReadTimeout; d != 0 {
+	if d := c.server.ReadTimeout; d != 0 { // 如果设置了读超时，设置底层rwc的读超时
 		c.rwc.SetReadDeadline(time.Now().Add(d))
 	}
 	if d := c.server.WriteTimeout; d != 0 {
@@ -1445,7 +1445,7 @@ func NotFoundHandler() Handler { return HandlerFunc(NotFound) }
 // and invoking the handler h. StripPrefix handles a
 // request for a path that doesn't begin with prefix by
 // replying with an HTTP 404 not found error.
-func StripPrefix(prefix string, h Handler) Handler {
+func StripPrefix(prefix string, h Handler) Handler { // 包装一个封装前缀的Handler
 	if prefix == "" {
 		return h
 	}
@@ -1583,7 +1583,7 @@ type ServeMux struct {
 }
 
 type muxEntry struct {
-	explicit bool
+	explicit bool // 该项是不是由用户主动添加的，如果patter以/结尾再添加一个不以/结尾的
 	h        Handler
 	pattern  string
 }
@@ -1628,7 +1628,7 @@ func cleanPath(p string) string {
 // Most-specific (longest) pattern wins
 func (mux *ServeMux) match(path string) (h Handler, pattern string) {
 	var n = 0
-	for k, v := range mux.m {
+	for k, v := range mux.m { // 遍历muxEntry的map
 		if !pathMatch(k, path) {
 			continue
 		}
@@ -1701,21 +1701,21 @@ func (mux *ServeMux) ServeHTTP(w ResponseWriter, r *Request) {
 
 // Handle registers the handler for the given pattern.
 // If a handler already exists for pattern, Handle panics.
-func (mux *ServeMux) Handle(pattern string, handler Handler) {
+func (mux *ServeMux) Handle(pattern string, handler Handler) { // 将pattern和handler加入ServeMux
 	mux.mu.Lock()
-	defer mux.mu.Unlock()
+	defer mux.mu.Unlock() // mux加锁
 
-	if pattern == "" {
+	if pattern == "" { // 如果pattern为空，无效
 		panic("http: invalid pattern " + pattern)
 	}
-	if handler == nil {
+	if handler == nil { // handler为空，也无效
 		panic("http: nil handler")
 	}
-	if mux.m[pattern].explicit {
+	if mux.m[pattern].explicit { // 注册了多次，无效
 		panic("http: multiple registrations for " + pattern)
 	}
 
-	mux.m[pattern] = muxEntry{explicit: true, h: handler, pattern: pattern}
+	mux.m[pattern] = muxEntry{explicit: true, h: handler, pattern: pattern} // 生成muxEntry项
 
 	if pattern[0] != '/' {
 		mux.hosts = true
@@ -1724,8 +1724,8 @@ func (mux *ServeMux) Handle(pattern string, handler Handler) {
 	// Helpful behavior:
 	// If pattern is /tree/, insert an implicit permanent redirect for /tree.
 	// It can be overridden by an explicit registration.
-	n := len(pattern)
-	if n > 0 && pattern[n-1] == '/' && !mux.m[pattern[0:n-1]].explicit {
+	n := len(pattern)                                                    // 获得pattern的长度
+	if n > 0 && pattern[n-1] == '/' && !mux.m[pattern[0:n-1]].explicit { // 添加一项最后不带/的
 		// If pattern contains a host name, strip it and use remaining
 		// path for redirect.
 		path := pattern
@@ -1833,7 +1833,7 @@ const (
 	StateClosed
 )
 
-var stateName = map[ConnState]string{
+var stateName = map[ConnState]string{ // 连接的状态
 	StateNew:      "new",
 	StateActive:   "active",
 	StateIdle:     "idle",
@@ -1841,19 +1841,19 @@ var stateName = map[ConnState]string{
 	StateClosed:   "closed",
 }
 
-func (c ConnState) String() string {
+func (c ConnState) String() string { // 返回连接状态字符串
 	return stateName[c]
 }
 
 // serverHandler delegates to either the server's Handler or
 // DefaultServeMux and also handles "OPTIONS *" requests.
-type serverHandler struct {
+type serverHandler struct { // 对server进行包装，形成server的handler
 	srv *Server
 }
 
 func (sh serverHandler) ServeHTTP(rw ResponseWriter, req *Request) {
 	handler := sh.srv.Handler
-	if handler == nil {
+	if handler == nil { // 如果没有Handler设置为DefaultServeMux
 		handler = DefaultServeMux
 	}
 	if req.RequestURI == "*" && req.Method == "OPTIONS" {
@@ -1865,7 +1865,7 @@ func (sh serverHandler) ServeHTTP(rw ResponseWriter, req *Request) {
 // ListenAndServe listens on the TCP network address srv.Addr and then
 // calls Serve to handle requests on incoming connections.  If
 // srv.Addr is blank, ":http" is used.
-func (srv *Server) ListenAndServe() error {
+func (srv *Server) ListenAndServe() error { // 对应的Server执行Listen后执行Serve
 	addr := srv.Addr
 	if addr == "" {
 		addr = ":http"
@@ -1906,7 +1906,7 @@ func (srv *Server) Serve(l net.Listener) error {
 		if err != nil {
 			continue
 		}
-		c.setState(c.rwc, StateNew) // before Serve can return
+		c.setState(c.rwc, StateNew) // before Serve can return 设置连接的状态
 		go c.serve()
 	}
 }
@@ -2132,11 +2132,11 @@ type tcpKeepAliveListener struct {
 }
 
 func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
-	tc, err := ln.AcceptTCP()
+	tc, err := ln.AcceptTCP() // 先执行底层的Accept
 	if err != nil {
 		return
 	}
-	tc.SetKeepAlive(true)
+	tc.SetKeepAlive(true) // 设置keepalive时间为3分钟
 	tc.SetKeepAlivePeriod(3 * time.Minute)
 	return tc, nil
 }

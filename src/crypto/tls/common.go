@@ -40,13 +40,13 @@ const (
 type recordType uint8
 
 const (
-	recordTypeChangeCipherSpec recordType = 20 // changecipherspec¼ÇÂ¼£¬ÒªÇóºóÃæµÄÍ¨ĞÅ¹ı³Ì¼ÓÃÜ
+	recordTypeChangeCipherSpec recordType = 20 // changecipherspecè®°å½•ï¼Œè¦æ±‚åé¢çš„é€šä¿¡è¿‡ç¨‹åŠ å¯†
 	recordTypeAlert            recordType = 21
 	recordTypeHandshake        recordType = 22
 	recordTypeApplicationData  recordType = 23
 )
 
-// TLS handshake message types. TLSÎÕÊÖÏûÏ¢µÄÀàĞÍ
+// TLS handshake message types. TLSæ¡æ‰‹æ¶ˆæ¯çš„ç±»å‹
 const (
 	typeClientHello        uint8 = 1
 	typeServerHello        uint8 = 2
@@ -242,21 +242,21 @@ type ClientHelloInfo struct {
 // After one has been passed to a TLS function it must not be
 // modified. A Config may be reused; the tls package will also not
 // modify it.
-type Config struct { // ÓÃÀ´ÅäÖÃTLS Client»òServer£¬±»´«µİ½øTLSºó¾Í²»ÄÜÔÙ±»¸Ä±ä£¬¿ÉÒÔ±»¸´ÓÃ
+type Config struct { // ç”¨æ¥é…ç½®TLS Clientæˆ–Serverï¼Œè¢«ä¼ é€’è¿›TLSåå°±ä¸èƒ½å†è¢«æ”¹å˜ï¼Œå¯ä»¥è¢«å¤ç”¨
 	// Rand provides the source of entropy for nonces and RSA blinding.
 	// If Rand is nil, TLS uses the cryptographic random reader in package
 	// crypto/rand.
 	// The Reader must be safe for use by multiple goroutines.
-	Rand io.Reader // Ìá¹©Ëæ»úÊıìØµÄÀ´Ô´£¬Èç¹ûÎª¿Õ£¬ÔòÊ¹ÓÃcrypto/rand°üÖĞµÄ
+	Rand io.Reader // æä¾›éšæœºæ•°ç†µçš„æ¥æºï¼Œå¦‚æœä¸ºç©ºï¼Œåˆ™ä½¿ç”¨crypto/randåŒ…ä¸­çš„
 
 	// Time returns the current time as the number of seconds since the epoch.
 	// If Time is nil, TLS uses time.Now.
-	Time func() time.Time // ·µ»Øµ±Ç°Ê±¼ä£¬Èç¹ûº¯ÊıÎªnil£¬ÔòÊ¹ÓÃtime.Now
+	Time func() time.Time // è¿”å›å½“å‰æ—¶é—´ï¼Œå¦‚æœå‡½æ•°ä¸ºnilï¼Œåˆ™ä½¿ç”¨time.Now
 
 	// Certificates contains one or more certificate chains
 	// to present to the other side of the connection.
 	// Server configurations must include at least one certificate.
-	Certificates []Certificate // °üº¬Ò»¸ö»ò¶à¸öÖ¤ÊéÁ´£¬·şÎñ¶ËÅäÖÃ±ØĞë°üº¬ÖÁÉÙÒ»¸öÖ¤Êé
+	Certificates []Certificate // åŒ…å«ä¸€ä¸ªæˆ–å¤šä¸ªè¯ä¹¦é“¾ï¼ŒæœåŠ¡ç«¯é…ç½®å¿…é¡»åŒ…å«è‡³å°‘ä¸€ä¸ªè¯ä¹¦
 
 	// NameToCertificate maps from a certificate name to an element of
 	// Certificates. Note that a certificate name can be of the form
@@ -264,7 +264,7 @@ type Config struct { // ÓÃÀ´ÅäÖÃTLS Client»òServer£¬±»´«µİ½øTLSºó¾Í²»ÄÜÔÙ±»¸Ä±ä£
 	// See Config.BuildNameToCertificate
 	// The nil value causes the first element of Certificates to be used
 	// for all connections.
-	NameToCertificate map[string]*Certificate // ´ÓÃû³Æµ½Ö¤ÊéµÄÓ³Éä±í
+	NameToCertificate map[string]*Certificate // ä»åç§°åˆ°è¯ä¹¦çš„æ˜ å°„è¡¨
 
 	// GetCertificate returns a Certificate based on the given
 	// ClientHelloInfo. It will only be called if the client supplies SNI
@@ -382,7 +382,7 @@ func ticketKeyFromBytes(b [32]byte) (key ticketKey) {
 	return key
 }
 
-func (c *Config) serverInit() { // ³õÊ¼»¯·şÎñÆ÷
+func (c *Config) serverInit() { // åˆå§‹åŒ–æœåŠ¡å™¨
 	if c.SessionTicketsDisabled {
 		return
 	}
@@ -458,14 +458,14 @@ func (c *Config) cipherSuites() []uint16 {
 	return s
 }
 
-func (c *Config) minVersion() uint16 { // ·µ»Ø×îĞ¡ÒªÇóµÄ°æ±¾ºÅ
+func (c *Config) minVersion() uint16 { // è¿”å›æœ€å°è¦æ±‚çš„ç‰ˆæœ¬å·
 	if c == nil || c.MinVersion == 0 {
 		return minVersion
 	}
 	return c.MinVersion
 }
 
-func (c *Config) maxVersion() uint16 { // ·µ»Ø×î´óÒªÇóµÄ°æ±¾ºÅ
+func (c *Config) maxVersion() uint16 { // è¿”å›æœ€å¤§è¦æ±‚çš„ç‰ˆæœ¬å·
 	if c == nil || c.MaxVersion == 0 {
 		return maxVersion
 	}
@@ -483,9 +483,9 @@ func (c *Config) curvePreferences() []CurveID {
 
 // mutualVersion returns the protocol version to use given the advertised
 // version of the peer.
-func (c *Config) mutualVersion(vers uint16) (uint16, bool) { // ·µ»Ø½»»»µÄ°æ±¾Ğ­Òé
-	minVersion := c.minVersion() // »ñÈ¡×îĞ¡Ğ­Òé°æ±¾
-	maxVersion := c.maxVersion() // »ñÈ¡×î´óĞ­Òé°æ±¾
+func (c *Config) mutualVersion(vers uint16) (uint16, bool) { // è¿”å›äº¤æ¢çš„ç‰ˆæœ¬åè®®
+	minVersion := c.minVersion() // è·å–æœ€å°åè®®ç‰ˆæœ¬
+	maxVersion := c.maxVersion() // è·å–æœ€å¤§åè®®ç‰ˆæœ¬
 
 	if vers < minVersion {
 		return 0, false
@@ -561,7 +561,7 @@ func (c *Config) BuildNameToCertificate() {
 }
 
 // A Certificate is a chain of one or more certificates, leaf first.
-type Certificate struct { // ÉèÖÃÖ¤Êé½á¹¹
+type Certificate struct { // è®¾ç½®è¯ä¹¦ç»“æ„
 	Certificate [][]byte
 	// PrivateKey contains the private key corresponding to the public key
 	// in Leaf. For a server, this must implement crypto.Signer and/or
@@ -674,7 +674,7 @@ type ecdsaSignature dsaSignature
 
 var emptyConfig Config
 
-func defaultConfig() *Config { // »ñµÃÈ±Ê¡µÄConfig£¬ÊÇ¿ÕConfig
+func defaultConfig() *Config { // è·å¾—ç¼ºçœçš„Configï¼Œæ˜¯ç©ºConfig
 	return &emptyConfig
 }
 
@@ -688,7 +688,7 @@ func defaultCipherSuites() []uint16 {
 	return varDefaultCipherSuites
 }
 
-func initDefaultCipherSuites() { // ³õÊ¼»¯È±Ê¡µÄ¼ÓÃÜÌ×¼ş
+func initDefaultCipherSuites() { // åˆå§‹åŒ–ç¼ºçœçš„åŠ å¯†å¥—ä»¶
 	varDefaultCipherSuites = make([]uint16, 0, len(cipherSuites))
 	for _, suite := range cipherSuites {
 		if suite.flags&suiteDefaultOff != 0 {

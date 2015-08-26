@@ -20,7 +20,7 @@ type aesCipher struct {
 
 type KeySizeError int
 
-func (k KeySizeError) Error() string { // ´íÎóÏûÏ¢
+func (k KeySizeError) Error() string { // é”™è¯¯æ¶ˆæ¯
 	return "crypto/aes: invalid key size " + strconv.Itoa(int(k))
 }
 
@@ -28,24 +28,24 @@ func (k KeySizeError) Error() string { // ´íÎóÏûÏ¢
 // The key argument should be the AES key,
 // either 16, 24, or 32 bytes to select
 // AES-128, AES-192, or AES-256.
-func NewCipher(key []byte) (cipher.Block, error) { // AESµÄ¼ÓÃÜÇ¿¶È
-	k := len(key) // È¡µÃkeyµÄ³¤¶È
+func NewCipher(key []byte) (cipher.Block, error) { // AESçš„åŠ å¯†å¼ºåº¦
+	k := len(key) // å–å¾—keyçš„é•¿åº¦
 	switch k {
 	default:
-		return nil, KeySizeError(k) // keyµÄ³¤¶È²»ºÏ·¨
-	case 16, 24, 32: // keyµÄ³¤¶È±ØĞëÎª16¡¢24»ò32
+		return nil, KeySizeError(k) // keyçš„é•¿åº¦ä¸åˆæ³•
+	case 16, 24, 32: // keyçš„é•¿åº¦å¿…é¡»ä¸º16ã€24æˆ–32
 		break
 	}
 
 	n := k + 28
-	c := &aesCipher{make([]uint32, n), make([]uint32, n)} // ´´½¨aesCipher½á¹¹
+	c := &aesCipher{make([]uint32, n), make([]uint32, n)} // åˆ›å»ºaesCipherç»“æ„
 	expandKey(key, c.enc, c.dec)
 	return c, nil
 }
 
-func (c *aesCipher) BlockSize() int { return BlockSize } // ·µ»Ø¿é´óĞ¡
+func (c *aesCipher) BlockSize() int { return BlockSize } // è¿”å›å—å¤§å°
 
-func (c *aesCipher) Encrypt(dst, src []byte) { // Ö´ĞĞ¼ÓÃÜ
+func (c *aesCipher) Encrypt(dst, src []byte) { // æ‰§è¡ŒåŠ å¯†
 	if len(src) < BlockSize {
 		panic("crypto/aes: input not full block")
 	}
@@ -55,7 +55,7 @@ func (c *aesCipher) Encrypt(dst, src []byte) { // Ö´ĞĞ¼ÓÃÜ
 	encryptBlock(c.enc, dst, src)
 }
 
-func (c *aesCipher) Decrypt(dst, src []byte) { // Ö´ĞĞ½âÃÜ
+func (c *aesCipher) Decrypt(dst, src []byte) { // æ‰§è¡Œè§£å¯†
 	if len(src) < BlockSize {
 		panic("crypto/aes: input not full block")
 	}

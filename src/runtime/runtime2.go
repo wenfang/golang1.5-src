@@ -627,7 +627,7 @@ const (
 var (
 	emptystring string
 	allg        **g
-	allglen     uintptr
+	allglen     uintptr // allg的数量
 	lastg       *g
 	allm        *m
 	allp        [_MaxGomaxprocs + 1]*p

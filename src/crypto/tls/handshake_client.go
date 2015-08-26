@@ -28,12 +28,12 @@ type clientHandshakeState struct {
 	session      *ClientSessionState
 }
 
-func (c *Conn) clientHandshake() error { // Ö´ĞĞ¿Í»§¶ËÎÕÊÖ
+func (c *Conn) clientHandshake() error { // æ‰§è¡Œå®¢æˆ·ç«¯æ¡æ‰‹
 	if c.config == nil {
 		c.config = defaultConfig()
 	}
 
-	if len(c.config.ServerName) == 0 && !c.config.InsecureSkipVerify { // ServerNameºÍInsecureSkipVerify±ØĞëÉè¶¨
+	if len(c.config.ServerName) == 0 && !c.config.InsecureSkipVerify { // ServerNameå’ŒInsecureSkipVerifyå¿…é¡»è®¾å®š
 		return errors.New("tls: either ServerName or InsecureSkipVerify must be specified in the tls.Config")
 	}
 
@@ -61,7 +61,7 @@ func (c *Conn) clientHandshake() error { // Ö´ĞĞ¿Í»§¶ËÎÕÊÖ
 		nextProtoNeg:        len(c.config.NextProtos) > 0,
 		secureRenegotiation: true,
 		alpnProtocols:       c.config.NextProtos,
-	} // ´´½¨Ò»¸öclientµÄhello message
+	} // åˆ›å»ºä¸€ä¸ªclientçš„hello message
 
 	possibleCipherSuites := c.config.cipherSuites()
 	hello.cipherSuites = make([]uint16, 0, len(possibleCipherSuites))
@@ -82,7 +82,7 @@ NextCipherSuite:
 		}
 	}
 
-	_, err := io.ReadFull(c.config.rand(), hello.random) // ´ÓËæ»úÊı·¢ÉúÆ÷ÖĞ»ñÈ¡Ëæ»úÊı
+	_, err := io.ReadFull(c.config.rand(), hello.random) // ä»éšæœºæ•°å‘ç”Ÿå™¨ä¸­è·å–éšæœºæ•°
 	if err != nil {
 		c.sendAlert(alertInternalError)
 		return errors.New("tls: short read from Rand: " + err.Error())

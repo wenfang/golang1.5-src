@@ -18,7 +18,7 @@ import (
 
 // serverHandshakeState contains details of a server handshake in progress.
 // It's discarded once the handshake has completed.
-type serverHandshakeState struct { // ·şÎñ¶ËÎÕÊÖ×´Ì¬
+type serverHandshakeState struct { // æœåŠ¡ç«¯æ¡æ‰‹çŠ¶æ€
 	c               *Conn
 	clientHello     *clientHelloMsg
 	hello           *serverHelloMsg
@@ -35,23 +35,23 @@ type serverHandshakeState struct { // ·şÎñ¶ËÎÕÊÖ×´Ì¬
 }
 
 // serverHandshake performs a TLS handshake as a server.
-func (c *Conn) serverHandshake() error { // ×÷Îª·şÎñ¶Ë´¦ÀíÎÕÊÖ
+func (c *Conn) serverHandshake() error { // ä½œä¸ºæœåŠ¡ç«¯å¤„ç†æ¡æ‰‹
 	config := c.config
 
 	// If this is the first server handshake, we generate a random key to
 	// encrypt the tickets with.
-	config.serverInitOnce.Do(config.serverInit) // server¶Ë³õÊ¼»¯Ò»´Î
+	config.serverInitOnce.Do(config.serverInit) // serverç«¯åˆå§‹åŒ–ä¸€æ¬¡
 
-	hs := serverHandshakeState{ // ³õÊ¼»¯Ò»¸ö·şÎñ¶ËÎÕÊÖ×´Ì¬½á¹¹
+	hs := serverHandshakeState{ // åˆå§‹åŒ–ä¸€ä¸ªæœåŠ¡ç«¯æ¡æ‰‹çŠ¶æ€ç»“æ„
 		c: c,
 	}
-	isResume, err := hs.readClientHello() // ¶Á¿Í»§¶Ë·¢ËÍµÄHello
+	isResume, err := hs.readClientHello() // è¯»å®¢æˆ·ç«¯å‘é€çš„Hello
 	if err != nil {
 		return err
 	}
 
 	// For an overview of TLS handshaking, see https://tools.ietf.org/html/rfc5246#section-7.3
-	if isResume { // client¶Ë°üº¬session ticket×öÒ»¸ö¼òÂÔµÄÎÕÊÖ
+	if isResume { // clientç«¯åŒ…å«session ticketåšä¸€ä¸ªç®€ç•¥çš„æ¡æ‰‹
 		// The client has included a session ticket and so we do an abbreviated handshake.
 		if err := hs.doResumeHandshake(); err != nil {
 			return err
@@ -74,7 +74,7 @@ func (c *Conn) serverHandshake() error { // ×÷Îª·şÎñ¶Ë´¦ÀíÎÕÊÖ
 			return err
 		}
 		c.didResume = true
-	} else { // client¶Ë²»°üº¬session ticket×öÒ»¸öÍêÈ«µÄÎÕÊÖ
+	} else { // clientç«¯ä¸åŒ…å«session ticketåšä¸€ä¸ªå®Œå…¨çš„æ¡æ‰‹
 		// The client didn't include a session ticket, or it wasn't
 		// valid so we do a full handshake.
 		if err := hs.doFullHandshake(); err != nil {
@@ -93,14 +93,14 @@ func (c *Conn) serverHandshake() error { // ×÷Îª·şÎñ¶Ë´¦ÀíÎÕÊÖ
 			return err
 		}
 	}
-	c.handshakeComplete = true // ÉèÖÃÎÕÊÖÍê³É
+	c.handshakeComplete = true // è®¾ç½®æ¡æ‰‹å®Œæˆ
 
 	return nil
 }
 
 // readClientHello reads a ClientHello message from the client and decides
 // whether we will perform session resumption.
-func (hs *serverHandshakeState) readClientHello() (isResume bool, err error) { // ¶Á¿Í»§¶Ë·¢À´µÄHelloÏûÏ¢
+func (hs *serverHandshakeState) readClientHello() (isResume bool, err error) { // è¯»å®¢æˆ·ç«¯å‘æ¥çš„Helloæ¶ˆæ¯
 	config := hs.c.config
 	c := hs.c
 
@@ -109,13 +109,13 @@ func (hs *serverHandshakeState) readClientHello() (isResume bool, err error) { /
 		return false, err
 	}
 	var ok bool
-	hs.clientHello, ok = msg.(*clientHelloMsg) // Èç¹û²»ÊÇclientHelloMsg·µ»Ø´íÎó
+	hs.clientHello, ok = msg.(*clientHelloMsg) // å¦‚æœä¸æ˜¯clientHelloMsgè¿”å›é”™è¯¯
 	if !ok {
 		c.sendAlert(alertUnexpectedMessage)
 		return false, unexpectedMessageError(hs.clientHello, msg)
 	}
 	c.vers, ok = config.mutualVersion(hs.clientHello.vers)
-	if !ok { // ·µ»Ø°æ±¾ºÅ´íÎó
+	if !ok { // è¿”å›ç‰ˆæœ¬å·é”™è¯¯
 		c.sendAlert(alertProtocolVersion)
 		return false, fmt.Errorf("tls: client offered an unsupported, maximum protocol version of %x", hs.clientHello.vers)
 	}
@@ -160,7 +160,7 @@ Curves:
 
 	hs.hello.vers = c.vers
 	hs.hello.random = make([]byte, 32)
-	_, err = io.ReadFull(config.rand(), hs.hello.random) // Éú³Éserver¶ËµÄËæ»úÊı
+	_, err = io.ReadFull(config.rand(), hs.hello.random) // ç”Ÿæˆserverç«¯çš„éšæœºæ•°
 	if err != nil {
 		c.sendAlert(alertInternalError)
 		return false, err

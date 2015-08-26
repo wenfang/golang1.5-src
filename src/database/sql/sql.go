@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	driversMu sync.Mutex
+	driversMu sync.Mutex // 保护drivers map的锁
 	drivers   = make(map[string]driver.Driver)
 )
 
@@ -51,7 +51,7 @@ func unregisterAllDrivers() { // 反注册所有的driver
 }
 
 // Drivers returns a sorted list of the names of the registered drivers.
-func Drivers() []string { // 返回driver的列表
+func Drivers() []string { // 返回drivers的名称列表
 	driversMu.Lock()
 	defer driversMu.Unlock()
 	var list []string
@@ -231,12 +231,14 @@ type DB struct {
 	connRequests []chan connRequest
 	numOpen      int
 	pendingOpens int
+	// 用来通告需要新连接，在goroutine中运行connectionOpener来读这个chan
+	// maybeOpenNewConnections向这个chan中发送请求
 	// Used to signal the need for new connections
 	// a goroutine running connectionOpener() reads on this chan and
 	// maybeOpenNewConnections sends on the chan (one send per needed connection)
 	// It is closed during db.Close(). The close tells the connectionOpener
 	// goroutine to exit.
-	openerCh chan struct{}
+	openerCh chan struct{} // 通告要打开新连接
 	closed   bool
 	dep      map[finalCloser]depSet
 	lastPut  map[*driverConn]string // stacktrace of last conn's put; debug only
@@ -263,11 +265,11 @@ const (
 type driverConn struct { // 代表到数据库的连接
 	db *DB // 指向数据库结构
 
-	sync.Mutex              // guards following
-	ci          driver.Conn // 对应驱动的连接
-	closed      bool        // 该连接是否已关闭
-	finalClosed bool        // ci.Close has been called
-	openStmt    map[driver.Stmt]bool
+	sync.Mutex                       // guards following
+	ci          driver.Conn          // 对应驱动的连接
+	closed      bool                 // 该连接是否已关闭
+	finalClosed bool                 // ci.Close has been called
+	openStmt    map[driver.Stmt]bool // 对应的statement是否是已打开的statement
 
 	// guarded by db.mu
 	inUse      bool
@@ -469,7 +471,7 @@ func Open(driverName, dataSourceName string) (*DB, error) { // 打开一个drive
 	driversMu.Lock()
 	driveri, ok := drivers[driverName] // 从drivers中查找到对应的driver
 	driversMu.Unlock()
-	if !ok {
+	if !ok { // 没有找到对应的driver
 		return nil, fmt.Errorf("sql: unknown driver %q (forgotten import?)", driverName)
 	}
 	db := &DB{ // 返回一个DB结构
@@ -478,7 +480,7 @@ func Open(driverName, dataSourceName string) (*DB, error) { // 打开一个drive
 		openerCh: make(chan struct{}, connectionRequestQueueSize),
 		lastPut:  make(map[*driverConn]string),
 	}
-	go db.connectionOpener()
+	go db.connectionOpener() // 在一个goroutine中调用connectionOpener
 	return db, nil
 }
 
@@ -615,14 +617,14 @@ func (db *DB) Stats() DBStats {
 // If there are connRequests and the connection limit hasn't been reached,
 // then tell the connectionOpener to open new connections.
 func (db *DB) maybeOpenNewConnections() {
-	numRequests := len(db.connRequests) - db.pendingOpens
-	if db.maxOpen > 0 {
+	numRequests := len(db.connRequests) - db.pendingOpens // 获得请求的数量
+	if db.maxOpen > 0 {                                   // 如果设置了最大打开连接的数量
 		numCanOpen := db.maxOpen - (db.numOpen + db.pendingOpens)
 		if numRequests > numCanOpen {
 			numRequests = numCanOpen
 		}
 	}
-	for numRequests > 0 {
+	for numRequests > 0 { // 对每个要打开的连接，传递到管道中
 		db.pendingOpens++
 		numRequests--
 		db.openerCh <- struct{}{}
@@ -630,7 +632,7 @@ func (db *DB) maybeOpenNewConnections() {
 }
 
 // Runs in a separate goroutine, opens new connections when requested.
-func (db *DB) connectionOpener() {
+func (db *DB) connectionOpener() { // 在单独的goroutine中执行，打开新的连接
 	for range db.openerCh {
 		db.openNewConnection()
 	}
@@ -842,17 +844,17 @@ const maxBadConnRetries = 2
 // returned statement.
 // The caller must call the statement's Close method
 // when the statement is no longer needed.
-func (db *DB) Prepare(query string) (*Stmt, error) {
+func (db *DB) Prepare(query string) (*Stmt, error) { // 创建一个prepare的statement
 	var stmt *Stmt
 	var err error
 	for i := 0; i < maxBadConnRetries; i++ {
-		stmt, err = db.prepare(query, cachedOrNewConn)
+		stmt, err = db.prepare(query, cachedOrNewConn) // 先尝试使用cached的连接
 		if err != driver.ErrBadConn {
 			break
 		}
 	}
 	if err == driver.ErrBadConn {
-		return db.prepare(query, alwaysNewConn)
+		return db.prepare(query, alwaysNewConn) // 如果失败尝试使用新建的连接
 	}
 	return stmt, err
 }
@@ -1612,7 +1614,7 @@ func (s *Stmt) finalClose() error {
 //     }
 //     err = rows.Err() // get any error encountered during iteration
 //     ...
-type Rows struct {
+type Rows struct { // 查询的结果，游标其实与第一行
 	dc          *driverConn // owned; must call releaseConn when closed to release
 	releaseConn func(error)
 	rowsi       driver.Rows

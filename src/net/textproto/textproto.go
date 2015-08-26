@@ -33,12 +33,12 @@ import (
 )
 
 // An Error represents a numeric error response from a server.
-type Error struct { // Error´íÎó½á¹¹
+type Error struct { // Erroré”™è¯¯ç»“æ„
 	Code int
 	Msg  string
 }
 
-func (e *Error) Error() string { // ·µ»Ø´íÎóÂëÓë´íÎóĞÅÏ¢
+func (e *Error) Error() string { // è¿”å›é”™è¯¯ç ä¸é”™è¯¯ä¿¡æ¯
 	return fmt.Sprintf("%03d %s", e.Code, e.Msg)
 }
 
@@ -55,7 +55,7 @@ func (p ProtocolError) Error() string {
 // and a Pipeline to sequence concurrent requests on the connection.
 // These embedded types carry methods with them;
 // see the documentation of those types for details.
-type Conn struct { // ÎÄ±¾Ğ­ÒéµÄÁ¬½Ó½á¹¹
+type Conn struct { // æ–‡æœ¬åè®®çš„è¿æ¥ç»“æ„
 	Reader
 	Writer
 	Pipeline
@@ -63,7 +63,7 @@ type Conn struct { // ÎÄ±¾Ğ­ÒéµÄÁ¬½Ó½á¹¹
 }
 
 // NewConn returns a new Conn using conn for I/O.
-func NewConn(conn io.ReadWriteCloser) *Conn { // ´´½¨Ò»¸öĞÂÁ¬½Ó¶ÔÓ¦conn£¬´¦ÀíÎÄ±¾Êı¾İ
+func NewConn(conn io.ReadWriteCloser) *Conn { // åˆ›å»ºä¸€ä¸ªæ–°è¿æ¥å¯¹åº”connï¼Œå¤„ç†æ–‡æœ¬æ•°æ®
 	return &Conn{
 		Reader: Reader{R: bufio.NewReader(conn)},
 		Writer: Writer{W: bufio.NewWriter(conn)},
@@ -72,18 +72,18 @@ func NewConn(conn io.ReadWriteCloser) *Conn { // ´´½¨Ò»¸öĞÂÁ¬½Ó¶ÔÓ¦conn£¬´¦ÀíÎÄ±
 }
 
 // Close closes the connection.
-func (c *Conn) Close() error { // ¹Ø±ÕÁ¬½Ó
+func (c *Conn) Close() error { // å…³é—­è¿æ¥
 	return c.conn.Close()
 }
 
 // Dial connects to the given address on the given network using net.Dial
 // and then returns a new Conn for the connection.
-func Dial(network, addr string) (*Conn, error) { // Á¬½Óµ½server·µ»ØConn£¬¿Í»§¶ËÁ¬½ÓµÄConn
-	c, err := net.Dial(network, addr) // dialÒ»¸öÍøÂçµØÖ·
+func Dial(network, addr string) (*Conn, error) { // è¿æ¥åˆ°serverè¿”å›Connï¼Œå®¢æˆ·ç«¯è¿æ¥çš„Conn
+	c, err := net.Dial(network, addr) // dialä¸€ä¸ªç½‘ç»œåœ°å€
 	if err != nil {
 		return nil, err
 	}
-	return NewConn(c), nil // ·µ»ØconnÁ¬½Ó
+	return NewConn(c), nil // è¿”å›connè¿æ¥
 }
 
 // Cmd is a convenience method that sends a command after
@@ -111,11 +111,11 @@ func Dial(network, addr string) (*Conn, error) { // Á¬½Óµ½server·µ»ØConn£¬¿Í»§¶Ë
 //	}
 //	return c.ReadCodeLine(250)
 //
-func (c *Conn) Cmd(format string, args ...interface{}) (id uint, err error) { // ·¢ËÍÃüÁî£¬·µ»ØÃüÁîid(pipeline)
+func (c *Conn) Cmd(format string, args ...interface{}) (id uint, err error) { // å‘é€å‘½ä»¤ï¼Œè¿”å›å‘½ä»¤id(pipeline)
 	id = c.Next()
 	c.StartRequest(id)
 	err = c.PrintfLine(format, args...)
-	c.EndRequest(id) // ÃüÁîÖ´ĞĞÍê
+	c.EndRequest(id) // å‘½ä»¤æ‰§è¡Œå®Œ
 	if err != nil {
 		return 0, err
 	}
@@ -123,7 +123,7 @@ func (c *Conn) Cmd(format string, args ...interface{}) (id uint, err error) { //
 }
 
 // TrimString returns s without leading and trailing ASCII space.
-func TrimString(s string) string { // È¥µô×Ö·û´®ÖĞÇ°ºóµÄ¿Õ°××Ö·û£¬·µ»Ø½á¹¹×Ö·û´®
+func TrimString(s string) string { // å»æ‰å­—ç¬¦ä¸²ä¸­å‰åçš„ç©ºç™½å­—ç¬¦ï¼Œè¿”å›ç»“æ„å­—ç¬¦ä¸²
 	for len(s) > 0 && isASCIISpace(s[0]) {
 		s = s[1:]
 	}
@@ -134,7 +134,7 @@ func TrimString(s string) string { // È¥µô×Ö·û´®ÖĞÇ°ºóµÄ¿Õ°××Ö·û£¬·µ»Ø½á¹¹×Ö·û´®
 }
 
 // TrimBytes returns b without leading and trailing ASCII space.
-func TrimBytes(b []byte) []byte { // È¥µôbyteÁĞ±íÖĞµÄ¿Õ°××Ö·û
+func TrimBytes(b []byte) []byte { // å»æ‰byteåˆ—è¡¨ä¸­çš„ç©ºç™½å­—ç¬¦
 	for len(b) > 0 && isASCIISpace(b[0]) {
 		b = b[1:]
 	}
@@ -144,11 +144,11 @@ func TrimBytes(b []byte) []byte { // È¥µôbyteÁĞ±íÖĞµÄ¿Õ°××Ö·û
 	return b
 }
 
-func isASCIISpace(b byte) bool { // ÅĞ¶ÏÊÇ·ñÊÇ¿Õ°××Ö·û
+func isASCIISpace(b byte) bool { // åˆ¤æ–­æ˜¯å¦æ˜¯ç©ºç™½å­—ç¬¦
 	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
 }
 
-func isASCIILetter(b byte) bool { // ÅĞ¶ÏÊÇ·ñÊÇ×ÖÄ¸
+func isASCIILetter(b byte) bool { // åˆ¤æ–­æ˜¯å¦æ˜¯å­—æ¯
 	b |= 0x20 // make lower case
 	return 'a' <= b && b <= 'z'
 }

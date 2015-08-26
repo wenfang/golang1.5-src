@@ -1253,7 +1253,7 @@ func heapBitsSetTypeGCProg(h heapBits, progSize, elemSize, dataSize, allocSize u
 // progToPointerMask returns the 1-bit pointer mask output by the GC program prog.
 // size the size of the region described by prog, in bytes.
 // The resulting bitvector will have no more than size/ptrSize bits.
-func progToPointerMask(prog *byte, size uintptr) bitvector {
+func progToPointerMask(prog *byte, size uintptr) bitvector { // 生成对应prog开始，大小为size的bitvector
 	n := (size/ptrSize + 7) / 8 // 首先将size按照8个字节对齐
 	x := (*[1 << 30]byte)(persistentalloc(n+1, 1, &memstats.buckhash_sys))[:n+1]
 	x[len(x)-1] = 0xa1 // overflow check sentinel

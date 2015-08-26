@@ -13,14 +13,14 @@ import (
 )
 
 func init() {
-	crypto.RegisterHash(crypto.MD5, New) // ½«md5×¢²á½øcrypto
+	crypto.RegisterHash(crypto.MD5, New) // å°†md5æ³¨å†Œè¿›crypto
 }
 
 // The size of an MD5 checksum in bytes.
-const Size = 16 // MD5Ğ£ÑéµÄ´óĞ¡
+const Size = 16 // MD5æ ¡éªŒçš„å¤§å°
 
 // The blocksize of MD5 in bytes.
-const BlockSize = 64 // MD5¿é´óĞ¡
+const BlockSize = 64 // MD5å—å¤§å°
 
 const (
 	chunk = 64
@@ -48,17 +48,17 @@ func (d *digest) Reset() {
 }
 
 // New returns a new hash.Hash computing the MD5 checksum.
-func New() hash.Hash { // ´´½¨Ò»¸öÊµÏÖmd5Ëã·¨µÄHash½Ó¿Ú
+func New() hash.Hash { // åˆ›å»ºä¸€ä¸ªå®ç°md5ç®—æ³•çš„Hashæ¥å£
 	d := new(digest)
 	d.Reset()
 	return d
 }
 
-func (d *digest) Size() int { return Size } // ½á¹û´óĞ¡
+func (d *digest) Size() int { return Size } // ç»“æœå¤§å°
 
-func (d *digest) BlockSize() int { return BlockSize } // ¿é´óĞ¡
+func (d *digest) BlockSize() int { return BlockSize } // å—å¤§å°
 
-func (d *digest) Write(p []byte) (nn int, err error) { // ½«Êı¾İĞ´Èë
+func (d *digest) Write(p []byte) (nn int, err error) { // å°†æ•°æ®å†™å…¥
 	nn = len(p)
 	d.len += uint64(nn)
 	if d.nx > 0 {
@@ -87,7 +87,7 @@ func (d *digest) Write(p []byte) (nn int, err error) { // ½«Êı¾İĞ´Èë
 	return
 }
 
-func (d0 *digest) Sum(in []byte) []byte { // ¼ÆËãMD5ÕªÒª£¬½«µ±Ç°µÄhashÖµÌí¼Óµ½inÖ®ºó£¬È»ºó·µ»Ø
+func (d0 *digest) Sum(in []byte) []byte { // è®¡ç®—MD5æ‘˜è¦ï¼Œå°†å½“å‰çš„hashå€¼æ·»åŠ åˆ°inä¹‹åï¼Œç„¶åè¿”å›
 	// Make a copy of d0 so that caller can keep writing and summing.
 	d := *d0
 	hash := d.checkSum()

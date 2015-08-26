@@ -23,7 +23,7 @@ type Value interface{}
 
 // Driver is the interface that must be implemented by a database
 // driver.
-type Driver interface { // ´ò¿ª£¬·µ»Øµ½Êı¾İ¿âµÄĞÂÁ¬½Ó
+type Driver interface { // æ‰“å¼€ï¼Œè¿”å›åˆ°æ•°æ®åº“çš„æ–°è¿æ¥
 	// Open returns a new connection to the database.
 	// The name is a string in a driver-specific format.
 	//
@@ -61,7 +61,7 @@ var ErrBadConn = errors.New("driver: bad connection")
 // statement.
 //
 // Exec may return ErrSkip.
-type Execer interface { // Ö´ĞĞ·µ»Ø½á¹û¼¯
+type Execer interface { // æ‰§è¡Œè¿”å›ç»“æœé›†
 	Exec(query string, args []Value) (Result, error)
 }
 
@@ -72,7 +72,7 @@ type Execer interface { // Ö´ĞĞ·µ»Ø½á¹û¼¯
 // statement.
 //
 // Query may return ErrSkip.
-type Queryer interface { // ²éÑ¯·µ»ØĞĞ¼¯
+type Queryer interface { // æŸ¥è¯¢è¿”å›è¡Œé›†
 	Query(query string, args []Value) (Rows, error)
 }
 
@@ -80,7 +80,7 @@ type Queryer interface { // ²éÑ¯·µ»ØĞĞ¼¯
 // by multiple goroutines.
 //
 // Conn is assumed to be stateful.
-type Conn interface { // Conn½Ó¿Ú£¬´ú±íµ½Êı¾İ¿âµÄÒ»¸öÁ¬½Ó
+type Conn interface { // Connæ¥å£ï¼Œä»£è¡¨åˆ°æ•°æ®åº“çš„ä¸€ä¸ªè¿æ¥
 	// Prepare returns a prepared statement, bound to this connection.
 	Prepare(query string) (Stmt, error)
 
@@ -95,7 +95,7 @@ type Conn interface { // Conn½Ó¿Ú£¬´ú±íµ½Êı¾İ¿âµÄÒ»¸öÁ¬½Ó
 	Close() error
 
 	// Begin starts and returns a new transaction.
-	Begin() (Tx, error) // Æô¶¯Ò»¸öĞÂÊÂÎñ
+	Begin() (Tx, error) // å¯åŠ¨ä¸€ä¸ªæ–°äº‹åŠ¡
 }
 
 // Result is the result of a query execution.
@@ -151,7 +151,7 @@ type ColumnConverter interface {
 }
 
 // Rows is an iterator over an executed query's results.
-type Rows interface { // ĞĞ¼¯
+type Rows interface { // è¡Œé›†
 	// Columns returns the names of the columns. The number of
 	// columns of the result is inferred from the length of the
 	// slice.  If a particular column name isn't known, an empty

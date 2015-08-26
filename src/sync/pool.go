@@ -183,6 +183,7 @@ func (p *Pool) pinSlow() *poolLocal {
 	return &local[pid]                                                          // 返回对应P的poolLocal指针
 }
 
+// 该函数在world stopped时调用，在开始垃圾收集时
 func poolCleanup() {
 	// This function is called with the world stopped, at the beginning of a garbage collection.
 	// It must not allocate and probably should not call any runtime functions.
@@ -191,7 +192,7 @@ func poolCleanup() {
 	// 2. If GC happens while a goroutine works with l.shared in Put/Get,
 	//    it will retain whole Pool. So next cycle memory consumption would be doubled.
 	for i, p := range allPools { // 遍历所有的Pool
-		allPools[i] = nil
+		allPools[i] = nil // 清空pool
 		for i := 0; i < int(p.localSize); i++ {
 			l := indexLocal(p.local, i)
 			l.private = nil

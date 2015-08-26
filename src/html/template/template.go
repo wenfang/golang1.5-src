@@ -16,30 +16,30 @@ import (
 
 // Template is a specialized Template from "text/template" that produces a safe
 // HTML document fragment.
-type Template struct { // Ä£°å½á¹¹
+type Template struct { // æ¨¡æ¿ç»“æ„
 	// Sticky error if escaping fails.
-	escapeErr error // escapeÊ±ÊÇ·ñ·¢Éú´íÎó
+	escapeErr error // escapeæ—¶æ˜¯å¦å‘ç”Ÿé”™è¯¯
 	// We could embed the text/template field, but it's safer not to because
 	// we need to keep our version of the name space and the underlying
 	// template's in sync.
-	text *template.Template // ÄÚ²¿Ç¶Èëtext/template
+	text *template.Template // å†…éƒ¨åµŒå…¥text/template
 	// The underlying template's parse tree, updated to be HTML-safe.
-	Tree       *parse.Tree // ½âÎöÊ÷
-	*nameSpace             // common to all associated templates ¸ÃÄ£°åÊôÓÚµÄÃüÃû¿Õ¼ä
+	Tree       *parse.Tree // è§£ææ ‘
+	*nameSpace             // common to all associated templates è¯¥æ¨¡æ¿å±äºçš„å‘½åç©ºé—´
 }
 
 // escapeOK is a sentinel value used to indicate valid escaping.
 var escapeOK = fmt.Errorf("template escaped correctly")
 
 // nameSpace is the data structure shared by all templates in an association.
-type nameSpace struct { // ËùÓĞ¹ØÁªµÄÊı¾İ½á¹¹¹²ÏíÍ¬Ò»ÃüÃû¿Õ¼ä
+type nameSpace struct { // æ‰€æœ‰å…³è”çš„æ•°æ®ç»“æ„å…±äº«åŒä¸€å‘½åç©ºé—´
 	mu  sync.Mutex
-	set map[string]*Template // ÃüÃû¿Õ¼äÄÚËùÓĞtemplateµÄ¼¯ºÏ
+	set map[string]*Template // å‘½åç©ºé—´å†…æ‰€æœ‰templateçš„é›†åˆ
 }
 
 // Templates returns a slice of the templates associated with t, including t
 // itself.
-func (t *Template) Templates() []*Template { // ·µ»ØÓëtÄ£°åÊôÓÚÍ¬Ò»ÃüÃû¿Õ¼äµÄËùÓĞÄ£°å
+func (t *Template) Templates() []*Template { // è¿”å›ä¸tæ¨¡æ¿å±äºåŒä¸€å‘½åç©ºé—´çš„æ‰€æœ‰æ¨¡æ¿
 	ns := t.nameSpace
 	ns.mu.Lock()
 	defer ns.mu.Unlock()
@@ -75,7 +75,7 @@ func (t *Template) Option(opt ...string) *Template {
 }
 
 // escape escapes all associated templates.
-func (t *Template) escape() error { // escapeËùÓĞÏà¹ØÄ£°å
+func (t *Template) escape() error { // escapeæ‰€æœ‰ç›¸å…³æ¨¡æ¿
 	t.nameSpace.mu.Lock()
 	defer t.nameSpace.mu.Unlock()
 	if t.escapeErr == nil {
@@ -97,7 +97,7 @@ func (t *Template) escape() error { // escapeËùÓĞÏà¹ØÄ£°å
 // execution stops, but partial results may already have been written to
 // the output writer.
 // A template may be executed safely in parallel.
-func (t *Template) Execute(wr io.Writer, data interface{}) error { // Ö´ĞĞTemplateµÄÖ÷Ä£°å
+func (t *Template) Execute(wr io.Writer, data interface{}) error { // æ‰§è¡ŒTemplateçš„ä¸»æ¨¡æ¿
 	if err := t.escape(); err != nil {
 		return err
 	}
@@ -110,8 +110,8 @@ func (t *Template) Execute(wr io.Writer, data interface{}) error { // Ö´ĞĞTempla
 // execution stops, but partial results may already have been written to
 // the output writer.
 // A template may be executed safely in parallel.
-func (t *Template) ExecuteTemplate(wr io.Writer, name string, data interface{}) error { // Ö´ĞĞÃû×ÖÎªnameµÄÄ£°å
-	tmpl, err := t.lookupAndEscapeTemplate(name) // ²éÕÒÃû×ÖÎªnameµÄÄ£°å
+func (t *Template) ExecuteTemplate(wr io.Writer, name string, data interface{}) error { // æ‰§è¡Œåå­—ä¸ºnameçš„æ¨¡æ¿
+	tmpl, err := t.lookupAndEscapeTemplate(name) // æŸ¥æ‰¾åå­—ä¸ºnameçš„æ¨¡æ¿
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (t *Template) ExecuteTemplate(wr io.Writer, name string, data interface{}) 
 func (t *Template) lookupAndEscapeTemplate(name string) (tmpl *Template, err error) {
 	t.nameSpace.mu.Lock()
 	defer t.nameSpace.mu.Unlock()
-	tmpl = t.set[name] // ÏÈ´ÓnamespaceÖĞÈ¡µÃÄ£°å½á¹¹
+	tmpl = t.set[name] // å…ˆä»namespaceä¸­å–å¾—æ¨¡æ¿ç»“æ„
 	if tmpl == nil {
 		return nil, fmt.Errorf("html/template: %q is undefined", name)
 	}
@@ -134,13 +134,13 @@ func (t *Template) lookupAndEscapeTemplate(name string) (tmpl *Template, err err
 	if tmpl.text.Tree == nil || tmpl.text.Root == nil {
 		return nil, fmt.Errorf("html/template: %q is an incomplete template", name)
 	}
-	if t.text.Lookup(name) == nil { // ÔÚÖ÷Ä£°åÖĞ²éÕÒÃû×Ö
+	if t.text.Lookup(name) == nil { // åœ¨ä¸»æ¨¡æ¿ä¸­æŸ¥æ‰¾åå­—
 		panic("html/template internal error: template escaping out of sync")
 	}
 	if tmpl.escapeErr == nil {
 		err = escapeTemplate(tmpl, tmpl.text.Root, name)
 	}
-	return tmpl, err // ·µ»ØÄ£°å½á¹¹
+	return tmpl, err // è¿”å›æ¨¡æ¿ç»“æ„
 }
 
 // Parse parses a string into a template. Nested template definitions
@@ -151,11 +151,11 @@ func (t *Template) lookupAndEscapeTemplate(name string) (tmpl *Template, err err
 // non-empty template with the same name.  (In multiple calls to Parse
 // with the same receiver template, only one call can contain text
 // other than space, comments, and template definitions.)
-func (t *Template) Parse(src string) (*Template, error) { // ½âÎö×Ö·û´®
+func (t *Template) Parse(src string) (*Template, error) { // è§£æå­—ç¬¦ä¸²
 	t.nameSpace.mu.Lock()
 	t.escapeErr = nil
 	t.nameSpace.mu.Unlock()
-	ret, err := t.text.Parse(src) // µ÷ÓÃtextµÄParse
+	ret, err := t.text.Parse(src) // è°ƒç”¨textçš„Parse
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (t *Template) Parse(src string) (*Template, error) { // ½âÎö×Ö·û´®
 	// The template.Template set has been updated; update ours.
 	t.nameSpace.mu.Lock()
 	defer t.nameSpace.mu.Unlock()
-	for _, v := range ret.Templates() { // °ÑËùÓĞÏà¹ØµÄÇ¶Ì×Ä£°åÒ²¼ÓÈë¼¯ºÏÖĞ
+	for _, v := range ret.Templates() { // æŠŠæ‰€æœ‰ç›¸å…³çš„åµŒå¥—æ¨¡æ¿ä¹ŸåŠ å…¥é›†åˆä¸­
 		name := v.Name()
 		tmpl := t.set[name]
 		if tmpl == nil {
@@ -246,42 +246,42 @@ func (t *Template) Clone() (*Template, error) {
 }
 
 // New allocates a new HTML template with the given name.
-func New(name string) *Template { // ´´½¨Ò»¸öĞÂµÄÄ£°å½á¹¹£¬ÎªÄ£°åÉè¶¨Ò»¸öÃû×Ö
-	tmpl := &Template{ // ´´½¨Ò»¸öTemplate½á¹¹
+func New(name string) *Template { // åˆ›å»ºä¸€ä¸ªæ–°çš„æ¨¡æ¿ç»“æ„ï¼Œä¸ºæ¨¡æ¿è®¾å®šä¸€ä¸ªåå­—
+	tmpl := &Template{ // åˆ›å»ºä¸€ä¸ªTemplateç»“æ„
 		nil,
-		template.New(name), // Éú³ÉÒ»¸ötextµÄtemplate
+		template.New(name), // ç”Ÿæˆä¸€ä¸ªtextçš„template
 		nil,
 		&nameSpace{
 			set: make(map[string]*Template),
 		},
 	}
-	tmpl.set[name] = tmpl // ÔÚÃüÃû¿Õ¼äÖĞÉèÖÃÄ£°å
+	tmpl.set[name] = tmpl // åœ¨å‘½åç©ºé—´ä¸­è®¾ç½®æ¨¡æ¿
 	return tmpl
 }
 
 // New allocates a new HTML template associated with the given one
 // and with the same delimiters. The association, which is transitive,
 // allows one template to invoke another with a {{template}} action.
-func (t *Template) New(name string) *Template { // ÔÚtÄ£°åµÄ»ù´¡ÉÏ£¬´´½¨Ò»¸öĞÂÄ£°å
+func (t *Template) New(name string) *Template { // åœ¨tæ¨¡æ¿çš„åŸºç¡€ä¸Šï¼Œåˆ›å»ºä¸€ä¸ªæ–°æ¨¡æ¿
 	t.nameSpace.mu.Lock()
 	defer t.nameSpace.mu.Unlock()
 	return t.new(name)
 }
 
 // new is the implementation of New, without the lock.
-func (t *Template) new(name string) *Template { // ÔÚtµÄÃüÃû¿Õ¼äÖĞ´´½¨Ò»¸öĞÂÄ£°å
-	tmpl := &Template{ // ´´½¨Ò»¸öĞÂÄ£°å£¬µ«ÊÇ¸´ÓÃÍ¬Ò»¸öÃüÃû¿Õ¼ä£¬ÕâÑù¾Í°ÑÄ£°å¼¯ºÏµ½ÁËÒ»Æğ
+func (t *Template) new(name string) *Template { // åœ¨tçš„å‘½åç©ºé—´ä¸­åˆ›å»ºä¸€ä¸ªæ–°æ¨¡æ¿
+	tmpl := &Template{ // åˆ›å»ºä¸€ä¸ªæ–°æ¨¡æ¿ï¼Œä½†æ˜¯å¤ç”¨åŒä¸€ä¸ªå‘½åç©ºé—´ï¼Œè¿™æ ·å°±æŠŠæ¨¡æ¿é›†åˆåˆ°äº†ä¸€èµ·
 		nil,
 		t.text.New(name),
 		nil,
-		t.nameSpace, // ¸´ÓÃnamespace
+		t.nameSpace, // å¤ç”¨namespace
 	}
 	tmpl.set[name] = tmpl
 	return tmpl
 }
 
 // Name returns the name of the template.
-func (t *Template) Name() string { // ·µ»ØÄ£°åÃû
+func (t *Template) Name() string { // è¿”å›æ¨¡æ¿å
 	return t.text.Name()
 }
 
@@ -325,7 +325,7 @@ func (t *Template) Lookup(name string) *Template {
 // and panics if the error is non-nil. It is intended for use in variable initializations
 // such as
 //	var t = template.Must(template.New("name").Parse("html"))
-func Must(t *Template, err error) *Template { // ÒªÇóÄ£°å±ØĞë´´½¨³É¹¦£¬·ñÔòÅ×³öÒì³£
+func Must(t *Template, err error) *Template { // è¦æ±‚æ¨¡æ¿å¿…é¡»åˆ›å»ºæˆåŠŸï¼Œå¦åˆ™æŠ›å‡ºå¼‚å¸¸
 	if err != nil {
 		panic(err)
 	}
@@ -336,7 +336,7 @@ func Must(t *Template, err error) *Template { // ÒªÇóÄ£°å±ØĞë´´½¨³É¹¦£¬·ñÔòÅ×³öÒ
 // the named files. The returned template's name will have the (base) name and
 // (parsed) contents of the first file. There must be at least one file.
 // If an error occurs, parsing stops and the returned *Template is nil.
-func ParseFiles(filenames ...string) (*Template, error) { // ½âÎöÒ»ÏµÁĞÎÄ¼ş£¬Éú³ÉÄ£°å
+func ParseFiles(filenames ...string) (*Template, error) { // è§£æä¸€ç³»åˆ—æ–‡ä»¶ï¼Œç”Ÿæˆæ¨¡æ¿
 	return parseFiles(nil, filenames...)
 }
 
@@ -349,18 +349,18 @@ func (t *Template) ParseFiles(filenames ...string) (*Template, error) {
 
 // parseFiles is the helper for the method and function. If the argument
 // template is nil, it is created from the first file.
-func parseFiles(t *Template, filenames ...string) (*Template, error) { // ½âÎöÎÄ¼şÃû£¬·µ»ØÄ£°å£¬ÆäÊµÊÇÒ»ÏµÁĞµÄÄ£°å
-	if len(filenames) == 0 { // ÎÄ¼şÃûslice³¤¶ÈÎª0£¬²»ºÏ·¨£¬±ØĞëÖÁÉÙÓĞÒ»¸öÎÄ¼ş
+func parseFiles(t *Template, filenames ...string) (*Template, error) { // è§£ææ–‡ä»¶åï¼Œè¿”å›æ¨¡æ¿ï¼Œå…¶å®æ˜¯ä¸€ç³»åˆ—çš„æ¨¡æ¿
+	if len(filenames) == 0 { // æ–‡ä»¶åsliceé•¿åº¦ä¸º0ï¼Œä¸åˆæ³•ï¼Œå¿…é¡»è‡³å°‘æœ‰ä¸€ä¸ªæ–‡ä»¶
 		// Not really a problem, but be consistent.
 		return nil, fmt.Errorf("html/template: no files named in call to ParseFiles")
 	}
-	for _, filename := range filenames { // ±éÀúÃ¿¸öÎÄ¼şÃû
-		b, err := ioutil.ReadFile(filename) // ¶ÁÎÄ¼şÄÚÈİ
+	for _, filename := range filenames { // éå†æ¯ä¸ªæ–‡ä»¶å
+		b, err := ioutil.ReadFile(filename) // è¯»æ–‡ä»¶å†…å®¹
 		if err != nil {
 			return nil, err
 		}
-		s := string(b)                  // ½«ÎÄ¼şÄÚÈİ×ª»»³É×Ö·û´®
-		name := filepath.Base(filename) // ¶ÁÈ¡×îºóÒ»Ïîname×÷ÎªÄ£°åµÄname
+		s := string(b)                  // å°†æ–‡ä»¶å†…å®¹è½¬æ¢æˆå­—ç¬¦ä¸²
+		name := filepath.Base(filename) // è¯»å–æœ€åä¸€é¡¹nameä½œä¸ºæ¨¡æ¿çš„name
 		// First template becomes return value if not already defined,
 		// and we use that one for subsequent New calls to associate
 		// all the templates together. Also, if this file has the same name
@@ -368,15 +368,15 @@ func parseFiles(t *Template, filenames ...string) (*Template, error) { // ½âÎöÎÄ
 		//  t, err := New(name).Funcs(xxx).ParseFiles(name)
 		// works. Otherwise we create a new template associated with t.
 		var tmpl *Template
-		if t == nil { // Ã»ÓĞÄ£°å´´½¨ĞÂµÄ
+		if t == nil { // æ²¡æœ‰æ¨¡æ¿åˆ›å»ºæ–°çš„
 			t = New(name)
 		}
-		if name == t.Name() { // Èç¹ûÄ£°åÃûÏàÍ¬£¬¸³¸øtmpl
+		if name == t.Name() { // å¦‚æœæ¨¡æ¿åç›¸åŒï¼Œèµ‹ç»™tmpl
 			tmpl = t
 		} else {
-			tmpl = t.New(name) // Èç¹ûÄ£°åÃû²»Í¬£¬¸ù¾İÎÄ¼şÃû£¬ÔÚtµÄ»ù´¡ÉÏ´´½¨ĞÂÄ£°å
+			tmpl = t.New(name) // å¦‚æœæ¨¡æ¿åä¸åŒï¼Œæ ¹æ®æ–‡ä»¶åï¼Œåœ¨tçš„åŸºç¡€ä¸Šåˆ›å»ºæ–°æ¨¡æ¿
 		}
-		_, err = tmpl.Parse(s) // ½âÎöÎÄ¼şÄÚÈİ
+		_, err = tmpl.Parse(s) // è§£ææ–‡ä»¶å†…å®¹
 		if err != nil {
 			return nil, err
 		}

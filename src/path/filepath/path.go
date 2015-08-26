@@ -388,10 +388,10 @@ func walk(path string, info os.FileInfo, walkFn WalkFunc) error {
 // order, which makes the output deterministic but means that for very
 // large directories Walk can be inefficient.
 // Walk does not follow symbolic links.
-func Walk(root string, walkFn WalkFunc) error { // ±éÀúÄ¿Â¼£¬Ö´ÐÐwalkFn, rootÎª¸ùÄ¿Â¼
+func Walk(root string, walkFn WalkFunc) error { // éåŽ†ç›®å½•ï¼Œæ‰§è¡ŒwalkFn, rootä¸ºæ ¹ç›®å½•
 	info, err := os.Lstat(root)
 	if err != nil {
-		return walkFn(root, nil, err) // Èç¹û»ñµÃÎÄ¼þÐÅÏ¢
+		return walkFn(root, nil, err) // å¦‚æžœèŽ·å¾—æ–‡ä»¶ä¿¡æ¯
 	}
 	return walk(root, info, walkFn)
 }
@@ -416,23 +416,23 @@ func readDirNames(dirname string) ([]string, error) {
 // Trailing path separators are removed before extracting the last element.
 // If the path is empty, Base returns ".".
 // If the path consists entirely of separators, Base returns a single separator.
-func Base(path string) string { // ·µ»ØÂ·¾¶ÃûµÄ×îºóÒ»Ïî
-	if path == "" { // Èç¹ûpathÎª¿Õ£¬·µ»Øµ±Ç°Â·¾¶
+func Base(path string) string { // è¿”å›žè·¯å¾„åçš„æœ€åŽä¸€é¡¹
+	if path == "" { // å¦‚æžœpathä¸ºç©ºï¼Œè¿”å›žå½“å‰è·¯å¾„
 		return "."
 	}
 	// Strip trailing slashes.
-	for len(path) > 0 && os.IsPathSeparator(path[len(path)-1]) { // Èç¹ûÓÐµÄ»°È¥µô×îºóÒ»¸öÎÄ¼þ·Ö¸ô·û
+	for len(path) > 0 && os.IsPathSeparator(path[len(path)-1]) { // å¦‚æžœæœ‰çš„è¯åŽ»æŽ‰æœ€åŽä¸€ä¸ªæ–‡ä»¶åˆ†éš”ç¬¦
 		path = path[0 : len(path)-1]
 	}
 	// Throw away volume name
-	path = path[len(VolumeName(path)):] // È¥µô¾íÃû
+	path = path[len(VolumeName(path)):] // åŽ»æŽ‰å·å
 	// Find the last element
 	i := len(path) - 1
 	for i >= 0 && !os.IsPathSeparator(path[i]) {
 		i--
 	}
 	if i >= 0 {
-		path = path[i+1:] // ÓÉpath·µ»Ø×îºóÒ»Ïî
+		path = path[i+1:] // ç”±pathè¿”å›žæœ€åŽä¸€é¡¹
 	}
 	// If empty now, it had only slashes.
 	if path == "" {
@@ -447,7 +447,7 @@ func Base(path string) string { // ·µ»ØÂ·¾¶ÃûµÄ×îºóÒ»Ïî
 // If the path is empty, Dir returns ".".
 // If the path consists entirely of separators, Dir returns a single separator.
 // The returned path does not end in a separator unless it is the root directory.
-func Dir(path string) string { // ·µ»ØÂ·¾¶µÄÄ¿Â¼Ãû
+func Dir(path string) string { // è¿”å›žè·¯å¾„çš„ç›®å½•å
 	vol := VolumeName(path)
 	i := len(path) - 1
 	for i >= len(vol) && !os.IsPathSeparator(path[i]) {

@@ -21,7 +21,7 @@ import (
 
 // ErrLineTooLong is returned when reading request or response bodies
 // with malformed chunked encoding.
-var ErrLineTooLong = internal.ErrLineTooLong
+var ErrLineTooLong = internal.ErrLineTooLong // 行太长错误
 
 type errorReader struct {
 	err error
@@ -133,8 +133,8 @@ func noBodyExpected(requestMethod string) bool {
 	return requestMethod == "HEAD"
 }
 
-func (t *transferWriter) shouldSendContentLength() bool {
-	if chunked(t.TransferEncoding) {
+func (t *transferWriter) shouldSendContentLength() bool { // 返回是否应该发送Content-Length
+	if chunked(t.TransferEncoding) { // 如果encoding是chunked，返回false
 		return false
 	}
 	if t.ContentLength > 0 {

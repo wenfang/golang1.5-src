@@ -90,7 +90,7 @@ func Ignore(sig ...os.Signal) {
 // It is allowed to call Notify multiple times with different channels
 // and the same signals: each channel receives copies of incoming
 // signals independently.
-func Notify(c chan<- os.Signal, sig ...os.Signal) { // µ±·¢Éúsig¶ÔÓ¦µÄÐÅºÅÊ±£¬½«ÐÅºÅ´«Èëc´ú±íµÄchanÖÐ
+func Notify(c chan<- os.Signal, sig ...os.Signal) { // å½“å‘ç”Ÿsigå¯¹åº”çš„ä¿¡å·æ—¶ï¼Œå°†ä¿¡å·ä¼ å…¥cä»£è¡¨çš„chanä¸­
 	if c == nil {
 		panic("os/signal: Notify using nil channel")
 	}
@@ -141,7 +141,7 @@ func Reset(sig ...os.Signal) {
 // Stop causes package signal to stop relaying incoming signals to c.
 // It undoes the effect of all prior calls to Notify using c.
 // When Stop returns, it is guaranteed that c will receive no more signals.
-func Stop(c chan<- os.Signal) { // Í£Ö¹chan
+func Stop(c chan<- os.Signal) { // åœæ­¢chan
 	handlers.Lock()
 	defer handlers.Unlock()
 
@@ -161,7 +161,7 @@ func Stop(c chan<- os.Signal) { // Í£Ö¹chan
 	}
 }
 
-func process(sig os.Signal) { // ÔÚÒ»¸ögoroutineÖÐÑ­»·Ö´ÐÐ
+func process(sig os.Signal) { // åœ¨ä¸€ä¸ªgoroutineä¸­å¾ªçŽ¯æ‰§è¡Œ
 	n := signum(sig)
 	if n < 0 {
 		return

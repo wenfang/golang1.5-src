@@ -215,7 +215,7 @@ const _MaxArena32 = 2 << 30
 // SysFault marks a (already sysAlloc'd) region to fault
 // if accessed.  Used only for debugging the runtime.
 
-func mallocinit() {
+func mallocinit() { // 初始化malloc
 	initSizes()
 
 	if class_to_size[_TinySizeClass] != _TinySize {
@@ -677,7 +677,7 @@ func mallocgc(size uintptr, typ *_type, flags uint32) unsafe.Pointer {
 	// All slots hold nil so no scanning is needed.
 	// This may be racing with GC so do it atomically if there can be
 	// a race marking the bit.
-	if gcphase == _GCmarktermination || gcBlackenPromptly {
+	if gcphase == _GCmarktermination || gcBlackenPromptly { // 如果当前处于GCmarktermination阶段，分配的对象标记为黑
 		systemstack(func() {
 			gcmarknewobject_m(uintptr(x), size)
 		})

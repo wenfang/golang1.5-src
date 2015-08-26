@@ -11,10 +11,10 @@ package runtime
 // A parfor holds state for the parallel for operation.
 type parfor struct {
 	body   func(*parfor, uint32) // executed for each element 每个元素执行的函数
-	done   uint32                // number of idle threads
-	nthr   uint32                // total number of threads
-	thrseq uint32                // thread id sequencer
-	cnt    uint32                // iteration space [0, cnt)
+	done   uint32                // number of idle threads 处于idle状态的线程数量
+	nthr   uint32                // total number of threads 线程的总数量
+	thrseq uint32                // thread id sequencer // 线程id序列号
+	cnt    uint32                // iteration space [0, cnt) 迭代范围
 	wait   bool                  // if true, wait while all threads finish processing,
 	// otherwise parfor may return while other threads are still working
 
@@ -29,9 +29,9 @@ type parfor struct {
 }
 
 // A parforthread holds state for a single thread in the parallel for.
-type parforthread struct {
+type parforthread struct { // 对应单个线程的结构
 	// the thread's iteration space [32lsb, 32msb)
-	pos uint64
+	pos uint64 // 线程的迭代范围
 	// stats
 	nsteal     uint64
 	nstealcnt  uint64
@@ -47,9 +47,11 @@ func parforalloc(nthrmax uint32) *parfor {
 	}
 }
 
+// parforsetup初始化desc，利用nthr个线程执行n个任务
 // Parforsetup initializes desc for a parallel for operation with nthr
 // threads executing n jobs.
 //
+// 当返回时，nthr个线程每个都调用parfordo(desc)来执行任务
 // On return the nthr threads are each expected to call parfordo(desc)
 // to run the operation. During those calls, for each i in [0, n), one
 // thread will be used invoke body(desc, i).
@@ -58,7 +60,7 @@ func parforalloc(nthrmax uint32) *parfor {
 // of work left, under the assumption that another thread has that
 // work well in hand.
 func parforsetup(desc *parfor, nthr, n uint32, wait bool, body func(*parfor, uint32)) {
-	if desc == nil || nthr == 0 || nthr > uint32(len(desc.thr)) || body == nil {
+	if desc == nil || nthr == 0 || nthr > uint32(len(desc.thr)) || body == nil { // 校验参数是否有效
 		print("desc=", desc, " nthr=", nthr, " count=", n, " body=", body, "\n")
 		throw("parfor: invalid args")
 	}
@@ -75,7 +77,7 @@ func parforsetup(desc *parfor, nthr, n uint32, wait bool, body func(*parfor, uin
 	desc.nosyield = 0
 	desc.nsleep = 0
 
-	for i := range desc.thr {
+	for i := range desc.thr { // 遍历每个线程划分任务范围
 		begin := uint32(uint64(n) * uint64(i) / uint64(nthr))
 		end := uint32(uint64(n) * uint64(i+1) / uint64(nthr))
 		desc.thr[i].pos = uint64(begin) | uint64(end)<<32

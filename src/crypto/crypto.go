@@ -13,10 +13,10 @@ import (
 
 // Hash identifies a cryptographic hash function that is implemented in another
 // package.
-type Hash uint // uintÀàĞÍµÄÏÂ±êÖµ£¬±íÃ÷ËùÊ¹ÓÃµÄhashËã·¨
+type Hash uint // uintç±»å‹çš„ä¸‹æ ‡å€¼ï¼Œè¡¨æ˜æ‰€ä½¿ç”¨çš„hashç®—æ³•
 
 // HashFunc simply returns the value of h so that Hash implements SignerOpts.
-func (h Hash) HashFunc() Hash { // ¼òµ¥µÄ·µ»ØhashÖµ
+func (h Hash) HashFunc() Hash { // ç®€å•çš„è¿”å›hashå€¼
 	return h
 }
 
@@ -39,7 +39,7 @@ const (
 	maxHash
 )
 
-var digestSizes = []uint8{ // ¸÷ÖÖhashËã·¨£¬·µ»ØÖµµÄ´óĞ¡
+var digestSizes = []uint8{ // å„ç§hashç®—æ³•ï¼Œè¿”å›å€¼çš„å¤§å°
 	MD4:        16,
 	MD5:        16,
 	SHA1:       20,
@@ -60,20 +60,20 @@ var digestSizes = []uint8{ // ¸÷ÖÖhashËã·¨£¬·µ»ØÖµµÄ´óĞ¡
 // Size returns the length, in bytes, of a digest resulting from the given hash
 // function. It doesn't require that the hash function in question be linked
 // into the program.
-func (h Hash) Size() int { // ¶ÔÓ¦hashº¯Êı·µ»ØÖµµÃ´óĞ¡
-	if h > 0 && h < maxHash { // ÔÚÓĞĞ§·¶Î§ÒÔÄÚ
+func (h Hash) Size() int { // å¯¹åº”hashå‡½æ•°è¿”å›å€¼å¾—å¤§å°
+	if h > 0 && h < maxHash { // åœ¨æœ‰æ•ˆèŒƒå›´ä»¥å†…
 		return int(digestSizes[h])
 	}
 	panic("crypto: Size of unknown hash function")
 }
 
-var hashes = make([]func() hash.Hash, maxHash) // ´´½¨hashº¯ÊıÓ³Éämap
+var hashes = make([]func() hash.Hash, maxHash) // åˆ›å»ºhashå‡½æ•°æ˜ å°„map
 
 // New returns a new hash.Hash calculating the given hash function. New panics
 // if the hash function is not linked into the binary.
-func (h Hash) New() hash.Hash { // ·µ»Ø¶ÔÓ¦hashËã·¨µÄHash½Ó¿Ú
-	if h > 0 && h < maxHash { // ÅĞ¶ÏhashµÄÀàĞÍÊÇ·ñºÏ·¨
-		f := hashes[h] // ´Óhashes mapÖĞ²éÕÒ¶ÔÓ¦µÄº¯Êı
+func (h Hash) New() hash.Hash { // è¿”å›å¯¹åº”hashç®—æ³•çš„Hashæ¥å£
+	if h > 0 && h < maxHash { // åˆ¤æ–­hashçš„ç±»å‹æ˜¯å¦åˆæ³•
+		f := hashes[h] // ä»hashes mapä¸­æŸ¥æ‰¾å¯¹åº”çš„å‡½æ•°
 		if f != nil {
 			return f()
 		}
@@ -82,25 +82,25 @@ func (h Hash) New() hash.Hash { // ·µ»Ø¶ÔÓ¦hashËã·¨µÄHash½Ó¿Ú
 }
 
 // Available reports whether the given hash function is linked into the binary.
-func (h Hash) Available() bool { // ¼ì²éËã·¨ÊÇ·ñÓĞ¶ÔÓ¦µÄhashº¯Êı
+func (h Hash) Available() bool { // æ£€æŸ¥ç®—æ³•æ˜¯å¦æœ‰å¯¹åº”çš„hashå‡½æ•°
 	return h < maxHash && hashes[h] != nil
 }
 
 // RegisterHash registers a function that returns a new instance of the given
 // hash function. This is intended to be called from the init function in
 // packages that implement hash functions.
-func RegisterHash(h Hash, f func() hash.Hash) { // ×¢²áhashº¯Êı£¬·µ»Øhash.Hash½Ó¿Ú
+func RegisterHash(h Hash, f func() hash.Hash) { // æ³¨å†Œhashå‡½æ•°ï¼Œè¿”å›hash.Hashæ¥å£
 	if h >= maxHash {
 		panic("crypto: RegisterHash of unknown hash function")
 	}
-	hashes[h] = f // ×¢²á¶ÔÓ¦µÄº¯Êı
+	hashes[h] = f // æ³¨å†Œå¯¹åº”çš„å‡½æ•°
 }
 
 // PublicKey represents a public key using an unspecified algorithm.
-type PublicKey interface{} // ´ú±íÊ¹ÓÃÌØ¶¨Ëã·¨µÄ¹«Ô¿
+type PublicKey interface{} // ä»£è¡¨ä½¿ç”¨ç‰¹å®šç®—æ³•çš„å…¬é’¥
 
 // PrivateKey represents a private key using an unspecified algorithm.
-type PrivateKey interface{} // ´ú±íÊ¹ÓÃÌØ¶¨Ëã·¨µÄË½Ô¿
+type PrivateKey interface{} // ä»£è¡¨ä½¿ç”¨ç‰¹å®šç®—æ³•çš„ç§é’¥
 
 // Signer is an interface for an opaque private key that can be used for
 // signing operations. For example, an RSA key kept in a hardware module.

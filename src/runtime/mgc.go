@@ -7,7 +7,7 @@
 
 // Garbage collector (GC).
 //
-// gc使用写屏障进行并发的mark和sweep
+// GC和用户线程并发执行，而且是类型精确的。gc使用写屏障进行并发的mark和sweep
 // The GC runs concurrently with mutator threads, is type accurate (aka precise), allows multiple
 // GC thread to run in parallel. It is a concurrent mark and sweep that uses a write barrier. It is
 // non-generational and non-compacting. Allocation is done using size segregated per P allocation
@@ -39,14 +39,18 @@
 //  3. Set phase = GCmark.
 //  4. 等待所有的P确认该阶段
 //  4. Wait for all P's to acknowledge phase change.
+//  5. 在enable写屏障后，malloc仍然会分配白对象
 //  5. Now write barrier marks and enqueues black, grey, or white to white pointers.
 //       Malloc still allocates white (non-marked) objects.
+//  6. 同时gc依次遍历堆，标记可到达的对象
 //  6. Meanwhile GC transitively walks the heap marking reachable objects.
 //  7. When GC finishes marking heap, it preempts P's one-by-one and
 //       retakes partial wbufs (filled by write barrier or during a stack scan of the goroutine
 //       currently scheduled on the P).
+//  8. 一旦GC完成了所有标记工作，把状态设置为marktermination
 //  8. Once the GC has exhausted all available marking work it sets phase = marktermination.
 //  9. Wait for all P's to acknowledge phase change.
+// 10. 这时gc开始分配黑对象，因此未标记可到达的对象的数量，单调递减
 // 10. Malloc now allocates black objects, so number of unmarked reachable objects
 //        monotonically decreases.
 // 11. GC preempts P's one-by-one taking partial wbufs and marks all unmarked yet
@@ -135,9 +139,9 @@ const (
 	_DebugGC         = 0
 	_ConcurrentSweep = true
 	_FinBlockSize    = 4 * 1024
-	_RootData        = 0
-	_RootBss         = 1
-	_RootFinalizers  = 2
+	_RootData        = 0 // root数据段
+	_RootBss         = 1 // root bss段
+	_RootFinalizers  = 2 // root Finalizers
 	_RootSpans       = 3
 	_RootFlushCaches = 4
 	_RootCount       = 5
@@ -190,13 +194,13 @@ func gcinit() { // 初始化gc
 		throw("size of Workbuf is suboptimal")
 	}
 
-	work.markfor = parforalloc(_MaxGcproc) // 为parfor结构分配
-	_ = setGCPercent(readgogc())           // 设置gcPercent
-	for datap := &firstmoduledata; datap != nil; datap = datap.next {
+	work.markfor = parforalloc(_MaxGcproc)                            // 为parfor结构分配
+	_ = setGCPercent(readgogc())                                      // 设置gcPercent
+	for datap := &firstmoduledata; datap != nil; datap = datap.next { // 生成data段和bss段的bitvector
 		datap.gcdatamask = progToPointerMask((*byte)(unsafe.Pointer(datap.gcdata)), datap.edata-datap.data)
 		datap.gcbssmask = progToPointerMask((*byte)(unsafe.Pointer(datap.gcbss)), datap.ebss-datap.bss)
 	}
-	memstats.next_gc = heapminimum
+	memstats.next_gc = heapminimum // 设定下一次gc对应的堆大小
 }
 
 func readgogc() int32 {
@@ -235,7 +239,7 @@ func setGCPercent(in int32) (out int32) { // 设置gc的百分比
 // Garbage collector phase.
 // Indicates to write barrier and sychronization task to preform.
 var gcphase uint32           // gc的当前阶段
-var writeBarrierEnabled bool // compiler emits references to this in write barriers
+var writeBarrierEnabled bool // compiler emits references to this in write barriers 是否启动写屏障
 
 // gcBlackenEnabled is 1 if mutator assists and background mark
 // workers are allowed to blacken objects. This must only be set when
@@ -266,7 +270,7 @@ const (
 )
 
 //go:nosplit
-func setGCPhase(x uint32) { // 设置gc阶段
+func setGCPhase(x uint32) { // 设置gc阶段，同时根据阶段设置是否启动写屏障
 	atomicstore(&gcphase, x)
 	writeBarrierEnabled = gcphase == _GCmark || gcphase == _GCmarktermination || gcphase == _GCscan // 在GCmark,marktermination和scan阶段启动write barrier
 }
@@ -715,7 +719,7 @@ const gcBgCreditSlack = 2000
 const gcAssistTimeSlack = 5000
 
 // 决定是否初始化GC
-// 如果GC已经在启动了，就不需要再启动了
+// 如果GC已经在启动了，就不需要再启动了。
 // Determine whether to initiate a GC.
 // If the GC is already working no need to trigger another one.
 // This should establish a feedback loop where if the GC does not
@@ -725,7 +729,7 @@ const gcAssistTimeSlack = 5000
 // memstat.heap_live read has a benign race.
 // A false negative simple does not start a GC, a false positive
 // will start a GC needlessly. Neither have correctness issues.
-func shouldtriggergc() bool { // 是否启动一个gc
+func shouldtriggergc() bool { // 是否启动一个gc，如果当前堆得大小，大于next_gc的trigger线，且当前没有进行gc
 	return memstats.heap_live >= memstats.next_gc && atomicloaduint(&bggc.working) == 0
 }
 
@@ -915,9 +919,9 @@ var bggc struct {
 // backgroundgc is running in a goroutine and does the concurrent GC work.
 // bggc holds the state of the backgroundgc.
 func backgroundgc() {
-	bggc.g = getg()
+	bggc.g = getg() // 获取当前的goroutine
 	for {
-		gc(gcBackgroundMode)
+		gc(gcBackgroundMode) // 执行背景模式的gc
 		lock(&bggc.lock)
 		bggc.working = 0
 		goparkunlock(&bggc.lock, "Concurrent GC wait", traceEvGoBlock, 1)
@@ -966,7 +970,7 @@ func gc(mode int) { // 开始执行gc
 	systemstack(finishsweep_m)        // finish sweep before we start concurrent scan. 在启动并发scan前，完成上一次sweep
 	// clearpools before we start the GC. If we wait they memory will not be
 	// reclaimed until the next GC cycle.
-	clearpools()
+	clearpools() // 在启动gc之前清空内存池
 
 	gcResetMarkState()
 
@@ -975,6 +979,7 @@ func gc(mode int) { // 开始执行gc
 		heapGoal = gcController.heapGoal
 
 		systemstack(func() {
+			// 进入scan阶段，启动写屏障，监控对栈帧的变更
 			// Enter scan phase. This enables write
 			// barriers to track changes to stack frames
 			// above the stack barrier.
@@ -1017,9 +1022,9 @@ func gc(mode int) { // 开始执行gc
 			pauseNS += now - pauseStart
 			tScan = now
 			gcController.assistStartTime = now
-			gcscan_m()
+			gcscan_m() // 执行scan阶段
 
-			// Enter mark phase.
+			// Enter mark phase. 进入mark阶段
 			tInstallWB = nanotime()
 			setGCPhase(_GCmark)
 			// Ensure all Ps have observed the phase
@@ -1446,7 +1451,7 @@ func gcMark(start_time int64) {
 
 	work.nwait = 0
 	work.ndone = 0
-	work.nproc = uint32(gcprocs())
+	work.nproc = uint32(gcprocs()) // 获得当前P的数量，作为markroot的并发数
 
 	if trace.enabled {
 		traceGCScanStart()
@@ -1459,7 +1464,7 @@ func gcMark(start_time int64) {
 	}
 
 	gchelperstart()
-	parfordo(work.markfor)
+	parfordo(work.markfor) // 执行markroot工作
 
 	var gcw gcWork
 	gcDrain(&gcw, -1)
@@ -1666,7 +1671,7 @@ func sync_runtime_registerPoolCleanup(f func()) {
 
 func clearpools() {
 	// clear sync.Pools
-	if poolcleanup != nil {
+	if poolcleanup != nil { // 如果有poolcleanup执行
 		poolcleanup()
 	}
 

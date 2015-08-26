@@ -21,15 +21,15 @@ import (
 
 // A Conn represents a secured connection.
 // It implements the net.Conn interface.
-type Conn struct { // ÊµÏÖÁËnet.Conn½Ó¿Ú£¬µ«Ìá¹©°²È«Á¬½Ó
+type Conn struct { // å®ç°äº†net.Connæ¥å£ï¼Œä½†æä¾›å®‰å…¨è¿æ¥
 	// constant
-	conn     net.Conn // ¶ÔÓ¦µÄÍøÂçÁ¬½Ó½á¹¹
-	isClient bool     // ¸ÃÁ¬½ÓÊÇ·ñ±íÊ¾¿Í»§¶ËÁ¬½Ó
+	conn     net.Conn // å¯¹åº”çš„ç½‘ç»œè¿æ¥ç»“æ„
+	isClient bool     // è¯¥è¿æ¥æ˜¯å¦è¡¨ç¤ºå®¢æˆ·ç«¯è¿æ¥
 
 	// constant after handshake; protected by handshakeMutex
 	handshakeMutex    sync.Mutex // handshakeMutex < in.Mutex, out.Mutex, errMutex
-	handshakeErr      error      // error resulting from handshake ÎÕÊÖµÄ´íÎó½á¹û
-	vers              uint16     // TLS version tls°æ±¾ºÅ
+	handshakeErr      error      // error resulting from handshake æ¡æ‰‹çš„é”™è¯¯ç»“æœ
+	vers              uint16     // TLS version tlsç‰ˆæœ¬å·
 	haveVers          bool       // version has been negotiated
 	config            *Config    // configuration passed to constructor
 	handshakeComplete bool
@@ -64,38 +64,38 @@ type Conn struct { // ÊµÏÖÁËnet.Conn½Ó¿Ú£¬µ«Ìá¹©°²È«Á¬½Ó
 // export the struct field too.
 
 // LocalAddr returns the local network address.
-func (c *Conn) LocalAddr() net.Addr { // »ñµÃ±¾µØµØÖ·
+func (c *Conn) LocalAddr() net.Addr { // è·å¾—æœ¬åœ°åœ°å€
 	return c.conn.LocalAddr()
 }
 
 // RemoteAddr returns the remote network address.
-func (c *Conn) RemoteAddr() net.Addr { // »ñµÃÔ¶¶ËµØÖ·
+func (c *Conn) RemoteAddr() net.Addr { // è·å¾—è¿œç«¯åœ°å€
 	return c.conn.RemoteAddr()
 }
 
 // SetDeadline sets the read and write deadlines associated with the connection.
 // A zero value for t means Read and Write will not time out.
 // After a Write has timed out, the TLS state is corrupt and all future writes will return the same error.
-func (c *Conn) SetDeadline(t time.Time) error { // ÉèÖÃÁ¬½Ó³¬Ê±Ê±¼ä
+func (c *Conn) SetDeadline(t time.Time) error { // è®¾ç½®è¿æ¥è¶…æ—¶æ—¶é—´
 	return c.conn.SetDeadline(t)
 }
 
 // SetReadDeadline sets the read deadline on the underlying connection.
 // A zero value for t means Read will not time out.
-func (c *Conn) SetReadDeadline(t time.Time) error { // ÉèÖÃ¶Á³¬Ê±
+func (c *Conn) SetReadDeadline(t time.Time) error { // è®¾ç½®è¯»è¶…æ—¶
 	return c.conn.SetReadDeadline(t)
 }
 
 // SetWriteDeadline sets the write deadline on the underlying connection.
 // A zero value for t means Write will not time out.
 // After a Write has timed out, the TLS state is corrupt and all future writes will return the same error.
-func (c *Conn) SetWriteDeadline(t time.Time) error { // ÉèÖÃĞ´³¬Ê±
+func (c *Conn) SetWriteDeadline(t time.Time) error { // è®¾ç½®å†™è¶…æ—¶
 	return c.conn.SetWriteDeadline(t)
 }
 
 // A halfConn represents one direction of the record layer
 // connection, either sending or receiving.
-type halfConn struct { // halfConn´ú±íÒ»¸ö·½ÏòµÄÁ¬½Ó£¬»òÕß·¢ËÍ»òÕß½ÓÊÕ
+type halfConn struct { // halfConnä»£è¡¨ä¸€ä¸ªæ–¹å‘çš„è¿æ¥ï¼Œæˆ–è€…å‘é€æˆ–è€…æ¥æ”¶
 	sync.Mutex
 
 	err     error       // first permanent error
@@ -689,11 +689,11 @@ func (c *Conn) sendAlert(err alert) error {
 // writeRecord writes a TLS record with the given type and payload
 // to the connection and updates the record layer state.
 // c.out.Mutex <= L.
-func (c *Conn) writeRecord(typ recordType, data []byte) (n int, err error) { // Ğ´Ò»¸öÖ¸¶¨ÀàĞÍµÄTLS¼ÇÂ¼
+func (c *Conn) writeRecord(typ recordType, data []byte) (n int, err error) { // å†™ä¸€ä¸ªæŒ‡å®šç±»å‹çš„TLSè®°å½•
 	b := c.out.newBlock()
-	for len(data) > 0 { // Èç¹ûÓĞÊı¾İÄÚÈİ
-		m := len(data)        // »ñÈ¡Êı¾İÄÚÈİµÄ³¤¶È
-		if m > maxPlaintext { // Êı¾İÄÚÈİ³¤¶È²»ÄÜ³¬¹ımaxPlaintext£¬Ò²¾ÍÊÇ16K
+	for len(data) > 0 { // å¦‚æœæœ‰æ•°æ®å†…å®¹
+		m := len(data)        // è·å–æ•°æ®å†…å®¹çš„é•¿åº¦
+		if m > maxPlaintext { // æ•°æ®å†…å®¹é•¿åº¦ä¸èƒ½è¶…è¿‡maxPlaintextï¼Œä¹Ÿå°±æ˜¯16K
 			m = maxPlaintext
 		}
 		explicitIVLen := 0
@@ -719,7 +719,7 @@ func (c *Conn) writeRecord(typ recordType, data []byte) (n int, err error) { // 
 			}
 		}
 		b.resize(recordHeaderLen + explicitIVLen + m)
-		b.data[0] = byte(typ) // µÚÒ»¸ö×Ö½Ú£¬Ö¸¶¨¼ÇÂ¼ÀàĞÍ×Ö½Ú
+		b.data[0] = byte(typ) // ç¬¬ä¸€ä¸ªå­—èŠ‚ï¼ŒæŒ‡å®šè®°å½•ç±»å‹å­—èŠ‚
 		vers := c.vers
 		if vers == 0 {
 			// Some TLS servers fail if the record version is
@@ -727,9 +727,9 @@ func (c *Conn) writeRecord(typ recordType, data []byte) (n int, err error) { // 
 			vers = VersionTLS10
 		}
 		b.data[1] = byte(vers >> 8)
-		b.data[2] = byte(vers) // Ğ´ÈëTLS°æ±¾ºÅ
+		b.data[2] = byte(vers) // å†™å…¥TLSç‰ˆæœ¬å·
 		b.data[3] = byte(m >> 8)
-		b.data[4] = byte(m) // Ğ´ÈëÊı¾İ³¤¶È
+		b.data[4] = byte(m) // å†™å…¥æ•°æ®é•¿åº¦
 		if explicitIVLen > 0 {
 			explicitIV := b.data[recordHeaderLen : recordHeaderLen+explicitIVLen]
 			if explicitIVIsSeq {
@@ -768,7 +768,7 @@ func (c *Conn) writeRecord(typ recordType, data []byte) (n int, err error) { // 
 // readHandshake reads the next handshake message from
 // the record layer.
 // c.in.Mutex < L; c.out.Mutex < L.
-func (c *Conn) readHandshake() (interface{}, error) { // ¶ÁÎÕÊÖÏûÏ¢
+func (c *Conn) readHandshake() (interface{}, error) { // è¯»æ¡æ‰‹æ¶ˆæ¯
 	for c.hand.Len() < 4 {
 		if err := c.in.err; err != nil {
 			return nil, err
@@ -838,8 +838,8 @@ func (c *Conn) readHandshake() (interface{}, error) { // ¶ÁÎÕÊÖÏûÏ¢
 }
 
 // Write writes data to the connection.
-func (c *Conn) Write(b []byte) (int, error) { // Ïò°²È«Á¬½ÓĞ´Êı¾İ
-	if err := c.Handshake(); err != nil { // Ğ´Ç°ÏÈ³¢ÊÔÎÕÊÖ
+func (c *Conn) Write(b []byte) (int, error) { // å‘å®‰å…¨è¿æ¥å†™æ•°æ®
+	if err := c.Handshake(); err != nil { // å†™å‰å…ˆå°è¯•æ¡æ‰‹
 		return 0, err
 	}
 
@@ -850,7 +850,7 @@ func (c *Conn) Write(b []byte) (int, error) { // Ïò°²È«Á¬½ÓĞ´Êı¾İ
 		return 0, err
 	}
 
-	if !c.handshakeComplete { // Èç¹ûÎÕÊÖÃ»ÓĞÍê³É£¬·¢Éú´íÎóÁË
+	if !c.handshakeComplete { // å¦‚æœæ¡æ‰‹æ²¡æœ‰å®Œæˆï¼Œå‘ç”Ÿé”™è¯¯äº†
 		return 0, alertInternalError
 	}
 
@@ -880,11 +880,11 @@ func (c *Conn) Write(b []byte) (int, error) { // Ïò°²È«Á¬½ÓĞ´Êı¾İ
 
 // Read can be made to time out and return a net.Error with Timeout() == true
 // after a fixed time limit; see SetDeadline and SetReadDeadline.
-func (c *Conn) Read(b []byte) (n int, err error) { // ´Ó°²È«Á¬½Ó¶ÁÊı¾İÄÚÈİ
-	if err = c.Handshake(); err != nil { // ¶ÁÇ°ÏÈ³¢ÊÔÎÕÊÖ
+func (c *Conn) Read(b []byte) (n int, err error) { // ä»å®‰å…¨è¿æ¥è¯»æ•°æ®å†…å®¹
+	if err = c.Handshake(); err != nil { // è¯»å‰å…ˆå°è¯•æ¡æ‰‹
 		return
 	}
-	if len(b) == 0 { // Ã»ÓĞÊı¾İÒª¶Á£¬Ö±½Ó·µ»Ø
+	if len(b) == 0 { // æ²¡æœ‰æ•°æ®è¦è¯»ï¼Œç›´æ¥è¿”å›
 		// Put this after Handshake, in case people were calling
 		// Read(nil) for the side effect of the Handshake.
 		return
@@ -941,7 +941,7 @@ func (c *Conn) Read(b []byte) (n int, err error) { // ´Ó°²È«Á¬½Ó¶ÁÊı¾İÄÚÈİ
 }
 
 // Close closes the connection.
-func (c *Conn) Close() error { // ¹Ø±Õ°²È«Á¬½Ó
+func (c *Conn) Close() error { // å…³é—­å®‰å…¨è¿æ¥
 	var alertErr error
 
 	c.handshakeMutex.Lock()
@@ -960,17 +960,17 @@ func (c *Conn) Close() error { // ¹Ø±Õ°²È«Á¬½Ó
 // protocol if it has not yet been run.
 // Most uses of this package need not call Handshake
 // explicitly: the first Read or Write will call it automatically.
-func (c *Conn) Handshake() error { // ÔÚ¿Í»§¶ËºÍserver¶Ë½øĞĞÎÕÊÖ
+func (c *Conn) Handshake() error { // åœ¨å®¢æˆ·ç«¯å’Œserverç«¯è¿›è¡Œæ¡æ‰‹
 	c.handshakeMutex.Lock()
 	defer c.handshakeMutex.Unlock()
-	if err := c.handshakeErr; err != nil { // ÎÕÊÖ´íÎó£¬·µ»Ø´íÎó
+	if err := c.handshakeErr; err != nil { // æ¡æ‰‹é”™è¯¯ï¼Œè¿”å›é”™è¯¯
 		return err
 	}
-	if c.handshakeComplete { // ÎÕÊÖÍê³É·µ»Ønil
+	if c.handshakeComplete { // æ¡æ‰‹å®Œæˆè¿”å›nil
 		return nil
 	}
 
-	if c.isClient { // Èç¹ûÊÇtls¿Í»§¶Ë
+	if c.isClient { // å¦‚æœæ˜¯tlså®¢æˆ·ç«¯
 		c.handshakeErr = c.clientHandshake()
 	} else {
 		c.handshakeErr = c.serverHandshake()

@@ -58,17 +58,17 @@ const (
 
 // A cipherSuite is a specific combination of key agreement, cipher and MAC
 // function. All cipher suites currently assume RSA key agreement.
-type cipherSuite struct { // ¼ÓÃÜÌ×¼ş
+type cipherSuite struct { // åŠ å¯†å¥—ä»¶
 	id uint16
 	// the lengths, in bytes, of the key material needed for each component.
 	keyLen int
 	macLen int
 	ivLen  int
-	ka     func(version uint16) keyAgreement // ÃÜÔ¿½»»»Ğ­Òé
+	ka     func(version uint16) keyAgreement // å¯†é’¥äº¤æ¢åè®®
 	// flags is a bitmask of the suite* values, above.
 	flags  int
-	cipher func(key, iv []byte, isRead bool) interface{}   // ¶Ô³ÆĞÔ¼ÓÃÜËã·¨
-	mac    func(version uint16, macKey []byte) macFunction // Êı¾İÍêÕûĞÔ±£³ÖËã·¨
+	cipher func(key, iv []byte, isRead bool) interface{}   // å¯¹ç§°æ€§åŠ å¯†ç®—æ³•
+	mac    func(version uint16, macKey []byte) macFunction // æ•°æ®å®Œæ•´æ€§ä¿æŒç®—æ³•
 	aead   func(key, fixedNonce []byte) cipher.AEAD
 }
 
@@ -92,12 +92,12 @@ var cipherSuites = []*cipherSuite{
 	{TLS_RSA_WITH_3DES_EDE_CBC_SHA, 24, 20, 8, rsaKA, 0, cipher3DES, macSHA1, nil},
 }
 
-func cipherRC4(key, iv []byte, isRead bool) interface{} { // ´´½¨RC4Ëã·¨¶Ô³Æ¼ÓÃÜ
+func cipherRC4(key, iv []byte, isRead bool) interface{} { // åˆ›å»ºRC4ç®—æ³•å¯¹ç§°åŠ å¯†
 	cipher, _ := rc4.NewCipher(key)
 	return cipher
 }
 
-func cipher3DES(key, iv []byte, isRead bool) interface{} { // ´´½¨3DESËã·¨¶Ô³Æ¼ÓÃÜ
+func cipher3DES(key, iv []byte, isRead bool) interface{} { // åˆ›å»º3DESç®—æ³•å¯¹ç§°åŠ å¯†
 	block, _ := des.NewTripleDESCipher(key)
 	if isRead {
 		return cipher.NewCBCDecrypter(block, iv)
@@ -105,7 +105,7 @@ func cipher3DES(key, iv []byte, isRead bool) interface{} { // ´´½¨3DESËã·¨¶Ô³Æ¼Ó
 	return cipher.NewCBCEncrypter(block, iv)
 }
 
-func cipherAES(key, iv []byte, isRead bool) interface{} { // ´´½¨AESËã·¨¶Ô³Æ¼ÓÃÜ
+func cipherAES(key, iv []byte, isRead bool) interface{} { // åˆ›å»ºAESç®—æ³•å¯¹ç§°åŠ å¯†
 	block, _ := aes.NewCipher(key)
 	if isRead {
 		return cipher.NewCBCDecrypter(block, iv)

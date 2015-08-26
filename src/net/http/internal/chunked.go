@@ -26,29 +26,29 @@ var ErrLineTooLong = errors.New("header line too long")
 //
 // NewChunkedReader is not needed by normal applications. The http package
 // automatically decodes chunking when reading response bodies.
-func NewChunkedReader(r io.Reader) io.Reader { // ĞÂ´´½¨Ò»¸öchunked reader
+func NewChunkedReader(r io.Reader) io.Reader { // æ–°åˆ›å»ºä¸€ä¸ªchunked reader
 	br, ok := r.(*bufio.Reader)
 	if !ok {
 		br = bufio.NewReader(r)
 	}
-	return &chunkedReader{r: br}
+	return &chunkedReader{r: br} // å°†rç»è¿‡bufioå’ŒchunkedåŒ…è£…ä¸¤æ¬¡
 }
 
-type chunkedReader struct { // chunkedReader½á¹¹
-	r   *bufio.Reader // µ×²ãµÄbufio Reader
-	n   uint64        // unread bytes in chunk chunkÖĞÎ´¶ÁµÄÊı¾İ
-	err error         // µ±Ç°µÄ´íÎó
+type chunkedReader struct { // chunkedReaderç»“æ„
+	r   *bufio.Reader // åº•å±‚çš„bufio Reader
+	n   uint64        // unread bytes in chunk chunkä¸­æœªè¯»çš„æ•°æ®
+	err error         // å½“å‰çš„é”™è¯¯
 	buf [2]byte
 }
 
-func (cr *chunkedReader) beginChunk() {
+func (cr *chunkedReader) beginChunk() { // å¼€å§‹è¯»ä¸€ä¸ªchunkï¼Œå°†chunkçš„å¤§å°èµ‹å€¼ç»™cr.n
 	// chunk-size CRLF
 	var line []byte
-	line, cr.err = readLine(cr.r) //  ¶ÁchunkµÄÒ»ĞĞ
+	line, cr.err = readLine(cr.r) //  è¯»chunkçš„ä¸€è¡Œ
 	if cr.err != nil {
 		return
 	}
-	cr.n, cr.err = parseHexUint(line) // ½âÎö¸Ã¶ÎchunkµÄ´óĞ¡Öµ
+	cr.n, cr.err = parseHexUint(line) // è§£æè¯¥æ®µchunkçš„å¤§å°å€¼
 	if cr.err != nil {
 		return
 	}
@@ -57,7 +57,7 @@ func (cr *chunkedReader) beginChunk() {
 	}
 }
 
-func (cr *chunkedReader) chunkHeaderAvailable() bool {
+func (cr *chunkedReader) chunkHeaderAvailable() bool { // æ£€æŸ¥bufferä¸­æ˜¯å¦è¿˜æœ‰ä¸ªchunkçš„å¤´éƒ¨
 	n := cr.r.Buffered()
 	if n > 0 {
 		peek, _ := cr.r.Peek(n)
@@ -66,26 +66,26 @@ func (cr *chunkedReader) chunkHeaderAvailable() bool {
 	return false
 }
 
-func (cr *chunkedReader) Read(b []uint8) (n int, err error) { // chunked ReaderµÄRead·½·¨
-	for cr.err == nil { // Èç¹ûµ±Ç°µÄchunkedReaderÃ»ÓĞ´íÎó
-		if cr.n == 0 { // Èç¹ûµ×²ãÃ»ÓĞÎ´¶ÁµÄÊı¾İÁË£¬Ò²¾ÍÊÇÕâ¸öchunk¶ÁÍêÁË
-			if n > 0 && !cr.chunkHeaderAvailable() {
+func (cr *chunkedReader) Read(b []uint8) (n int, err error) { // chunked Readerçš„Readæ–¹æ³•
+	for cr.err == nil { // å¦‚æœå½“å‰çš„chunkedReaderæ²¡æœ‰é”™è¯¯
+		if cr.n == 0 { // å¦‚æœåº•å±‚æ²¡æœ‰æœªè¯»çš„æ•°æ®äº†ï¼Œä¹Ÿå°±æ˜¯è¿™ä¸ªchunkè¯»å®Œäº†
+			if n > 0 && !cr.chunkHeaderAvailable() { // å¦‚æœè¯»åˆ°äº†æ•°æ®ï¼Œä½†æ˜¯bufä¸­ä¸å¤Ÿä¸€è¡Œ
 				// We've read enough. Don't potentially block
 				// reading a new chunk header.
-				break
+				break // è¯»çš„å¤Ÿå¤šäº†ï¼Œç›´æ¥è¿”å›
 			}
-			cr.beginChunk() // ¿ªÊ¼¶ÁÒ»¸öĞÂchunk
+			cr.beginChunk() // å¼€å§‹è¯»ä¸€ä¸ªæ–°chunk
 			continue
 		}
-		if len(b) == 0 {
+		if len(b) == 0 { // å¦‚æœæ¥æ”¶çš„sliceé•¿åº¦ä¸º0ï¼Œè¿”å›
 			break
 		}
 		rbuf := b
-		if uint64(len(rbuf)) > cr.n {
+		if uint64(len(rbuf)) > cr.n { // å¦‚æœrbufå¤§äºå½“å‰chunkä¸­æœªè¯»çš„æ•°æ®ï¼Œå¯¹é½ä¸ºå•ä¸ªchunkæœªè¯»çš„æ•°æ®
 			rbuf = rbuf[:cr.n]
 		}
 		var n0 int
-		n0, cr.err = cr.r.Read(rbuf)
+		n0, cr.err = cr.r.Read(rbuf) // å°†æ•°æ®è¯»åˆ°rbufä¸­
 		n += n0
 		b = b[n0:]
 		cr.n -= uint64(n0)
@@ -143,7 +143,7 @@ func isASCIISpace(b byte) bool {
 // Content-Length header. Using newChunkedWriter inside a handler
 // would result in double chunking or chunking with a Content-Length
 // length, both of which are wrong.
-func NewChunkedWriter(w io.Writer) io.WriteCloser { // ĞÂ´´½¨Ò»¸öchunked writer
+func NewChunkedWriter(w io.Writer) io.WriteCloser { // æ–°åˆ›å»ºä¸€ä¸ªchunked writer
 	return &chunkedWriter{w}
 }
 
@@ -159,14 +159,14 @@ type chunkedWriter struct {
 func (cw *chunkedWriter) Write(data []byte) (n int, err error) {
 
 	// Don't send 0-length data. It looks like EOF for chunked encoding.
-	if len(data) == 0 { // Ğ´µÄÊı¾İÎª¿Õ£¬Ö±½Ó·µ»Ø
+	if len(data) == 0 { // å†™çš„æ•°æ®ä¸ºç©ºï¼Œç›´æ¥è¿”å›
 		return 0, nil
 	}
 
-	if _, err = fmt.Fprintf(cw.Wire, "%x\r\n", len(data)); err != nil { // ÏÈĞ´Êı¾İ³¤¶È£¬ÓÃ16½øÖÆµÄĞÎÊ½
+	if _, err = fmt.Fprintf(cw.Wire, "%x\r\n", len(data)); err != nil { // å…ˆå†™æ•°æ®é•¿åº¦ï¼Œç”¨16è¿›åˆ¶çš„å½¢å¼
 		return 0, err
 	}
-	if n, err = cw.Wire.Write(data); err != nil { // Ğ´Êı¾İÄÚÈİ
+	if n, err = cw.Wire.Write(data); err != nil { // å†™æ•°æ®å†…å®¹
 		return
 	}
 	if n != len(data) {
@@ -182,7 +182,7 @@ func (cw *chunkedWriter) Write(data []byte) (n int, err error) {
 	return
 }
 
-func (cw *chunkedWriter) Close() error { // Ğ´chunked½áÊø±ê¼Ç
+func (cw *chunkedWriter) Close() error { // å†™chunkedç»“æŸæ ‡è®°
 	_, err := io.WriteString(cw.Wire, "0\r\n")
 	return err
 }
@@ -196,7 +196,7 @@ type FlushAfterChunkWriter struct {
 	*bufio.Writer
 }
 
-func parseHexUint(v []byte) (n uint64, err error) { // ½âÎö16½øÖÆµÄbyte sliceÎªÊı×Ö
+func parseHexUint(v []byte) (n uint64, err error) { // è§£æ16è¿›åˆ¶çš„byte sliceä¸ºæ•°å­—
 	for _, b := range v {
 		n <<= 4
 		switch {

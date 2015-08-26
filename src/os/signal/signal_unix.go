@@ -11,25 +11,25 @@ import (
 	"syscall"
 )
 
-// In assembly. ÏÂÃæÈý¸öº¯ÊýµÄ¶¨ÒåÔÚsig.s
+// In assembly. ä¸‹é¢ä¸‰ä¸ªå‡½æ•°çš„å®šä¹‰åœ¨sig.s
 func signal_disable(uint32)
 func signal_enable(uint32)
 func signal_ignore(uint32)
 func signal_recv() uint32
 
-func loop() { // loopÖ´ÐÐprocess
+func loop() { // loopæ‰§è¡Œprocess
 	for {
-		process(syscall.Signal(signal_recv())) // Ñ­»·Ö´ÐÐprocess
+		process(syscall.Signal(signal_recv())) // å¾ªçŽ¯æ‰§è¡Œprocess
 	}
 }
 
-func init() { // ÔÚµ¼Èë¸Ãpackageºó»áÉú³ÉÒ»¸ögoroutineÖ´ÐÐloop
+func init() { // åœ¨å¯¼å…¥è¯¥packageåŽä¼šç”Ÿæˆä¸€ä¸ªgoroutineæ‰§è¡Œloop
 	signal_enable(0) // first call - initialize
-	go loop()        // Éú³ÉÒ»¸ögoroutine£¬Ñ­»·Ö´ÐÐloop
+	go loop()        // ç”Ÿæˆä¸€ä¸ªgoroutineï¼Œå¾ªçŽ¯æ‰§è¡Œloop
 }
 
 const (
-	numSig = 65 // max across all systems  ×î´óÐÅºÅµÄnumber
+	numSig = 65 // max across all systems  æœ€å¤§ä¿¡å·çš„number
 )
 
 func signum(sig os.Signal) int {
@@ -45,11 +45,11 @@ func signum(sig os.Signal) int {
 	}
 }
 
-func enableSignal(sig int) { // enableÐÅºÅsig
+func enableSignal(sig int) { // enableä¿¡å·sig
 	signal_enable(uint32(sig))
 }
 
-func disableSignal(sig int) { // disableÐÅºÅsig
+func disableSignal(sig int) { // disableä¿¡å·sig
 	signal_disable(uint32(sig))
 }
 

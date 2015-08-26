@@ -10,17 +10,17 @@ type MIMEHeader map[string][]string
 
 // Add adds the key, value pair to the header.
 // It appends to any existing values associated with key.
-// ½«keyºÍvalue¼ÓÈëµ½MIMEHeaderÖĞ
-func (h MIMEHeader) Add(key, value string) { // ½«value¼ÓÈëµ½key¶ÔÓ¦µÄstringÁĞ±íÖĞ
-	// ÏÈ°Ñkey½øĞĞÕıÔò»¯
+// å°†keyå’ŒvalueåŠ å…¥åˆ°MIMEHeaderä¸­
+func (h MIMEHeader) Add(key, value string) { // å°†valueåŠ å…¥åˆ°keyå¯¹åº”çš„stringåˆ—è¡¨ä¸­
+	// å…ˆæŠŠkeyè¿›è¡Œæ­£åˆ™åŒ–
 	key = CanonicalMIMEHeaderKey(key)
-	h[key] = append(h[key], value) // Ìí¼Óµ½Í·²¿µÄmapÖĞ£¬mapµÄvalueÎªÁĞ±í
+	h[key] = append(h[key], value) // æ·»åŠ åˆ°å¤´éƒ¨çš„mapä¸­ï¼Œmapçš„valueä¸ºåˆ—è¡¨
 }
 
 // Set sets the header entries associated with key to
 // the single element value.  It replaces any existing
 // values associated with key.
-func (h MIMEHeader) Set(key, value string) { // ÉèÖÃkey£¬½«key½øĞĞÕıÔò»¯ºóÔÙÉèÖÃ
+func (h MIMEHeader) Set(key, value string) { // è®¾ç½®keyï¼Œå°†keyè¿›è¡Œæ­£åˆ™åŒ–åå†è®¾ç½®
 	h[CanonicalMIMEHeaderKey(key)] = []string{value}
 }
 
@@ -28,7 +28,7 @@ func (h MIMEHeader) Set(key, value string) { // ÉèÖÃkey£¬½«key½øĞĞÕıÔò»¯ºóÔÙÉèÖÃ
 // If there are no values associated with the key, Get returns "".
 // Get is a convenience method.  For more complex queries,
 // access the map directly.
-func (h MIMEHeader) Get(key string) string { // Ö»·µ»ØÁĞ±íÖĞµÄµÚÒ»¸ö
+func (h MIMEHeader) Get(key string) string { // åªè¿”å›åˆ—è¡¨ä¸­çš„ç¬¬ä¸€ä¸ª
 	if h == nil {
 		return ""
 	}
@@ -40,6 +40,6 @@ func (h MIMEHeader) Get(key string) string { // Ö»·µ»ØÁĞ±íÖĞµÄµÚÒ»¸ö
 }
 
 // Del deletes the values associated with key.
-func (h MIMEHeader) Del(key string) { // É¾³ı¶ÔÓ¦keyµÄMIMEÍ·²¿
+func (h MIMEHeader) Del(key string) { // åˆ é™¤å¯¹åº”keyçš„MIMEå¤´éƒ¨
 	delete(h, CanonicalMIMEHeaderKey(key))
 }

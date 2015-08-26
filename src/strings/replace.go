@@ -8,20 +8,20 @@ import "io"
 
 // Replacer replaces a list of strings with replacements.
 // It is safe for concurrent use by multiple goroutines.
-type Replacer struct { // ¶Ôreplacer½Ó¿ÚµÄ°ü×°
+type Replacer struct { // å¯¹replaceræ¥å£çš„åŒ…è£…
 	r replacer
 }
 
 // replacer is the interface that a replacement algorithm needs to implement.
-type replacer interface { // replacer½Ó¿Ú£¬ĞèÒªÊµÏÖReplaceºÍWriteStringÁ½¸ö·½·¨
+type replacer interface { // replaceræ¥å£ï¼Œéœ€è¦å®ç°Replaceå’ŒWriteStringä¸¤ä¸ªæ–¹æ³•
 	Replace(s string) string
 	WriteString(w io.Writer, s string) (n int, err error)
 }
 
 // NewReplacer returns a new Replacer from a list of old, new string pairs.
 // Replacements are performed in order, without overlapping matches.
-func NewReplacer(oldnew ...string) *Replacer { // ĞÂ½¨Ò»¸öReplacer
-	if len(oldnew)%2 == 1 { // ±ØĞë½ÓÊÜÅ¼Êı¸ö²ÎÊı
+func NewReplacer(oldnew ...string) *Replacer { // æ–°å»ºä¸€ä¸ªReplacer
+	if len(oldnew)%2 == 1 { // å¿…é¡»æ¥å—å¶æ•°ä¸ªå‚æ•°
 		panic("strings.NewReplacer: odd argument count")
 	}
 
@@ -66,12 +66,12 @@ func NewReplacer(oldnew ...string) *Replacer { // ĞÂ½¨Ò»¸öReplacer
 }
 
 // Replace returns a copy of s with all replacements performed.
-func (r *Replacer) Replace(s string) string { // ÊµÏÖ×Ö·û´®Ìæ»»
+func (r *Replacer) Replace(s string) string { // å®ç°å­—ç¬¦ä¸²æ›¿æ¢
 	return r.r.Replace(s)
 }
 
 // WriteString writes s to w with all replacements performed.
-func (r *Replacer) WriteString(w io.Writer, s string) (n int, err error) { // ÊµÏÖ×Ö·û´®Ìæ»»ºóÊä³ö
+func (r *Replacer) WriteString(w io.Writer, s string) (n int, err error) { // å®ç°å­—ç¬¦ä¸²æ›¿æ¢åè¾“å‡º
 	return r.r.WriteString(w, s)
 }
 

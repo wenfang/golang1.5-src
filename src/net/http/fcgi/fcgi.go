@@ -23,7 +23,7 @@ import (
 // http://www.fastcgi.com/devkit/doc/fcgi-spec.html#S8
 type recType uint8
 
-const ( // ¼ÇÂ¼ÀàĞÍ
+const ( // è®°å½•ç±»å‹
 	typeBeginRequest    recType = 1
 	typeAbortRequest    recType = 2
 	typeEndRequest      recType = 3
@@ -60,13 +60,13 @@ const (
 
 const headerLen = 8
 
-type header struct { // fastcgi ¼ÇÂ¼Í·
-	Version       uint8   // °æ±¾ºÅ
-	Type          recType // ¼ÇÂ¼ÀàĞÍ
+type header struct { // fastcgi è®°å½•å¤´
+	Version       uint8   // ç‰ˆæœ¬å·
+	Type          recType // è®°å½•ç±»å‹
 	Id            uint16
-	ContentLength uint16 // ºóÃæµÄÄÚÈİ³¤¶È
-	PaddingLength uint8  // ¸½¼ÓµÄ³¤¶È
-	Reserved      uint8  // ±£ÁôµÄ³¤¶È
+	ContentLength uint16 // åé¢çš„å†…å®¹é•¿åº¦
+	PaddingLength uint8  // é™„åŠ çš„é•¿åº¦
+	Reserved      uint8  // ä¿ç•™çš„é•¿åº¦
 }
 
 type beginRequest struct {
@@ -88,8 +88,8 @@ func (br *beginRequest) read(content []byte) error {
 // not synchronized because we don't care what the contents are
 var pad [maxPad]byte
 
-func (h *header) init(recType recType, reqId uint16, contentLength int) { // ³õÊ¼»¯recordÍ·²¿
-	h.Version = 1 // °æ±¾ºÅ
+func (h *header) init(recType recType, reqId uint16, contentLength int) { // åˆå§‹åŒ–recordå¤´éƒ¨
+	h.Version = 1 // ç‰ˆæœ¬å·
 	h.Type = recType
 	h.Id = reqId
 	h.ContentLength = uint16(contentLength)
@@ -106,7 +106,7 @@ type conn struct {
 	h   header
 }
 
-func newConn(rwc io.ReadWriteCloser) *conn { // ½«rwc½Ó¿Ú°ü×°Îªconn½á¹¹
+func newConn(rwc io.ReadWriteCloser) *conn { // å°†rwcæ¥å£åŒ…è£…ä¸ºconnç»“æ„
 	return &conn{rwc: rwc}
 }
 
@@ -116,26 +116,26 @@ func (c *conn) Close() error {
 	return c.rwc.Close()
 }
 
-type record struct { // record½á¹¹
-	h   header                  // recordµÄÍ·²¿
-	buf [maxWrite + maxPad]byte // ·ÖÅäbuffer£¬×î´óÊıÁ¿
+type record struct { // recordç»“æ„
+	h   header                  // recordçš„å¤´éƒ¨
+	buf [maxWrite + maxPad]byte // åˆ†é…bufferï¼Œæœ€å¤§æ•°é‡
 }
 
-func (rec *record) read(r io.Reader) (err error) { // ´Ó¿É¶Á½Ó¿ÚrÖĞ¶ÁÈ¡recordµÄÄÚÈİ
-	if err = binary.Read(r, binary.BigEndian, &rec.h); err != nil { // ¶ÁÈë¼ÇÂ¼Í·£¬¶Áµ½rec.hÖĞ
+func (rec *record) read(r io.Reader) (err error) { // ä»å¯è¯»æ¥å£rä¸­è¯»å–recordçš„å†…å®¹
+	if err = binary.Read(r, binary.BigEndian, &rec.h); err != nil { // è¯»å…¥è®°å½•å¤´ï¼Œè¯»åˆ°rec.hä¸­
 		return err
 	}
-	if rec.h.Version != 1 { // fcgiÍ·²¿°æ±¾ºÅ±ØĞëÎª1£¬·ñÔò´òÓ¡´íÎó
+	if rec.h.Version != 1 { // fcgiå¤´éƒ¨ç‰ˆæœ¬å·å¿…é¡»ä¸º1ï¼Œå¦åˆ™æ‰“å°é”™è¯¯
 		return errors.New("fcgi: invalid header version")
 	}
-	n := int(rec.h.ContentLength) + int(rec.h.PaddingLength) // ¶ÁÈëÊ£ÏÂµÄÊı¾İ
-	if _, err = io.ReadFull(r, rec.buf[:n]); err != nil {    // °ÑËùÓĞµÄÊı¾İ¶¼¶ÁÈëbufÖĞ
+	n := int(rec.h.ContentLength) + int(rec.h.PaddingLength) // è¯»å…¥å‰©ä¸‹çš„æ•°æ®
+	if _, err = io.ReadFull(r, rec.buf[:n]); err != nil {    // æŠŠæ‰€æœ‰çš„æ•°æ®éƒ½è¯»å…¥bufä¸­
 		return err
 	}
 	return nil
 }
 
-func (r *record) content() []byte { // »ñÈ¡¼ÇÂ¼ÖĞµÄÄÚÈİ£¬²»°üÀ¨Í·²¿
+func (r *record) content() []byte { // è·å–è®°å½•ä¸­çš„å†…å®¹ï¼Œä¸åŒ…æ‹¬å¤´éƒ¨
 	return r.buf[:r.h.ContentLength]
 }
 

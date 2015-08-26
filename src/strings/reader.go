@@ -13,15 +13,15 @@ import (
 // A Reader implements the io.Reader, io.ReaderAt, io.Seeker, io.WriterTo,
 // io.ByteScanner, and io.RuneScanner interfaces by reading
 // from a string.
-type Reader struct { // ÊµÏÖÁËio°üÖĞµÄ¶Á½Ó¿Ú£¬Ê¹ÏàÓ¦µÄº¯Êı¿ÉÒÔ¶Ôstring½øĞĞ²Ù×÷
-	s        string // ĞèÒª¶ÁÈ¡µÄ×Ö·û´®
-	i        int64  // current reading index µ±Ç°¶ÁµÄË÷Òı
-	prevRune int    // index of previous rune; or < 0 ¶ÁÈ¡µÄÉÏÒ»¸örune
+type Reader struct { // å®ç°äº†ioåŒ…ä¸­çš„è¯»æ¥å£ï¼Œä½¿ç›¸åº”çš„å‡½æ•°å¯ä»¥å¯¹stringè¿›è¡Œæ“ä½œ
+	s        string // éœ€è¦è¯»å–çš„å­—ç¬¦ä¸²
+	i        int64  // current reading index å½“å‰è¯»çš„ç´¢å¼•
+	prevRune int    // index of previous rune; or < 0 è¯»å–çš„ä¸Šä¸€ä¸ªrune
 }
 
 // Len returns the number of bytes of the unread portion of the
 // string.
-func (r *Reader) Len() int { // ·µ»ØÎ´¶Á²¿·ÖµÄ³¤¶È
+func (r *Reader) Len() int { // è¿”å›æœªè¯»éƒ¨åˆ†çš„é•¿åº¦
 	if r.i >= int64(len(r.s)) {
 		return 0
 	}
@@ -34,7 +34,7 @@ func (r *Reader) Len() int { // ·µ»ØÎ´¶Á²¿·ÖµÄ³¤¶È
 // to any other method.
 func (r *Reader) Size() int64 { return int64(len(r.s)) }
 
-func (r *Reader) Read(b []byte) (n int, err error) { // ÊµÏÖRead·½·¨£¬¾¡Á¿Ìî³äb
+func (r *Reader) Read(b []byte) (n int, err error) { // å®ç°Readæ–¹æ³•ï¼Œå°½é‡å¡«å……b
 	if len(b) == 0 {
 		return 0, nil
 	}
@@ -147,4 +147,4 @@ func (r *Reader) WriteTo(w io.Writer) (n int64, err error) {
 
 // NewReader returns a new Reader reading from s.
 // It is similar to bytes.NewBufferString but more efficient and read-only.
-func NewReader(s string) *Reader { return &Reader{s, 0, -1} } // ¸ù¾İ×Ö·û´®£¬ĞÂ´´½¨Ò»¸öReader½á¹¹
+func NewReader(s string) *Reader { return &Reader{s, 0, -1} } // æ ¹æ®å­—ç¬¦ä¸²ï¼Œæ–°åˆ›å»ºä¸€ä¸ªReaderç»“æ„

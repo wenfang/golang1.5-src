@@ -109,12 +109,12 @@ func markroot(desc *parfor, i uint32) { // 执行markroot
 			flushallmcaches()
 		}
 
-	default:
+	default: // 其余的是scan goroutine的栈
 		// the rest is scanning goroutine stacks
 		if uintptr(i-_RootCount) >= allglen {
 			throw("markroot: bad index")
 		}
-		gp := allgs[i-_RootCount]
+		gp := allgs[i-_RootCount] // 获得对应的goroutine
 
 		// remember when we've first observed the G blocked
 		// needed only to output in traceback
@@ -771,11 +771,12 @@ func gcDrainN(gcw *gcWork, scanWork int64) {
 // scanblock scans b as scanobject would, but using an explicit
 // pointer bitmap instead of the heap bitmap.
 //
+// 用来scan非堆root
 // This is used to scan non-heap roots, so it does not update
 // gcw.bytesMarked or gcw.scanWork.
 //
 //go:nowritebarrier
-func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) { // scan从b0开始到n0的区域
+func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) { // scan从b0长度为n0的区域,ptrmask对应bitvector
 	// Use local copies of original parameters, so that a stack trace
 	// due to one of the throws below shows the original block
 	// base and extent.
@@ -787,18 +788,18 @@ func scanblock(b0, n0 uintptr, ptrmask *uint8, gcw *gcWork) { // scan从b0开始
 
 	for i := uintptr(0); i < n; { // 查找每个word的bit
 		// Find bits for the next word.
-		bits := uint32(*addb(ptrmask, i/(ptrSize*8)))
-		if bits == 0 { // 如果bits全为0，查找下一个word
+		bits := uint32(*addb(ptrmask, i/(ptrSize*8))) // 查找到对应bits的标志位
+		if bits == 0 {                                // 如果bits全为0，查找下一个word
 			i += ptrSize * 8
 			continue
 		}
-		for j := 0; j < 8 && i < n; j++ {
-			if bits&1 != 0 {
+		for j := 0; j < 8 && i < n; j++ { // 一位一位的查找
+			if bits&1 != 0 { // 如果对应的对象是一个指针
 				// Same work as in scanobject; see comments there.
 				obj := *(*uintptr)(unsafe.Pointer(b + i))
 				if obj != 0 && arena_start <= obj && obj < arena_used {
 					if obj, hbits, span := heapBitsForObject(obj); obj != 0 {
-						greyobject(obj, b, i, hbits, span, gcw)
+						greyobject(obj, b, i, hbits, span, gcw) // 将对应的对象标记为grey
 					}
 				}
 			}

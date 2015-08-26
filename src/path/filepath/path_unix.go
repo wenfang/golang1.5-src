@@ -9,18 +9,18 @@ package filepath
 import "strings"
 
 // IsAbs reports whether the path is absolute.
-func IsAbs(path string) bool { // ÅĞ¶ÏpathÊÇ·ñÎª¾ø¶ÔÂ·¾¶
+func IsAbs(path string) bool { // åˆ¤æ–­pathæ˜¯å¦ä¸ºç»å¯¹è·¯å¾„
 	return strings.HasPrefix(path, "/")
 }
 
 // volumeNameLen returns length of the leading volume name on Windows.
 // It returns 0 elsewhere.
-func volumeNameLen(path string) int { // ¾íÃûµÄ³¤¶È
+func volumeNameLen(path string) int { // å·åçš„é•¿åº¦
 	return 0
 }
 
 // HasPrefix exists for historical compatibility and should not be used.
-func HasPrefix(p, prefix string) bool { // ÅĞ¶ÏÎÄ¼şÂ·¾¶ÊÇ·ñÓĞÇ°×ºprefix
+func HasPrefix(p, prefix string) bool { // åˆ¤æ–­æ–‡ä»¶è·¯å¾„æ˜¯å¦æœ‰å‰ç¼€prefix
 	return strings.HasPrefix(p, prefix)
 }
 

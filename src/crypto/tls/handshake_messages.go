@@ -8,11 +8,11 @@ import "bytes"
 
 type clientHelloMsg struct {
 	raw                 []byte
-	vers                uint16 // tlsĞ­Òé°æ±¾
-	random              []byte //  Ëæ»úÊı
+	vers                uint16 // tlsåè®®ç‰ˆæœ¬
+	random              []byte //  éšæœºæ•°
 	sessionId           []byte
-	cipherSuites        []uint16 // ¼ÓÃÜËã·¨¼¯
-	compressionMethods  []uint8  // Ñ¹ËõËã·¨¼¯
+	cipherSuites        []uint16 // åŠ å¯†ç®—æ³•é›†
+	compressionMethods  []uint8  // å‹ç¼©ç®—æ³•é›†
 	nextProtoNeg        bool
 	serverName          string
 	ocspStapling        bool
@@ -26,7 +26,7 @@ type clientHelloMsg struct {
 	alpnProtocols       []string
 }
 
-func (m *clientHelloMsg) equal(i interface{}) bool { // ÅĞ¶ÏÁ½¸öclient Hello MsgÊÇ·ñÏàµÈ
+func (m *clientHelloMsg) equal(i interface{}) bool { // åˆ¤æ–­ä¸¤ä¸ªclient Hello Msgæ˜¯å¦ç›¸ç­‰
 	m1, ok := i.(*clientHelloMsg)
 	if !ok {
 		return false
@@ -51,7 +51,7 @@ func (m *clientHelloMsg) equal(i interface{}) bool { // ÅĞ¶ÏÁ½¸öclient Hello Msg
 		eqStrings(m.alpnProtocols, m1.alpnProtocols)
 }
 
-func (m *clientHelloMsg) marshal() []byte { // ½«clientHelloMsg±àÂë³Ébyte slice
+func (m *clientHelloMsg) marshal() []byte { // å°†clientHelloMsgç¼–ç æˆbyte slice
 	if m.raw != nil {
 		return m.raw
 	}
@@ -110,27 +110,27 @@ func (m *clientHelloMsg) marshal() []byte { // ½«clientHelloMsg±àÂë³Ébyte slice
 	}
 
 	x := make([]byte, 4+length)
-	x[0] = typeClientHello // ÏûÏ¢ÀàĞÍClientHello
+	x[0] = typeClientHello // æ¶ˆæ¯ç±»å‹ClientHello
 	x[1] = uint8(length >> 16)
 	x[2] = uint8(length >> 8)
-	x[3] = uint8(length) // ÏûÏ¢³¤¶È
+	x[3] = uint8(length) // æ¶ˆæ¯é•¿åº¦
 	x[4] = uint8(m.vers >> 8)
-	x[5] = uint8(m.vers)                         // ÏûÏ¢°æ±¾
-	copy(x[6:38], m.random)                      // Ğ´Èë32¸ö×Ö½ÚµÄËæ»úÊı
-	x[38] = uint8(len(m.sessionId))              // »á»°idµÄ³¤¶È
-	copy(x[39:39+len(m.sessionId)], m.sessionId) // ¿½±´»á»°id
+	x[5] = uint8(m.vers)                         // æ¶ˆæ¯ç‰ˆæœ¬
+	copy(x[6:38], m.random)                      // å†™å…¥32ä¸ªå­—èŠ‚çš„éšæœºæ•°
+	x[38] = uint8(len(m.sessionId))              // ä¼šè¯idçš„é•¿åº¦
+	copy(x[39:39+len(m.sessionId)], m.sessionId) // æ‹·è´ä¼šè¯id
 	y := x[39+len(m.sessionId):]
-	y[0] = uint8(len(m.cipherSuites) >> 7) // ÃÜÎÄ×åµÄ³¤¶È
+	y[0] = uint8(len(m.cipherSuites) >> 7) // å¯†æ–‡æ—çš„é•¿åº¦
 	y[1] = uint8(len(m.cipherSuites) << 1)
-	for i, suite := range m.cipherSuites { // ±éÀúÃÜÎÄ×å£¬ÒÀ´ËĞ´Èë
+	for i, suite := range m.cipherSuites { // éå†å¯†æ–‡æ—ï¼Œä¾æ­¤å†™å…¥
 		y[2+i*2] = uint8(suite >> 8)
 		y[3+i*2] = uint8(suite)
 	}
 	z := y[2+len(m.cipherSuites)*2:]
-	z[0] = uint8(len(m.compressionMethods)) // Ñ¹Ëõ·½·¨µÄ³¤¶È
+	z[0] = uint8(len(m.compressionMethods)) // å‹ç¼©æ–¹æ³•çš„é•¿åº¦
 	copy(z[1:], m.compressionMethods)
 
-	z = z[1+len(m.compressionMethods):] // Ñ¹Ëõ·½·¨
+	z = z[1+len(m.compressionMethods):] // å‹ç¼©æ–¹æ³•
 	if numExtensions > 0 {
 		z[0] = byte(extensionsLength >> 8)
 		z[1] = byte(extensionsLength)
@@ -142,7 +142,7 @@ func (m *clientHelloMsg) marshal() []byte { // ½«clientHelloMsg±àÂë³Ébyte slice
 		// The length is always 0
 		z = z[4:]
 	}
-	if len(m.serverName) > 0 { // servernameÀ©Õ¹£¬½ÚÔ¼µ×²ãHTTPµÄÊ±¼ä
+	if len(m.serverName) > 0 { // servernameæ‰©å±•ï¼ŒèŠ‚çº¦åº•å±‚HTTPçš„æ—¶é—´
 		z[0] = byte(extensionServerName >> 8)
 		z[1] = byte(extensionServerName & 0xff)
 		l := len(m.serverName) + 5
@@ -289,7 +289,7 @@ func (m *clientHelloMsg) marshal() []byte { // ½«clientHelloMsg±àÂë³Ébyte slice
 	return x
 }
 
-func (m *clientHelloMsg) unmarshal(data []byte) bool { // ½«byte slice±äÎªclientHellomsg½á¹¹
+func (m *clientHelloMsg) unmarshal(data []byte) bool { // å°†byte sliceå˜ä¸ºclientHellomsgç»“æ„
 	if len(data) < 42 {
 		return false
 	}
@@ -482,7 +482,7 @@ func (m *clientHelloMsg) unmarshal(data []byte) bool { // ½«byte slice±äÎªclient
 	return true
 }
 
-type serverHelloMsg struct { // server¶ËµÄhelloÏìÓ¦
+type serverHelloMsg struct { // serverç«¯çš„helloå“åº”
 	raw                 []byte
 	vers                uint16
 	random              []byte
@@ -587,7 +587,7 @@ func (m *serverHelloMsg) marshal() []byte {
 	x[38] = uint8(len(m.sessionId))
 	copy(x[39:39+len(m.sessionId)], m.sessionId)
 	z := x[39+len(m.sessionId):]
-	z[0] = uint8(m.cipherSuite >> 8) // ËùÊ¹ÓÃµÄ¼ÓÃÜ×å
+	z[0] = uint8(m.cipherSuite >> 8) // æ‰€ä½¿ç”¨çš„åŠ å¯†æ—
 	z[1] = uint8(m.cipherSuite)
 	z[2] = uint8(m.compressionMethod)
 
@@ -799,7 +799,7 @@ func (m *serverHelloMsg) unmarshal(data []byte) bool {
 	return true
 }
 
-type certificateMsg struct { // server¶Ë·¢ËÍµÄÖ¤ÊéĞÅÏ¢
+type certificateMsg struct { // serverç«¯å‘é€çš„è¯ä¹¦ä¿¡æ¯
 	raw          []byte
 	certificates [][]byte
 }
@@ -826,10 +826,10 @@ func (m *certificateMsg) marshal() (x []byte) {
 
 	length := 3 + 3*len(m.certificates) + i
 	x = make([]byte, 4+length)
-	x[0] = typeCertificate // ÏûÏ¢ÀàĞÍÎªÖ¤Êé
+	x[0] = typeCertificate // æ¶ˆæ¯ç±»å‹ä¸ºè¯ä¹¦
 	x[1] = uint8(length >> 16)
 	x[2] = uint8(length >> 8)
-	x[3] = uint8(length) // ÉèÖÃ3¸ö×Ö½ÚµÄÏûÏ¢³¤¶È
+	x[3] = uint8(length) // è®¾ç½®3ä¸ªå­—èŠ‚çš„æ¶ˆæ¯é•¿åº¦
 
 	certificateOctets := length - 3
 	x[4] = uint8(certificateOctets >> 16)
@@ -837,7 +837,7 @@ func (m *certificateMsg) marshal() (x []byte) {
 	x[6] = uint8(certificateOctets)
 
 	y := x[7:]
-	for _, slice := range m.certificates { // ¶à¸öÖ¤Êé
+	for _, slice := range m.certificates { // å¤šä¸ªè¯ä¹¦
 		y[0] = uint8(len(slice) >> 16)
 		y[1] = uint8(len(slice) >> 8)
 		y[2] = uint8(len(slice))
@@ -992,7 +992,7 @@ func (m *certificateStatusMsg) unmarshal(data []byte) bool {
 	return true
 }
 
-type serverHelloDoneMsg struct{} // HelloDoneÏûÏ¢£¬±íÃ÷Õû¸öÎÕÊÖ¹ı³Ì½áÊø
+type serverHelloDoneMsg struct{} // HelloDoneæ¶ˆæ¯ï¼Œè¡¨æ˜æ•´ä¸ªæ¡æ‰‹è¿‡ç¨‹ç»“æŸ
 
 func (m *serverHelloDoneMsg) equal(i interface{}) bool {
 	_, ok := i.(*serverHelloDoneMsg)
@@ -1009,7 +1009,7 @@ func (m *serverHelloDoneMsg) unmarshal(data []byte) bool {
 	return len(data) == 4
 }
 
-type clientKeyExchangeMsg struct { // ¿Í»§¶ËÃÜÔ¿½»»»
+type clientKeyExchangeMsg struct { // å®¢æˆ·ç«¯å¯†é’¥äº¤æ¢
 	raw        []byte
 	ciphertext []byte
 }
@@ -1053,7 +1053,7 @@ func (m *clientKeyExchangeMsg) unmarshal(data []byte) bool {
 	return true
 }
 
-type finishedMsg struct { // ÎÕÊÖfinishÏûÏ¢
+type finishedMsg struct { // æ¡æ‰‹finishæ¶ˆæ¯
 	raw        []byte
 	verifyData []byte
 }

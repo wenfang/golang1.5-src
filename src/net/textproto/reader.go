@@ -15,8 +15,8 @@ import (
 
 // A Reader implements convenience methods for reading requests
 // or responses from a text protocol network connection.
-type Reader struct { // ´´½¨Ò»¸öÎÄ±¾Ğ­ÒéµÄReader
-	R   *bufio.Reader // ·â×°ÁËÒ»¸öµ×²ãµÄbufio
+type Reader struct { // åˆ›å»ºä¸€ä¸ªæ–‡æœ¬åè®®çš„Reader
+	R   *bufio.Reader // å°è£…äº†ä¸€ä¸ªåº•å±‚çš„bufio
 	dot *dotReader
 	buf []byte // a re-usable buffer for readContinuedLineSlice
 }
@@ -32,13 +32,13 @@ func NewReader(r *bufio.Reader) *Reader {
 
 // ReadLine reads a single line from r,
 // eliding the final \n or \r\n from the returned string.
-func (r *Reader) ReadLine() (string, error) { // ·µ»Øµ¥¶ÀµÄÒ»ĞĞÊı¾İ
+func (r *Reader) ReadLine() (string, error) { // è¿”å›å•ç‹¬çš„ä¸€è¡Œæ•°æ®
 	line, err := r.readLineSlice()
 	return string(line), err
 }
 
 // ReadLineBytes is like ReadLine but returns a []byte instead of a string.
-func (r *Reader) ReadLineBytes() ([]byte, error) { // ¶Á³öÒ»ĞĞµÄÊı¾İ£¬ÒÔbyteµÄ·½Ê½·µ»Ø
+func (r *Reader) ReadLineBytes() ([]byte, error) { // è¯»å‡ºä¸€è¡Œçš„æ•°æ®ï¼Œä»¥byteçš„æ–¹å¼è¿”å›
 	line, err := r.readLineSlice()
 	if line != nil {
 		buf := make([]byte, len(line))
@@ -48,11 +48,11 @@ func (r *Reader) ReadLineBytes() ([]byte, error) { // ¶Á³öÒ»ĞĞµÄÊı¾İ£¬ÒÔbyteµÄ·½
 	return line, err
 }
 
-func (r *Reader) readLineSlice() ([]byte, error) { // ¶Á³öÒ»ĞĞµÄÊı¾İ
+func (r *Reader) readLineSlice() ([]byte, error) { // è¯»å‡ºä¸€è¡Œçš„æ•°æ®
 	r.closeDot()
 	var line []byte
 	for {
-		l, more, err := r.R.ReadLine() // Ê¹ÓÃÄÚ²¿µÄbufio¶Á³öÒ»ĞĞµÄÄÚÈİ
+		l, more, err := r.R.ReadLine() // ä½¿ç”¨å†…éƒ¨çš„bufioè¯»å‡ºä¸€è¡Œçš„å†…å®¹
 		if err != nil {
 			return nil, err
 		}
@@ -87,8 +87,8 @@ func (r *Reader) readLineSlice() ([]byte, error) { // ¶Á³öÒ»ĞĞµÄÊı¾İ
 //
 // A line consisting of only white space is never continued.
 //
-func (r *Reader) ReadContinuedLine() (string, error) { // ½«Á¬ĞøĞĞ×÷ÎªÕûĞĞ¶ÁÈë£¬ºÍÁ¬ĞøĞĞ¼ä¼Ó¿Õ¸ñ·Ö¸ô
-	line, err := r.readContinuedLineSlice() // ¶Ácontinue line
+func (r *Reader) ReadContinuedLine() (string, error) { // å°†è¿ç»­è¡Œä½œä¸ºæ•´è¡Œè¯»å…¥ï¼Œå’Œè¿ç»­è¡Œé—´åŠ ç©ºæ ¼åˆ†éš”
+	line, err := r.readContinuedLineSlice() // è¯»continue line
 	return string(line), err
 }
 
@@ -108,7 +108,7 @@ func trim(s []byte) []byte {
 
 // ReadContinuedLineBytes is like ReadContinuedLine but
 // returns a []byte instead of a string.
-func (r *Reader) ReadContinuedLineBytes() ([]byte, error) { // ¶ÁÁ¬ĞøĞĞ£¬ÒÔ[]byteµÄĞÎÊ½·µ»Ø
+func (r *Reader) ReadContinuedLineBytes() ([]byte, error) { // è¯»è¿ç»­è¡Œï¼Œä»¥[]byteçš„å½¢å¼è¿”å›
 	line, err := r.readContinuedLineSlice()
 	if line != nil {
 		buf := make([]byte, len(line))
@@ -118,9 +118,9 @@ func (r *Reader) ReadContinuedLineBytes() ([]byte, error) { // ¶ÁÁ¬ĞøĞĞ£¬ÒÔ[]byt
 	return line, err
 }
 
-func (r *Reader) readContinuedLineSlice() ([]byte, error) { // ¶ÁÁ¬ĞøµÄĞĞ£¬·µ»Øbyte slice
+func (r *Reader) readContinuedLineSlice() ([]byte, error) { // è¯»è¿ç»­çš„è¡Œï¼Œè¿”å›byte slice
 	// Read the first line.
-	line, err := r.readLineSlice() // ÏÈ¶ÁÒ»ĞĞ
+	line, err := r.readLineSlice() // å…ˆè¯»ä¸€è¡Œ
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (r *Reader) skipSpace() int {
 	return n
 }
 
-func (r *Reader) readCodeLine(expectCode int) (code int, continued bool, message string, err error) { // ¶Á´úÂëĞĞ
+func (r *Reader) readCodeLine(expectCode int) (code int, continued bool, message string, err error) { // è¯»ä»£ç è¡Œ
 	line, err := r.ReadLine()
 	if err != nil {
 		return
@@ -181,7 +181,7 @@ func (r *Reader) readCodeLine(expectCode int) (code int, continued bool, message
 	return parseCodeLine(line, expectCode)
 }
 
-func parseCodeLine(line string, expectCode int) (code int, continued bool, message string, err error) { // ½âÎö´úÂëĞĞ
+func parseCodeLine(line string, expectCode int) (code int, continued bool, message string, err error) { // è§£æä»£ç è¡Œ
 	if len(line) < 4 || line[3] != ' ' && line[3] != '-' {
 		err = ProtocolError("short response: " + line)
 		return
@@ -216,7 +216,7 @@ func parseCodeLine(line string, expectCode int) (code int, continued bool, messa
 //
 // An expectCode <= 0 disables the check of the status code.
 //
-func (r *Reader) ReadCodeLine(expectCode int) (code int, message string, err error) { // ¶ÁÒ»¸öCodeLine
+func (r *Reader) ReadCodeLine(expectCode int) (code int, message string, err error) { // è¯»ä¸€ä¸ªCodeLine
 	code, continued, message, err := r.readCodeLine(expectCode)
 	if err == nil && continued {
 		err = ProtocolError("unexpected multi-line response: " + message)
@@ -385,7 +385,7 @@ func (d *dotReader) Read(b []byte) (n int, err error) {
 // closeDot drains the current DotReader if any,
 // making sure that it reads until the ending dot line.
 func (r *Reader) closeDot() {
-	if r.dot == nil { // Èç¹ûµ±Ç°Ã»ÓĞdot£¬Ö±½Ó·µ»Ø
+	if r.dot == nil { // å¦‚æœå½“å‰æ²¡æœ‰dotï¼Œç›´æ¥è¿”å›
 		return
 	}
 	buf := make([]byte, 128)
@@ -455,19 +455,19 @@ func (r *Reader) ReadDotLines() ([]string, error) {
 //		"Long-Key": {"Even Longer Value"},
 //	}
 //
-func (r *Reader) ReadMIMEHeader() (MIMEHeader, error) { // ´ÓrÖĞ¶ÁÈ¡MIME·ç¸ñµÄÍ·²¿£¬·µ»ØMIMEHeader½á¹¹
+func (r *Reader) ReadMIMEHeader() (MIMEHeader, error) { // ä»rä¸­è¯»å–MIMEé£æ ¼çš„å¤´éƒ¨ï¼Œè¿”å›MIMEHeaderç»“æ„
 	// Avoid lots of small slice allocations later by allocating one
 	// large one ahead of time which we'll cut up into smaller
 	// slices. If this isn't big enough later, we allocate small ones.
 	var strs []string
-	hint := r.upcomingHeaderNewlines() // ·µ»ØMIMEÍ·²¿¿ÉÄÜÓĞ¶àÉÙĞĞ
+	hint := r.upcomingHeaderNewlines() // è¿”å›MIMEå¤´éƒ¨å¯èƒ½æœ‰å¤šå°‘è¡Œ
 	if hint > 0 {
 		strs = make([]string, hint)
 	}
 
-	m := make(MIMEHeader, hint) // ´´½¨MIMEHeader½á¹¹
+	m := make(MIMEHeader, hint) // åˆ›å»ºMIMEHeaderç»“æ„
 	for {
-		kv, err := r.readContinuedLineSlice() // ¶ÁÁ¬ĞøĞĞ
+		kv, err := r.readContinuedLineSlice() // è¯»è¿ç»­è¡Œ
 		if len(kv) == 0 {
 			return m, err
 		}
@@ -475,8 +475,8 @@ func (r *Reader) ReadMIMEHeader() (MIMEHeader, error) { // ´ÓrÖĞ¶ÁÈ¡MIME·ç¸ñµÄÍ·
 		// Key ends at first colon; should not have spaces but
 		// they appear in the wild, violating specs, so we
 		// remove them if present.
-		i := bytes.IndexByte(kv, ':') // ²éÕÒ£ºËùÔÚµÄÎ»ÖÃ
-		if i < 0 {                    // Ã»ÓĞÕÒµ½:£¬¸ñÊ½´íÎó
+		i := bytes.IndexByte(kv, ':') // æŸ¥æ‰¾ï¼šæ‰€åœ¨çš„ä½ç½®
+		if i < 0 {                    // æ²¡æœ‰æ‰¾åˆ°:ï¼Œæ ¼å¼é”™è¯¯
 			return m, ProtocolError("malformed MIME header line: " + string(kv))
 		}
 		endKey := i
@@ -520,11 +520,11 @@ func (r *Reader) ReadMIMEHeader() (MIMEHeader, error) { // ´ÓrÖĞ¶ÁÈ¡MIME·ç¸ñµÄÍ·
 
 // upcomingHeaderNewlines returns an approximation of the number of newlines
 // that will be in this header. If it gets confused, it returns 0.
-func (r *Reader) upcomingHeaderNewlines() (n int) { // ·µ»ØĞÂĞĞ´ó¸ÅµÄÊıÁ¿
+func (r *Reader) upcomingHeaderNewlines() (n int) { // è¿”å›æ–°è¡Œå¤§æ¦‚çš„æ•°é‡
 	// Try to determine the 'hint' size.
-	r.R.Peek(1)         // force a buffer load if empty Èç¹ûbufferÎª¿ÕµÄ»°£¬Ç¿ÆÈÌî³äbuffer
-	s := r.R.Buffered() // ²é¿´Ò»ÏÂ»º´æÁË¶àÉÙÊı¾İ
-	if s == 0 {         // Ã»ÓĞ»º³åÊı¾İ£¬Ö±½Ó·µ»Ø
+	r.R.Peek(1)         // force a buffer load if empty å¦‚æœbufferä¸ºç©ºçš„è¯ï¼Œå¼ºè¿«å¡«å……buffer
+	s := r.R.Buffered() // æŸ¥çœ‹ä¸€ä¸‹ç¼“å­˜äº†å¤šå°‘æ•°æ®
+	if s == 0 {         // æ²¡æœ‰ç¼“å†²æ•°æ®ï¼Œç›´æ¥è¿”å›
 		return
 	}
 	peek, _ := r.R.Peek(s)
@@ -552,12 +552,12 @@ func (r *Reader) upcomingHeaderNewlines() (n int) { // ·µ»ØĞÂĞĞ´ó¸ÅµÄÊıÁ¿
 func CanonicalMIMEHeaderKey(s string) string {
 	// Quick check for canonical encoding.
 	upper := true
-	for i := 0; i < len(s); i++ { // ÖğÒ»µÄ±éÀú×Ö·û´®ÖĞµÄÃ¿Ò»¸ö×Ö·û
+	for i := 0; i < len(s); i++ { // é€ä¸€çš„éå†å­—ç¬¦ä¸²ä¸­çš„æ¯ä¸€ä¸ªå­—ç¬¦
 		c := s[i]
 		if !validHeaderFieldByte(c) {
 			return s
 		}
-		if upper && 'a' <= c && c <= 'z' { // Èç¹ûÊÇĞ¡Ğ´×ÖÄ¸
+		if upper && 'a' <= c && c <= 'z' { // å¦‚æœæ˜¯å°å†™å­—æ¯
 			return canonicalMIMEHeaderKey([]byte(s))
 		}
 		if !upper && 'A' <= c && c <= 'Z' {
@@ -618,17 +618,17 @@ func canonicalMIMEHeaderKey(a []byte) string {
 	// The compiler recognizes m[string(byteSlice)] as a special
 	// case, so a copy of a's bytes into a new string does not
 	// happen in this map lookup:
-	if v := commonHeader[string(a)]; v != "" { // Èç¹û±»Ê¶±ğÎªÍ¨ÓÃÍ·²¿
-		return v // ·µ»ØÍ¨ÓÃÍ·²¿
+	if v := commonHeader[string(a)]; v != "" { // å¦‚æœè¢«è¯†åˆ«ä¸ºé€šç”¨å¤´éƒ¨
+		return v // è¿”å›é€šç”¨å¤´éƒ¨
 	}
 	return string(a)
 }
 
 // commonHeader interns common header strings.
-var commonHeader = make(map[string]string) // commonHeader Map commonHeaderÓ³Éä±í
+var commonHeader = make(map[string]string) // commonHeader Map commonHeaderæ˜ å°„è¡¨
 
 func init() {
-	for _, v := range []string{ // ÎªcommonHeader¸³Öµ
+	for _, v := range []string{ // ä¸ºcommonHeaderèµ‹å€¼
 		"Accept",
 		"Accept-Charset",
 		"Accept-Encoding",

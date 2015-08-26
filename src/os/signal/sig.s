@@ -24,7 +24,7 @@ TEXT ·signal_disable(SB),NOSPLIT,$0 // disable信号
 TEXT ·signal_enable(SB),NOSPLIT,$0 // enable信号
 	JMP runtime·signal_enable(SB)
 
-TEXT ·signal_ignore(SB),NOSPLIT,$0
+TEXT ·signal_ignore(SB),NOSPLIT,$0 // 忽略信号
 	JMP runtime·signal_ignore(SB)
 
 TEXT ·signal_recv(SB),NOSPLIT,$0 // 接收到信号

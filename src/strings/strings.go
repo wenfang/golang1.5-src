@@ -43,13 +43,13 @@ func explode(s string, n int) []string {
 }
 
 // primeRK is the prime base used in Rabin-Karp algorithm.
-const primeRK = 16777619 // Rabin-KarpËã·¨Ê¹ÓÃµÄËØÊı
+const primeRK = 16777619 // Rabin-Karpç®—æ³•ä½¿ç”¨çš„ç´ æ•°
 
 // hashStr returns the hash and the appropriate multiplicative
 // factor for use in Rabin-Karp algorithm.
 func hashStr(sep string) (uint32, uint32) {
 	hash := uint32(0)
-	for i := 0; i < len(sep); i++ { // ¼ÆËã×Ö·û´®µÄhashÖµ
+	for i := 0; i < len(sep); i++ { // è®¡ç®—å­—ç¬¦ä¸²çš„hashå€¼
 		hash = hash*primeRK + uint32(sep[i])
 	}
 	var pow, sq uint32 = 1, primeRK
@@ -129,22 +129,22 @@ func Count(s, sep string) int {
 }
 
 // Contains reports whether substr is within s.
-func Contains(s, substr string) bool { // ¼ì²ésÖĞÊÇ·ñ°üº¬substr
+func Contains(s, substr string) bool { // æ£€æŸ¥sä¸­æ˜¯å¦åŒ…å«substr
 	return Index(s, substr) >= 0
 }
 
 // ContainsAny reports whether any Unicode code points in chars are within s.
-func ContainsAny(s, chars string) bool { // ¼ì²ésÖĞÊÇ·ñ°üº¬ÈÎºÎÒ»¸öchars
+func ContainsAny(s, chars string) bool { // æ£€æŸ¥sä¸­æ˜¯å¦åŒ…å«ä»»ä½•ä¸€ä¸ªchars
 	return IndexAny(s, chars) >= 0
 }
 
 // ContainsRune reports whether the Unicode code point r is within s.
-func ContainsRune(s string, r rune) bool { // ¼ì²ésÖĞÊÇ·ñ°üº¬r
+func ContainsRune(s string, r rune) bool { // æ£€æŸ¥sä¸­æ˜¯å¦åŒ…å«r
 	return IndexRune(s, r) >= 0
 }
 
 // Index returns the index of the first instance of sep in s, or -1 if sep is not present in s.
-func Index(s, sep string) int { // ¼ì²ésepÔÚsÖĞµÄË÷Òı£¬ÕÒ²»µ½·µ»Ø-1
+func Index(s, sep string) int { // æ£€æŸ¥sepåœ¨sä¸­çš„ç´¢å¼•ï¼Œæ‰¾ä¸åˆ°è¿”å›-1
 	n := len(sep)
 	switch {
 	case n == 0:
@@ -181,7 +181,7 @@ func Index(s, sep string) int { // ¼ì²ésepÔÚsÖĞµÄË÷Òı£¬ÕÒ²»µ½·µ»Ø-1
 }
 
 // LastIndex returns the index of the last instance of sep in s, or -1 if sep is not present in s.
-func LastIndex(s, sep string) int { // ÔÚsÖĞ£¬´ÓºóÏòÇ°²éÕÒsep³öÏÖµÄÎ»ÖÃ
+func LastIndex(s, sep string) int { // åœ¨sä¸­ï¼Œä»åå‘å‰æŸ¥æ‰¾sepå‡ºç°çš„ä½ç½®
 	n := len(sep)
 	switch {
 	case n == 0:
@@ -219,7 +219,7 @@ func LastIndex(s, sep string) int { // ÔÚsÖĞ£¬´ÓºóÏòÇ°²éÕÒsep³öÏÖµÄÎ»ÖÃ
 
 // IndexRune returns the index of the first instance of the Unicode code point
 // r, or -1 if rune is not present in s.
-func IndexRune(s string, r rune) int { // ÔÚstring sÖĞ²éÕÒrune rËùÔÚµÄÎ»ÖÃ
+func IndexRune(s string, r rune) int { // åœ¨string sä¸­æŸ¥æ‰¾rune ræ‰€åœ¨çš„ä½ç½®
 	switch {
 	case r < utf8.RuneSelf:
 		return IndexByte(s, byte(r))
@@ -328,7 +328,7 @@ func SplitAfterN(s, sep string, n int) []string {
 // the substrings between those separators.
 // If sep is empty, Split splits after each UTF-8 sequence.
 // It is equivalent to SplitN with a count of -1.
-func Split(s, sep string) []string { return genSplit(s, sep, 0, -1) } // ½«×Ö·û´®·Ö¸î³É×Ö·û´®slice
+func Split(s, sep string) []string { return genSplit(s, sep, 0, -1) } // å°†å­—ç¬¦ä¸²åˆ†å‰²æˆå­—ç¬¦ä¸²slice
 
 // SplitAfter slices s into all substrings after each instance of sep and
 // returns a slice of those substrings.
@@ -341,7 +341,7 @@ func SplitAfter(s, sep string) []string {
 // Fields splits the string s around each instance of one or more consecutive white space
 // characters, as defined by unicode.IsSpace, returning an array of substrings of s or an
 // empty list if s contains only white space.
-func Fields(s string) []string { // ½«string s ·Ö¸îÎªstring slice
+func Fields(s string) []string { // å°†string s åˆ†å‰²ä¸ºstring slice
 	return FieldsFunc(s, unicode.IsSpace)
 }
 
@@ -354,10 +354,10 @@ func FieldsFunc(s string, f func(rune) bool) []string {
 	// First count the fields.
 	n := 0
 	inField := false
-	for _, rune := range s { // ±éÀúÃ¿¸ö×Ö·û
-		wasInField := inField       // ÊÇ²»ÊÇÒÑ¾­ÔÚfieldÖĞÁË£¬Õë¶ÔÁ¬ĞøfieldµÄÇé¿ö
-		inField = !f(rune)          // ÅĞ¶ÏĞÂµÃµ½µÄruneÊÇ·ñÔÚfieldÖĞ
-		if inField && !wasInField { // Èç¹ûÊÇĞÂÅöµ½ÁËÒ»Á¬´®µÄfield£¬Ôö¼ÓfieldµÄÊıÁ¿
+	for _, rune := range s { // éå†æ¯ä¸ªå­—ç¬¦
+		wasInField := inField       // æ˜¯ä¸æ˜¯å·²ç»åœ¨fieldä¸­äº†ï¼Œé’ˆå¯¹è¿ç»­fieldçš„æƒ…å†µ
+		inField = !f(rune)          // åˆ¤æ–­æ–°å¾—åˆ°çš„runeæ˜¯å¦åœ¨fieldä¸­
+		if inField && !wasInField { // å¦‚æœæ˜¯æ–°ç¢°åˆ°äº†ä¸€è¿ä¸²çš„fieldï¼Œå¢åŠ fieldçš„æ•°é‡
 			n++
 		}
 	}
@@ -665,8 +665,8 @@ func TrimPrefix(s, prefix string) string {
 
 // TrimSuffix returns s without the provided trailing suffix string.
 // If s doesn't end with suffix, s is returned unchanged.
-func TrimSuffix(s, suffix string) string { // Çå³ıºó×º
-	if HasSuffix(s, suffix) { // Èç¹û¾ßÓĞsuffixºó×º£¬Çå³ı
+func TrimSuffix(s, suffix string) string { // æ¸…é™¤åç¼€
+	if HasSuffix(s, suffix) { // å¦‚æœå…·æœ‰suffixåç¼€ï¼Œæ¸…é™¤
 		return s[:len(s)-len(suffix)]
 	}
 	return s
