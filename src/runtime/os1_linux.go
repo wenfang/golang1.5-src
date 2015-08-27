@@ -138,6 +138,7 @@ func newosproc(mp *m, stk unsafe.Pointer) {
 		print("newosproc stk=", stk, " m=", mp, " g=", mp.g0, " clone=", funcPC(clone), " id=", mp.id, "/", mp.tls[0], " ostk=", &mp, "\n")
 	}
 
+	// 在clone的时候disable掉所有的信号，因此新线程启动时，所有的信号都是disable状态，然后这些信号会在minit中enable
 	// Disable signals during clone, so that the new thread starts
 	// with signals disabled.  It will enable them in minit.
 	var oset sigset
@@ -145,7 +146,7 @@ func newosproc(mp *m, stk unsafe.Pointer) {
 	ret := clone(cloneFlags, stk, unsafe.Pointer(mp), unsafe.Pointer(mp.g0), unsafe.Pointer(funcPC(mstart)))
 	rtsigprocmask(_SIG_SETMASK, &oset, nil, int32(unsafe.Sizeof(oset)))
 
-	if ret < 0 {
+	if ret < 0 { // 创建新的操作系统线程错误
 		print("runtime: failed to create new OS thread (have ", mcount(), " already; errno=", -ret, ")\n")
 		throw("newosproc")
 	}
@@ -218,6 +219,7 @@ func minit() {
 	// for debuggers, in case cgo created the thread
 	_g_.m.procid = uint64(gettid())
 
+	// 恢复信号
 	// restore signal mask from m.sigmask and unblock essential signals
 	nmask := *(*sigset)(unsafe.Pointer(&_g_.m.sigmask))
 	for i := range sigtable {

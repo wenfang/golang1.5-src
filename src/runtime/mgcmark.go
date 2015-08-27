@@ -33,7 +33,7 @@ func gcscan_m() {
 	work.ndone = 0
 	useOneP := uint32(1) // For now do not do this in parallel.
 	//	ackgcphase is not needed since we are not scanning running goroutines.
-	parforsetup(work.markfor, useOneP, uint32(_RootCount+local_allglen), false, markroot)
+	parforsetup(work.markfor, useOneP, uint32(_RootCount+local_allglen), false, markroot) // 使用一个P来执行markroot
 	parfordo(work.markfor)
 
 	lock(&allglock)

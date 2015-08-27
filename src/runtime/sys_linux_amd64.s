@@ -356,14 +356,14 @@ TEXT runtime·sigaltstack(SB),NOSPLIT,$-8
 	RET
 
 // set tls base to DI
-TEXT runtime·settls(SB),NOSPLIT,$32
-	ADDQ	$8, DI	// ELF wants to use -8(FS)
+TEXT runtime·settls(SB),NOSPLIT,$32 // 设置tls base到DI上
+	ADDQ	$8, DI	// ELF wants to use -8(FS) 先将DI值加8
 
-	MOVQ	DI, SI
+	MOVQ	DI, SI // 将DI赋值给SI
 	MOVQ	$0x1002, DI	// ARCH_SET_FS
 	MOVQ	$158, AX	// arch_prctl // 调用158号系统调用
 	SYSCALL
-	CMPQ	AX, $0xfffffffffffff001
+	CMPQ	AX, $0xfffffffffffff001 //查看是否调用成功
 	JLS	2(PC)
 	MOVL	$0xf1, 0xf1  // crash
 	RET

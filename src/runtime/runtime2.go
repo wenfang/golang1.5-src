@@ -125,7 +125,7 @@ type eface struct { // 空接口
 // so I can't see them ever moving. If we did want to start moving data
 // in the GC, we'd need to allocate the goroutine structs from an
 // alternate arena. Using guintptr doesn't make that problem any worse.
-type guintptr uintptr
+type guintptr uintptr // 指向g的指针
 
 func (gp guintptr) ptr() *g   { return (*g)(unsafe.Pointer(gp)) }
 func (gp *guintptr) set(g *g) { *gp = guintptr(unsafe.Pointer(g)) }
@@ -133,12 +133,12 @@ func (gp *guintptr) cas(old, new guintptr) bool {
 	return casuintptr((*uintptr)(unsafe.Pointer(gp)), uintptr(old), uintptr(new))
 }
 
-type puintptr uintptr
+type puintptr uintptr // 指向p的指针
 
 func (pp puintptr) ptr() *p   { return (*p)(unsafe.Pointer(pp)) }
 func (pp *puintptr) set(p *p) { *pp = puintptr(unsafe.Pointer(p)) }
 
-type muintptr uintptr
+type muintptr uintptr // 指向m的指针
 
 func (mp muintptr) ptr() *m   { return (*m)(unsafe.Pointer(mp)) }
 func (mp *muintptr) set(m *m) { *mp = muintptr(unsafe.Pointer(m)) }
@@ -209,6 +209,9 @@ type stkbar struct {
 }
 
 type g struct {
+	// 栈参数
+	// stack描述了真实的栈内存[stack.lo, stack.hi)
+	// stackguard0是在go栈开始增长是用于比较的栈指针,通常这个值是stack.lo+StackGuard
 	// Stack parameters.
 	// stack describes the actual stack memory: [stack.lo, stack.hi).
 	// stackguard0 is the stack pointer compared in the Go stack growth prologue.
@@ -217,8 +220,8 @@ type g struct {
 	// It is stack.lo+StackGuard on g0 and gsignal stacks.
 	// It is ~0 on other goroutine stacks, to trigger a call to morestackc (and crash).
 	stack       stack   // offset known to runtime/cgo
-	stackguard0 uintptr // offset known to liblink
-	stackguard1 uintptr // offset known to liblink
+	stackguard0 uintptr // offset known to liblink 用作go的栈增长时的比较
+	stackguard1 uintptr // offset known to liblink 用作c的栈增长时的比较
 
 	_panic         *_panic // innermost panic - offset known to liblink
 	_defer         *_defer // innermost defer
@@ -421,7 +424,7 @@ type schedt struct {
 
 	goidgen uint64
 
-	midle        muintptr // idle m's waiting for work
+	midle        muintptr // idle m's waiting for work 等待工作的idle状态的m
 	nmidle       int32    // number of idle m's waiting for work
 	nmidlelocked int32    // number of locked m's waiting for work
 	mcount       int32    // number of m's that have been created
@@ -630,7 +633,7 @@ var (
 	allglen     uintptr // allg的数量
 	lastg       *g
 	allm        *m
-	allp        [_MaxGomaxprocs + 1]*p
+	allp        [_MaxGomaxprocs + 1]*p // 所有的P结构的指针
 	gomaxprocs  int32
 	panicking   uint32
 	goos        *int8

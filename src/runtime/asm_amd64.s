@@ -18,8 +18,8 @@ TEXT runtime·rt0_go(SB),NOSPLIT,$0 // 程序的进入点
 	
 	// create istack out of the given (operating system) stack.
 	// _cgo_init may update stackguard. cgo_init可能会更新stackguard
-	MOVQ	$runtime·g0(SB), DI         // 把当前的栈作为g0的栈
-	LEAQ	(-64*1024+104)(SP), BX      // 设置该栈的值，栈空间大小有64K
+	MOVQ	$runtime·g0(SB), DI         // 把当前的栈作为g0的栈，将g0赋给DI
+	LEAQ	(-64*1024+104)(SP), BX      // 设置该栈的值，栈空间大小有64K，相对于当前的SP
 	MOVQ	BX, g_stackguard0(DI)       // 将栈底的值赋给g_stackguard0、g_statckguard1和g_statck+stack_lo
 	MOVQ	BX, g_stackguard1(DI)
 	MOVQ	BX, (g_stack+stack_lo)(DI)
@@ -29,7 +29,7 @@ TEXT runtime·rt0_go(SB),NOSPLIT,$0 // 程序的进入点
 	MOVQ	$0, AX  // 获取CPU信息，先将AX清0
 	CPUID         // 调用CPUID获取CPU信息
 	CMPQ	AX, $0	// 看一下AX是否发生改变了
-	JE	nocpuinfo
+	JE	nocpuinfo // 如果没有cpu信息，跳转到nocpuinfo执行
 
 	// Figure out how to serialize RDTSC.
 	// On Intel processors LFENCE is enough. AMD requires MFENCE.
@@ -76,7 +76,7 @@ needtls:
 	JEQ ok
 
 	LEAQ	runtime·tls0(SB), DI
-	CALL	runtime·settls(SB) // 调用设置tls
+	CALL	runtime·settls(SB) // 调用设置tls，将变量tls0的地址设置进tls中
 
 	// store through it, to make sure it works 测试一下看tls是否能用
 	get_tls(BX) // 获取tls到BX中
@@ -87,9 +87,9 @@ needtls:
 	MOVL	AX, 0	// abort
 ok:
 	// set the per-goroutine and per-mach "registers"
-	get_tls(BX) // 设置每个线程独立的g和m
+	get_tls(BX) // 设置每个线程独立的g和m，将TLS的值获取到BX，也就是tls0的值,tls0是指向m0的指针
 	LEAQ	runtime·g0(SB), CX // 将g0和m0保存到g和m，每个线程的g和m都是独立的
-	MOVQ	CX, g(BX)
+	MOVQ	CX, g(BX) // 将g0设置到tls中
 	LEAQ	runtime·m0(SB), AX // 将m0的地址设置给AX
 
 	// save m->g0 = g0  设置m的g0项为g0

@@ -1457,8 +1457,8 @@ func gcMark(start_time int64) {
 		traceGCScanStart()
 	}
 
-	parforsetup(work.markfor, work.nproc, uint32(_RootCount+allglen), false, markroot)
-	if work.nproc > 1 {
+	parforsetup(work.markfor, work.nproc, uint32(_RootCount+allglen), false, markroot) // 标记使用nproc个P来执行
+	if work.nproc > 1 {                                                                // 如果多于1个P
 		noteclear(&work.alldone)
 		helpgc(int32(work.nproc))
 	}
@@ -1718,8 +1718,8 @@ func clearpools() {
 // Timing
 
 //go:nowritebarrier
-func gchelper() {
-	_g_ := getg()
+func gchelper() { // gchelper执行
+	_g_ := getg() // 获得当前的goroutine
 	_g_.m.traceback = 2
 	gchelperstart()
 

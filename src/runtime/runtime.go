@@ -15,7 +15,7 @@ var ticks struct {
 	val  uint64
 }
 
-var tls0 [8]uintptr // available storage for m0's TLS; not necessarily used; opaque to GC
+var tls0 [8]uintptr // available storage for m0's TLS; not necessarily used; opaque to GC 用来存储m0的tls
 
 // Note: Called by runtime/pprof in addition to runtime code.
 func tickspersecond() int64 {

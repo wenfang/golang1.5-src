@@ -52,6 +52,7 @@ func parforalloc(nthrmax uint32) *parfor {
 // threads executing n jobs.
 //
 // 当返回时，nthr个线程每个都调用parfordo(desc)来执行任务
+// 如果wait为true，在工作完成时才能返回，如果wait为false时
 // On return the nthr threads are each expected to call parfordo(desc)
 // to run the operation. During those calls, for each i in [0, n), one
 // thread will be used invoke body(desc, i).
@@ -65,7 +66,7 @@ func parforsetup(desc *parfor, nthr, n uint32, wait bool, body func(*parfor, uin
 		throw("parfor: invalid args")
 	}
 
-	desc.body = body
+	desc.body = body // 设置要执行的body函数
 	desc.done = 0
 	desc.nthr = nthr
 	desc.thrseq = 0
@@ -80,11 +81,11 @@ func parforsetup(desc *parfor, nthr, n uint32, wait bool, body func(*parfor, uin
 	for i := range desc.thr { // 遍历每个线程划分任务范围
 		begin := uint32(uint64(n) * uint64(i) / uint64(nthr))
 		end := uint32(uint64(n) * uint64(i+1) / uint64(nthr))
-		desc.thr[i].pos = uint64(begin) | uint64(end)<<32
+		desc.thr[i].pos = uint64(begin) | uint64(end)<<32 // 为线程划分任务范围
 	}
 }
 
-func parfordo(desc *parfor) {
+func parfordo(desc *parfor) { // 启动desc的执行
 	// Obtain 0-based thread index.
 	tid := xadd(&desc.thrseq, 1) - 1
 	if tid >= desc.nthr {
@@ -94,14 +95,14 @@ func parfordo(desc *parfor) {
 
 	// If single-threaded, just execute the for serially.
 	body := desc.body
-	if desc.nthr == 1 {
+	if desc.nthr == 1 { // 如果只有一个线程，只是单纯的顺序执行
 		for i := uint32(0); i < desc.cnt; i++ {
 			body(desc, i)
 		}
 		return
 	}
 
-	me := &desc.thr[tid]
+	me := &desc.thr[tid] // 获得对应tid的线程描述结构
 	mypos := &me.pos
 	for {
 		for {

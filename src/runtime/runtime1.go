@@ -412,7 +412,7 @@ func timediv(v int64, div int32, rem *int32) int32 {
 // Helpers for Go. Must be NOSPLIT, must only call NOSPLIT functions, and must not block.
 
 //go:nosplit
-func acquirem() *m {
+func acquirem() *m { // 获得当前goroutine对应的m，并给m加锁
 	_g_ := getg()
 	_g_.m.locks++
 	return _g_.m

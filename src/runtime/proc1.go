@@ -37,10 +37,10 @@ const (
 //	call runtime·mstart
 //
 // The new G calls runtime·main.
-func schedinit() {
+func schedinit() { // 初始化调度器
 	// raceinit must be the first call to race detector.
 	// In particular, it must be done before mallocinit below calls racemapshadow.
-	_g_ := getg()
+	_g_ := getg() // 获得当前的goroutine
 	if raceenabled {
 		_g_.racectx = raceinit()
 	}
@@ -52,8 +52,8 @@ func schedinit() {
 
 	tracebackinit()
 	moduledataverify()
-	stackinit() // 初始化栈
-	mallocinit()
+	stackinit()  // 初始化栈
+	mallocinit() // 初始化malloc
 	mcommoninit(_g_.m)
 
 	goargs()
@@ -61,9 +61,9 @@ func schedinit() {
 	parsedebugvars()
 	gcinit()
 
-	sched.lastpoll = uint64(nanotime())
-	procs := int(ncpu)
-	if n := atoi(gogetenv("GOMAXPROCS")); n > 0 {
+	sched.lastpoll = uint64(nanotime())           // 上次poll的时间
+	procs := int(ncpu)                            // 获得当前cpu的数量
+	if n := atoi(gogetenv("GOMAXPROCS")); n > 0 { // 设置默认P的个数为cpu的数量
 		if n > _MaxGomaxprocs {
 			n = _MaxGomaxprocs
 		}
@@ -95,7 +95,7 @@ func checkmcount() {
 }
 
 func mcommoninit(mp *m) {
-	_g_ := getg()
+	_g_ := getg() // 获得当前的goroutine
 
 	// g0 stack won't make sense for user (and is not necessary unwindable).
 	if _g_ != _g_.m.g0 {
@@ -186,25 +186,25 @@ func needaddgcproc() bool {
 	return n > 0
 }
 
-func helpgc(nproc int32) {
-	_g_ := getg()
-	lock(&sched.lock)
+func helpgc(nproc int32) { // 启动n个m帮助执行gc
+	_g_ := getg()     // 获得当前goroutine
+	lock(&sched.lock) // 为调度器加锁
 	pos := 0
-	for n := int32(1); n < nproc; n++ { // one M is currently running
+	for n := int32(1); n < nproc; n++ { // one M is currently running 当前已经有一个m了，所以从1开始
 		if allp[pos].mcache == _g_.m.mcache {
 			pos++
 		}
-		mp := mget()
+		mp := mget() // 获取一个m
 		if mp == nil {
 			throw("gcprocs inconsistency")
 		}
-		mp.helpgc = n
+		mp.helpgc = n // 设置该m的helpgc序号
 		mp.p.set(allp[pos])
 		mp.mcache = allp[pos].mcache
 		pos++
 		notewakeup(&mp.park)
 	}
-	unlock(&sched.lock)
+	unlock(&sched.lock) // 调度器解锁
 }
 
 // freezeStopWait is a large value that freezetheworld sets
@@ -867,14 +867,14 @@ type cgothreadstart struct {
 // Allocate a new m unassociated with any thread.
 // Can use p for allocation context if needed.
 // fn is recorded as the new m's m.mstartfn.
-func allocm(_p_ *p, fn func()) *m { // 分配一个新的m
+func allocm(_p_ *p, fn func()) *m { // 分配一个新的m结构，但不绑定到任何线程上，如果需要的话可以使用p作为分配上下文
 	_g_ := getg()     // 获得当前的goroutine
 	_g_.m.locks++     // disable GC because it can be called from sysmon disable掉gc
-	if _g_.m.p == 0 { // 如果当前的m没有p，临时借用_p_
+	if _g_.m.p == 0 { // 如果当前的m没有p，临时借用_p_，用作内存分配
 		acquirep(_p_) // temporarily borrow p for mallocs in this function
 	}
-	mp := new(m)
-	mp.mstartfn = fn
+	mp := new(m)     // 新创建一个m结构
+	mp.mstartfn = fn // 设置m初始执行的函数为fn
 	mcommoninit(mp)
 
 	// In case of cgo or Solaris, pthread_create will make us a stack.
@@ -1106,7 +1106,7 @@ func newm(fn func(), _p_ *p) { // 创建一个新的m，开始执行fn
 		asmcgocall(_cgo_thread_start, unsafe.Pointer(&ts))
 		return
 	}
-	newosproc(mp, unsafe.Pointer(mp.g0.stack.hi))
+	newosproc(mp, unsafe.Pointer(mp.g0.stack.hi)) // 新创建线程
 }
 
 // Stops execution of the current m until new work is available.
@@ -2685,13 +2685,14 @@ func setcpuprofilerate_m(hz int32) {
 	_g_.m.locks--
 }
 
+// 改变当前P的数量
 // Change number of processors.  The world is stopped, sched is locked.
 // gcworkbufs are not being modified by either the GC or
 // the write barrier code.
 // Returns list of Ps with local work, they need to be scheduled by the caller.
 func procresize(nprocs int32) *p {
 	old := gomaxprocs
-	if old < 0 || old > _MaxGomaxprocs || nprocs <= 0 || nprocs > _MaxGomaxprocs {
+	if old < 0 || old > _MaxGomaxprocs || nprocs <= 0 || nprocs > _MaxGomaxprocs { // 检查P的数量是否合法
 		throw("procresize: invalid arg")
 	}
 	if trace.enabled {
@@ -2706,7 +2707,7 @@ func procresize(nprocs int32) *p {
 	sched.procresizetime = now
 
 	// initialize new P's
-	for i := int32(0); i < nprocs; i++ {
+	for i := int32(0); i < nprocs; i++ { // 遍历所有的P结构
 		pp := allp[i]
 		if pp == nil {
 			pp = new(p)
@@ -3276,7 +3277,7 @@ func mput(mp *m) {
 // Sched must be locked.
 // May run during STW, so write barriers are not allowed.
 //go:nowritebarrier
-func mget() *m {
+func mget() *m { // 尝试从midle列表获得m结果
 	mp := sched.midle.ptr()
 	if mp != nil {
 		sched.midle = mp.schedlink
