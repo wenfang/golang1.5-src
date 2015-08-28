@@ -25,12 +25,12 @@ func runtime_pollSetDeadline(ctx uintptr, d int64, mode int)
 func runtime_pollUnblock(ctx uintptr)
 
 type pollDesc struct { // 对底层PollDesc结构的封装
-	runtimeCtx uintptr
+	runtimeCtx uintptr // 指向底层PollDesc的指针
 }
 
 var serverInit sync.Once // 控制只执行一次
 
-func (pd *pollDesc) Init(fd *netFD) error {
+func (pd *pollDesc) Init(fd *netFD) error { // 初始化pollDesc
 	serverInit.Do(runtime_pollServerInit)             // 执行一次runtime_pollServerInit
 	ctx, errno := runtime_pollOpen(uintptr(fd.sysfd)) // 打开对应的fd，返回底层的PollDesc结构
 	if errno != 0 {                                   // 如果返回的errno非零
@@ -49,7 +49,7 @@ func (pd *pollDesc) Close() { // 关闭pollDesc
 }
 
 // Evict evicts fd from the pending list, unblocking any I/O running on fd.
-func (pd *pollDesc) Evict() {
+func (pd *pollDesc) Evict() { // 从pending列表中移除fd
 	if pd.runtimeCtx == 0 {
 		return
 	}
@@ -57,8 +57,8 @@ func (pd *pollDesc) Evict() {
 }
 
 func (pd *pollDesc) Prepare(mode int) error { // 按照读写模式进行fd重置
-	res := runtime_pollReset(pd.runtimeCtx, mode)
-	return convertErr(res) // 返回错误
+	res := runtime_pollReset(pd.runtimeCtx, mode) // 设置对应的poll模式
+	return convertErr(res)                        // 返回错误
 }
 
 func (pd *pollDesc) PrepareRead() error { // 准备读
@@ -70,7 +70,7 @@ func (pd *pollDesc) PrepareWrite() error { // 准备写
 }
 
 func (pd *pollDesc) Wait(mode int) error {
-	res := runtime_pollWait(pd.runtimeCtx, mode) // 调用pollWait等待读写
+	res := runtime_pollWait(pd.runtimeCtx, mode) // 调用pollWait等待读写,mode为等待类型，读或写
 	return convertErr(res)                       // 返回错误类型
 }
 
@@ -82,7 +82,7 @@ func (pd *pollDesc) WaitWrite() error { // 等待写
 	return pd.Wait('w')
 }
 
-func (pd *pollDesc) WaitCanceled(mode int) {
+func (pd *pollDesc) WaitCanceled(mode int) { // 调用底层的waitcancel
 	runtime_pollWaitCanceled(pd.runtimeCtx, mode)
 }
 
@@ -103,7 +103,7 @@ func convertErr(res int) error { // 根据错误类型进行转换，或者无�
 	case 2:
 		return errTimeout // 超时错误
 	}
-	println("unreachable: ", res)
+	println("unreachable: ", res) // 错误号无效panic
 	panic("unreachable")
 }
 

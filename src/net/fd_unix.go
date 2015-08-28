@@ -20,7 +20,7 @@ type netFD struct { // 网络句柄描述符
 	// locking/lifetime of sysfd + serialize access to Read and Write methods
 	fdmu fdMutex
 
-	// immutable until Close
+	// immutable until Close 在关闭前不可变的域
 	sysfd       int
 	family      int
 	sotype      int
@@ -30,7 +30,7 @@ type netFD struct { // 网络句柄描述符
 	raddr       Addr // 远端地址
 
 	// wait server
-	pd pollDesc
+	pd pollDesc // 底层的pollDesc结构，是对runtime PollDesc的封装
 }
 
 func sysInit() {
@@ -386,7 +386,7 @@ func (fd *netFD) writeMsg(p []byte, oob []byte, sa syscall.Sockaddr) (n int, oob
 }
 
 func (fd *netFD) accept() (netfd *netFD, err error) {
-	if err := fd.readLock(); err != nil {
+	if err := fd.readLock(); err != nil { // 先为fd加读锁
 		return nil, err
 	}
 	defer fd.readUnlock()

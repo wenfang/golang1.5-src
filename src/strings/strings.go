@@ -81,7 +81,7 @@ func hashStrRev(sep string) (uint32, uint32) {
 
 // Count counts the number of non-overlapping instances of sep in s.
 // If sep is an empty string, Count returns 1 + the number of Unicode code points in s.
-func Count(s, sep string) int {
+func Count(s, sep string) int { // 计算s中sep的数量
 	n := 0
 	// special cases
 	switch {
