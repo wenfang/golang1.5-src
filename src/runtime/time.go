@@ -82,7 +82,7 @@ func goroutineReady(arg interface{}, seq uintptr) {
 	goready(arg.(*g), 0)
 }
 
-func addtimer(t *timer) {
+func addtimer(t *timer) { // 添加定时器
 	lock(&timers.lock)
 	addtimerLocked(t)
 	unlock(&timers.lock)
@@ -94,11 +94,11 @@ func addtimer(t *timer) {
 func addtimerLocked(t *timer) { // 在加锁之后添加定时器
 	// when must never be negative; otherwise timerproc will overflow
 	// during its delta calculation and never expire other runtime·timers.
-	if t.when < 0 {
+	if t.when < 0 { // when不能小于0
 		t.when = 1<<63 - 1
 	}
 	t.i = len(timers.t)
-	timers.t = append(timers.t, t)
+	timers.t = append(timers.t, t) // 将t添加到timers中
 	siftupTimer(t.i)
 	if t.i == 0 {
 		// siftup moved to top: new earliest deadline.
@@ -154,8 +154,8 @@ func deltimer(t *timer) bool {
 func timerproc() { // 用于处理定时器的goroutine
 	timers.gp = getg() // 获取当前的goroutine
 	for {
-		lock(&timers.lock)
-		timers.sleeping = false
+		lock(&timers.lock)      // timers加锁
+		timers.sleeping = false // 当前的timers已经处于运行状态了
 		now := nanotime()
 		delta := int64(-1)
 		for {

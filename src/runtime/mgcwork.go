@@ -11,12 +11,17 @@ const (
 	_WorkbufSize = 1 * 256 // in bytes - if small wbufs are passed to GC in a timely fashion.
 )
 
+// GC的work pool的抽象
 // Garbage collector work pool abstraction.
 //
+// 实现了生产者消费者模型，主要为指向灰对象的指针。灰对象被mark，并且
+// 在工作队列上。黑对象被mark，没有在工作队列上。
 // This implements a producer/consumer model for pointers to grey
 // objects.  A grey object is one that is marked and on a work
 // queue.  A black object is marked and not on a work queue.
 //
+// 写屏障,root发现,栈scan和对象scan产生了到灰对象的指针。scan消耗到
+// 灰对象的指针，将它们置黑。
 // Write barriers, root discovery, stack scanning, and object scanning
 // produce pointers to grey objects.  Scanning consumes pointers to
 // grey objects, thus blackening them, and then scans them,
@@ -25,7 +30,7 @@ const (
 // A wbufptr holds a workbuf*, but protects it from write barriers.
 // workbufs never live on the heap, so write barriers are unnecessary.
 // Write barriers on workbuf pointers may also be dangerous in the GC.
-type wbufptr uintptr
+type wbufptr uintptr // 指向workbuf的指针
 
 func wbufptrOf(w *workbuf) wbufptr {
 	return wbufptr(unsafe.Pointer(w))
@@ -75,7 +80,7 @@ type gcWork struct {
 // put enqueues a pointer for the garbage collector to trace.
 // obj must point to the beginning of a heap object.
 //go:nowritebarrier
-func (ww *gcWork) put(obj uintptr) {
+func (ww *gcWork) put(obj uintptr) { // 将obj指针进行排队
 	w := (*gcWork)(noescape(unsafe.Pointer(ww))) // TODO: remove when escape analysis is fixed
 
 	wbuf := w.wbuf.ptr()
@@ -202,16 +207,16 @@ func (w *gcWork) empty() bool {
 // avoid contending on the global work buffer lists.
 
 type workbufhdr struct {
-	node  lfnode // must be first
-	nobj  int
+	node  lfnode // must be first 必须是第一个节点
+	nobj  int    // workbuf中有多少个对象
 	inuse bool   // This workbuf is in use by some gorotuine and is not on the work.empty/partial/full queues.
 	log   [4]int // line numbers forming a history of ownership changes to workbuf
 }
 
 type workbuf struct {
-	workbufhdr
+	workbufhdr // 封装了一个workbufhdr结构
 	// account for the above fields
-	obj [(_WorkbufSize - unsafe.Sizeof(workbufhdr{})) / ptrSize]uintptr
+	obj [(_WorkbufSize - unsafe.Sizeof(workbufhdr{})) / ptrSize]uintptr // 对象列表
 }
 
 // workbuf factory routines. These funcs are used to manage the
@@ -258,7 +263,7 @@ func (b *workbuf) logput(entry int) {
 	b.log[0] = entry
 }
 
-func (b *workbuf) checknonempty() {
+func (b *workbuf) checknonempty() { // 要求workbuf不能为空
 	if b.nobj == 0 {
 		println("runtime: nonempty check fails",
 			"b.log[0]=", b.log[0], "b.log[1]=", b.log[1],
@@ -267,7 +272,7 @@ func (b *workbuf) checknonempty() {
 	}
 }
 
-func (b *workbuf) checkempty() {
+func (b *workbuf) checkempty() { // 要求workbuf必须为空
 	if b.nobj != 0 {
 		println("runtime: empty check fails",
 			"b.log[0]=", b.log[0], "b.log[1]=", b.log[1],
@@ -276,13 +281,14 @@ func (b *workbuf) checkempty() {
 	}
 }
 
+// getempty从work.empty队列中弹出一个空的workbuf
 // getempty pops an empty work buffer off the work.empty list,
 // allocating new buffers if none are available.
 // entry is used to record a brief history of ownership.
 //go:nowritebarrier
 func getempty(entry int) *workbuf {
 	var b *workbuf
-	if work.empty != 0 {
+	if work.empty != 0 { // 如果work.empty
 		b = (*workbuf)(lfstackpop(&work.empty))
 		if b != nil {
 			b.checkempty()

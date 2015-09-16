@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-var handlers struct {
+var handlers struct { // 全局的handlers结构，对每个os.Signal的chan对应一个handler
 	sync.Mutex
 	m   map[chan<- os.Signal]*handler
 	ref [numSig]int64
@@ -35,7 +35,7 @@ func (h *handler) clear(sig int) {
 // Stop relaying the signals, sigs, to any channels previously registered to
 // receive them and either reset the signal handlers to their original values
 // (action=disableSignal) or ignore the signals (action=ignoreSignal).
-func cancel(sigs []os.Signal, action func(int)) {
+func cancel(sigs []os.Signal, action func(int)) { // 忽略给定的信号
 	handlers.Lock()
 	defer handlers.Unlock()
 
@@ -70,7 +70,7 @@ func cancel(sigs []os.Signal, action func(int)) {
 // the program, nothing will happen. Ignore undoes the effect of any prior
 // calls to Notify for the provided signals.
 // If no signals are provided, all incoming signals will be ignored.
-func Ignore(sig ...os.Signal) {
+func Ignore(sig ...os.Signal) { // 忽略给定的信号
 	cancel(sig, ignoreSignal)
 }
 

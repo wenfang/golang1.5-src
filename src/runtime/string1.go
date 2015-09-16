@@ -8,7 +8,7 @@ import "unsafe"
 
 //go:nosplit
 func findnull(s *byte) int {
-	if s == nil {
+	if s == nil { // 如果为空，返回0
 		return 0
 	}
 	p := (*[_MaxMem/2 - 1]byte)(unsafe.Pointer(s))

@@ -43,7 +43,7 @@ var (
 	ErrHeader = errors.New("zlib: invalid header")
 )
 
-type reader struct { // ·µ»ØµÄio.ReadCloserµÄÄÚ²¿½á¹¹
+type reader struct { // è¿”å›žçš„io.ReadCloserçš„å†…éƒ¨ç»“æž„
 	r            flate.Reader
 	decompressor io.ReadCloser
 	digest       hash.Hash32
@@ -66,7 +66,7 @@ type Resetter interface {
 // It is the caller's responsibility to call Close on the ReadCloser when done.
 //
 // The ReadCloser returned by NewReader also implements Resetter.
-func NewReader(r io.Reader) (io.ReadCloser, error) { // ´´½¨Ò»¸öÐÂReader£¬dictÎª¿Õ
+func NewReader(r io.Reader) (io.ReadCloser, error) { // åˆ›å»ºä¸€ä¸ªæ–°Readerï¼Œdictä¸ºç©º
 	return NewReaderDict(r, nil)
 }
 

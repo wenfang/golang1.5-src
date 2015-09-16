@@ -24,10 +24,10 @@ import (
 //    base64-encoded Bytes
 //    -----END Type-----
 // where Headers is a possibly empty sequence of Key: Value lines.
-type Block struct { // 代表PEM编码结构
-	Type    string            // The type, taken from the preamble (i.e. "RSA PRIVATE KEY"). 类型
-	Headers map[string]string // Optional headers. 可选的头部
-	Bytes   []byte            // The decoded bytes of the contents. Typically a DER encoded ASN.1 structure. 解码后的内容
+type Block struct { // 浠ｈ〃PEM缂栫爜缁撴瀯
+	Type    string            // The type, taken from the preamble (i.e. "RSA PRIVATE KEY"). 绫诲瀷
+	Headers map[string]string // Optional headers. 鍙�夌殑澶撮儴
+	Bytes   []byte            // The decoded bytes of the contents. Typically a DER encoded ASN.1 structure. 瑙ｇ爜鍚庣殑鍐呭
 }
 
 // getLine results the first \r\n or \n delineated line from the given byte
@@ -67,8 +67,8 @@ func removeWhitespace(data []byte) []byte {
 	return result[0:n]
 }
 
-var pemStart = []byte("\n-----BEGIN ") // pem文件起始
-var pemEnd = []byte("\n-----END ")     // pem文件结束
+var pemStart = []byte("\n-----BEGIN ") // pem鏂囦欢璧峰
+var pemEnd = []byte("\n-----END ")     // pem鏂囦欢缁撴潫
 var pemEndOfLine = []byte("-----")
 
 // Decode will find the next PEM formatted block (certificate, private key
@@ -229,7 +229,7 @@ func writeHeader(out io.Writer, k, v string) error {
 	return err
 }
 
-func Encode(out io.Writer, b *Block) error { // 编码
+func Encode(out io.Writer, b *Block) error { // 缂栫爜
 	if _, err := out.Write(pemStart[1:]); err != nil {
 		return err
 	}

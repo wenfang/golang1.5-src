@@ -163,7 +163,7 @@ func HTMLEscape(dst *bytes.Buffer, src []byte) {
 	// The characters can only appear in string literals,
 	// so just scan the string one byte at a time.
 	start := 0
-	for i, c := range src { // ±éÀúsrc
+	for i, c := range src { // éå†src
 		if c == '<' || c == '>' || c == '&' {
 			if start < i {
 				dst.Write(src[start:i])

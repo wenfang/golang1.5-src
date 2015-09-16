@@ -36,7 +36,7 @@ var (
 	ecdsaCurve = flag.String("ecdsa-curve", "", "ECDSA curve to use to generate a key. Valid values are P224, P256, P384, P521")
 )
 
-func publicKey(priv interface{}) interface{} {
+func publicKey(priv interface{}) interface{} { // 返回公钥部分
 	switch k := priv.(type) {
 	case *rsa.PrivateKey:
 		return &k.PublicKey

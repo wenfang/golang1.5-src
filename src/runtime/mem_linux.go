@@ -35,6 +35,7 @@ func addrspace_free(v unsafe.Pointer, n uintptr) bool {
 	return true
 }
 
+// mmap从v开始的一段内存
 func mmap_fixed(v unsafe.Pointer, n uintptr, prot, flags, fd int32, offset uint32) unsafe.Pointer {
 	p := mmap(v, n, prot, flags, fd, offset)
 	// On some systems, mmap ignores v without

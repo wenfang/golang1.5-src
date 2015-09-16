@@ -825,7 +825,7 @@ func gostartcallfn(gobuf *gobuf, fv *funcval) {
 
 // Maybe shrink the stack being used by gp.
 // Called at garbage collection time.
-func shrinkstack(gp *g) {
+func shrinkstack(gp *g) { // 收缩goroutine gp所使用的栈
 	if readgstatus(gp) == _Gdead {
 		if gp.stack.lo != 0 {
 			// Free whole stack - it will get reallocated
@@ -911,7 +911,7 @@ func freeStackSpans() {
 
 //go:nosplit
 func morestackc() {
-	systemstack(func() {
+	systemstack(func() { // 抛出异常，试图在Go的栈上执行c的代码
 		throw("attempt to execute C code on Go stack")
 	})
 }

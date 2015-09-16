@@ -36,8 +36,8 @@ func NewTicker(d Duration) *Ticker { // 新创建一个Ticker
 			arg:    c,
 		},
 	}
-	startTimer(&t.r)
-	return t // 返回一个Ticker结构
+	startTimer(&t.r) // 启动定时器
+	return t         // 返回一个Ticker结构
 }
 
 // Stop turns off a ticker.  After Stop, no more ticks will be sent.

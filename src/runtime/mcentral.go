@@ -14,7 +14,7 @@ package runtime
 
 // Central list of free objects of a given size.
 type mcentral struct { // 给定大小的空闲对象
-	lock      mutex
+	lock      mutex // mcentral的锁
 	sizeclass int32 // 该mcentral用于分配sizeclass大小的空间
 	nonempty  mspan // list of spans with a free object 还具有空闲对象的mspan
 	empty     mspan // list of spans with no free objects (or cached in an mcache) 没有空闲对象的mspan
@@ -22,7 +22,7 @@ type mcentral struct { // 给定大小的空闲对象
 
 // Initialize a single central free list.
 func mCentral_Init(c *mcentral, sizeclass int32) { // 初始化mcentral结构
-	c.sizeclass = sizeclass
+	c.sizeclass = sizeclass     // 用于分配的sizeclass
 	mSpanList_Init(&c.nonempty) // 初始化mcentral内部的nonempty mspan
 	mSpanList_Init(&c.empty)    // 初始化mcentral内部的empty mspan
 }

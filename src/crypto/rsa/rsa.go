@@ -19,7 +19,7 @@ var bigZero = big.NewInt(0)
 var bigOne = big.NewInt(1)
 
 // A PublicKey represents the public part of an RSA key.
-type PublicKey struct {
+type PublicKey struct { // RSA key的公钥部分
 	N *big.Int // modulus
 	E int      // public exponent
 }
@@ -59,8 +59,8 @@ func checkPub(pub *PublicKey) error {
 }
 
 // A PrivateKey represents an RSA key
-type PrivateKey struct {
-	PublicKey            // public part.
+type PrivateKey struct { // 代表RSA的key
+	PublicKey            // public part. 公钥部分
 	D         *big.Int   // private exponent
 	Primes    []*big.Int // prime factors of N, has >= 2 elements.
 
@@ -70,7 +70,7 @@ type PrivateKey struct {
 }
 
 // Public returns the public key corresponding to priv.
-func (priv *PrivateKey) Public() crypto.PublicKey {
+func (priv *PrivateKey) Public() crypto.PublicKey { // 返回key的公钥部分
 	return &priv.PublicKey
 }
 
@@ -176,7 +176,7 @@ func (priv *PrivateKey) Validate() error {
 
 // GenerateKey generates an RSA keypair of the given bit size using the
 // random source random (for example, crypto/rand.Reader).
-func GenerateKey(random io.Reader, bits int) (priv *PrivateKey, err error) {
+func GenerateKey(random io.Reader, bits int) (priv *PrivateKey, err error) { // 生成RSA公私钥对
 	return GenerateMultiPrimeKey(random, 2, bits)
 }
 

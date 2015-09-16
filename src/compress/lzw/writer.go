@@ -238,7 +238,7 @@ func (e *encoder) Close() error {
 // finished writing.
 // The number of bits to use for literal codes, litWidth, must be in the
 // range [2,8] and is typically 8. Input bytes must be less than 1<<litWidth.
-func NewWriter(w io.Writer, order Order, litWidth int) io.WriteCloser { // 新创建针对lzw的Writer
+func NewWriter(w io.Writer, order Order, litWidth int) io.WriteCloser { // 鏂板垱寤洪拡瀵筶zw鐨刉riter
 	var write func(*encoder, uint32) error
 	switch order {
 	case LSB:

@@ -14,7 +14,7 @@ import (
 // Args hold the command-line arguments, starting with the program name.
 var Args []string
 
-func init() {
+func init() { // 执行os的init
 	if runtime.GOOS == "windows" {
 		// Initialized in exec_windows.go.
 		return

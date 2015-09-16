@@ -784,11 +784,11 @@ func (s *bgMarkSignal) clear() {
 	s.done = 0
 }
 
-var work struct {
-	full  uint64 // lock-free list of full blocks workbuf
-	empty uint64 // lock-free list of empty blocks workbuf
+var work struct { // work结构
+	full  uint64 // lock-free list of full blocks workbuf 充满块的workbuf无锁队列
+	empty uint64 // lock-free list of empty blocks workbuf 空闲块的workbuf无锁队列
 	// TODO(rlh): partial no longer used, remove. (issue #11922)
-	partial uint64                // lock-free list of partially filled blocks workbuf
+	partial uint64                // lock-free list of partially filled blocks workbuf 部分填充的无锁队列
 	pad0    [_CacheLineSize]uint8 // prevents false-sharing between full/empty and nproc/nwait
 	nproc   uint32
 	tstart  int64

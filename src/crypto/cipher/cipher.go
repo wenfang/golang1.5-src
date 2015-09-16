@@ -12,21 +12,21 @@ package cipher
 // using a given key.  It provides the capability to encrypt
 // or decrypt individual blocks.  The mode implementations
 // extend that capability to streams of blocks.
-type Block interface { // ¿é½Ó¿Ú£¬¶¨Òå¼Ó½âÃÜ½Ó¿Ú
+type Block interface { // å—æ¥å£ï¼Œå®šä¹‰åŠ è§£å¯†æ¥å£
 	// BlockSize returns the cipher's block size.
-	BlockSize() int // ·µ»Øcipher¿é´óĞ¡
+	BlockSize() int // è¿”å›cipherå—å¤§å°
 
 	// Encrypt encrypts the first block in src into dst.
 	// Dst and src may point at the same memory.
-	Encrypt(dst, src []byte) // Ö´ĞĞ¼ÓÃÜ
+	Encrypt(dst, src []byte) // æ‰§è¡ŒåŠ å¯†
 
 	// Decrypt decrypts the first block in src into dst.
 	// Dst and src may point at the same memory.
-	Decrypt(dst, src []byte) // Ö´ĞĞ½âÃÜ
+	Decrypt(dst, src []byte) // æ‰§è¡Œè§£å¯†
 }
 
 // A Stream represents a stream cipher.
-type Stream interface { // ´ú±íÁ÷Ê½¼ÓÃÜ½âÃÜ½Ó¿Ú
+type Stream interface { // ä»£è¡¨æµå¼åŠ å¯†è§£å¯†æ¥å£
 	// XORKeyStream XORs each byte in the given slice with a byte from the
 	// cipher's key stream. Dst and src may point to the same memory.
 	// If len(dst) < len(src), XORKeyStream should panic. It is acceptable
@@ -37,9 +37,9 @@ type Stream interface { // ´ú±íÁ÷Ê½¼ÓÃÜ½âÃÜ½Ó¿Ú
 
 // A BlockMode represents a block cipher running in a block-based mode (CBC,
 // ECB etc).
-type BlockMode interface { // ¿éÄ£Ê½½Ó¿Ú
+type BlockMode interface { // å—æ¨¡å¼æ¥å£
 	// BlockSize returns the mode's block size.
-	BlockSize() int // ·µ»ØÄ£Ê½µÄ¿é´óĞ¡
+	BlockSize() int // è¿”å›æ¨¡å¼çš„å—å¤§å°
 
 	// CryptBlocks encrypts or decrypts a number of blocks. The length of
 	// src must be a multiple of the block size. Dst and src may point to

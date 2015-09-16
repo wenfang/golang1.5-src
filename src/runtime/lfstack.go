@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// 无锁的栈
 // Lock-free stack.
 // The following code runs only on g0 stack.
 
@@ -9,14 +10,14 @@ package runtime
 
 import "unsafe"
 
-func lfstackpush(head *uint64, node *lfnode) {
-	node.pushcnt++
+func lfstackpush(head *uint64, node *lfnode) { // 将节点压入栈中
+	node.pushcnt++ // 增加push的序列号
 	new := lfstackPack(node, node.pushcnt)
 	if node1, _ := lfstackUnpack(new); node1 != node {
 		println("runtime: lfstackpush invalid packing: node=", node, " cnt=", hex(node.pushcnt), " packed=", hex(new), " -> node=", node1, "\n")
 		throw("lfstackpush")
 	}
-	for {
+	for { // 通过无锁队列，加入到栈中
 		old := atomicload64(head)
 		node.next = old
 		if cas64(head, old, new) {
@@ -25,7 +26,7 @@ func lfstackpush(head *uint64, node *lfnode) {
 	}
 }
 
-func lfstackpop(head *uint64) unsafe.Pointer {
+func lfstackpop(head *uint64) unsafe.Pointer { // 从栈中返回节点指针
 	for {
 		old := atomicload64(head)
 		if old == 0 {
