@@ -12,11 +12,11 @@ import "unsafe"
 // If you edit this structure, also edit type MemStats below.
 type mstats struct {
 	// General statistics.
-	alloc       uint64 // bytes allocated and not yet freed
+	alloc       uint64 // bytes allocated and not yet freed 分配尚未释放的
 	total_alloc uint64 // bytes allocated (even if freed)
-	sys         uint64 // bytes obtained from system (should be sum of xxx_sys below, no locking, approximate)
-	nlookup     uint64 // number of pointer lookups
-	nmalloc     uint64 // number of mallocs
+	sys         uint64 // bytes obtained from system (should be sum of xxx_sys below, no locking, approximate) // 从系统中获取的内存数量
+	nlookup     uint64 // number of pointer lookups 指针查找数量
+	nmalloc     uint64 // number of mallocs malloc数量
 	nfree       uint64 // number of frees
 
 	// Statistics about malloc heap.

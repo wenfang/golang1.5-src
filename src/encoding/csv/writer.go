@@ -28,7 +28,7 @@ type Writer struct {
 }
 
 // NewWriter returns a new Writer that writes to w.
-func NewWriter(w io.Writer) *Writer { //  创建一个新的csv的Writer
+func NewWriter(w io.Writer) *Writer { //  鍒涘缓涓�涓柊鐨刢sv鐨刉riter
 	return &Writer{
 		Comma: ',',
 		w:     bufio.NewWriter(w),
@@ -38,7 +38,7 @@ func NewWriter(w io.Writer) *Writer { //  创建一个新的csv的Writer
 // Writer writes a single CSV record to w along with any necessary quoting.
 // A record is a slice of strings with each string being one field.
 func (w *Writer) Write(record []string) (err error) {
-	for n, field := range record { // 遍历每条记录
+	for n, field := range record { // 閬嶅巻姣忔潯璁板綍
 		if n > 0 {
 			if _, err = w.w.WriteRune(w.Comma); err != nil {
 				return

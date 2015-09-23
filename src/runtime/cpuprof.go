@@ -6,6 +6,8 @@
 // Based on algorithms and data structures used in
 // http://code.google.com/p/google-perftools/.
 //
+// 代码与google-perftools的主要区别在于，允许拷贝profile数据到任意的io.Writer，
+// 而google-perftools代码总是写到操作系统文件上
 // The main difference between this code and the google-perftools
 // code is that this code is written to allow copying the profile data
 // to an arbitrary io.Writer, while the google-perftools code always
@@ -59,13 +61,13 @@ const (
 	maxCPUProfStack = 64
 )
 
-type cpuprofEntry struct {
+type cpuprofEntry struct { // cpuprof的进入点
 	count uintptr
 	depth int
 	stack [maxCPUProfStack]uintptr
 }
 
-type cpuProfile struct {
+type cpuProfile struct { // cpuProfile结构
 	on     bool    // profiling is on
 	wait   note    // goroutine waits here
 	count  uintptr // tick count
@@ -112,6 +114,7 @@ func setcpuprofilerate(hz int32) {
 // discarded due to slow data writers.
 func lostProfileData() {}
 
+// 设置cpu每秒采样频率，如果hz<=0，关闭采样，如果profile处于打开状态，采样频率不能更改
 // SetCPUProfileRate sets the CPU profiling rate to hz samples per second.
 // If hz <= 0, SetCPUProfileRate turns off profiling.
 // If the profiler is on, the rate cannot be changed without first turning it off.
@@ -124,13 +127,13 @@ func SetCPUProfileRate(hz int) {
 	if hz < 0 {
 		hz = 0
 	}
-	if hz > 1000000 {
+	if hz > 1000000 { // 设定最大值1百万
 		hz = 1000000
 	}
 
 	lock(&cpuprofLock)
 	if hz > 0 {
-		if cpuprof == nil {
+		if cpuprof == nil { // 如果cpuprof为空，分配一个cpuProfile结构
 			cpuprof = (*cpuProfile)(sysAlloc(unsafe.Sizeof(cpuProfile{}), &memstats.other_sys))
 			if cpuprof == nil {
 				print("runtime: cpu profiling cannot allocate memory\n")
@@ -138,20 +141,20 @@ func SetCPUProfileRate(hz int) {
 				return
 			}
 		}
-		if cpuprof.on || cpuprof.handoff != 0 {
+		if cpuprof.on || cpuprof.handoff != 0 { // 在上一个采样结束前不能再设置了
 			print("runtime: cannot set cpu profile rate until previous profile has finished.\n")
 			unlock(&cpuprofLock)
 			return
 		}
 
-		cpuprof.on = true
+		cpuprof.on = true // 打开cpuprof
 		// pprof binary header format.
 		// http://code.google.com/p/google-perftools/source/browse/trunk/src/profiledata.cc#117
 		p := &cpuprof.log[0]
-		p[0] = 0                 // count for header
-		p[1] = 3                 // depth for header
-		p[2] = 0                 // version number
-		p[3] = uintptr(1e6 / hz) // period (microseconds)
+		p[0] = 0                 // count for header 头部的计数器
+		p[1] = 3                 // depth for header 头部的深度
+		p[2] = 0                 // version number 版本号
+		p[3] = uintptr(1e6 / hz) // period (microseconds) 周期
 		p[4] = 0
 		cpuprof.nlog = 5
 		cpuprof.toggle = 0
@@ -161,7 +164,7 @@ func SetCPUProfileRate(hz int) {
 		cpuprof.eodSent = false
 		noteclear(&cpuprof.wait)
 
-		setcpuprofilerate(int32(hz))
+		setcpuprofilerate(int32(hz)) // 设置cpuprofile采样率
 	} else if cpuprof != nil && cpuprof.on {
 		setcpuprofilerate(0)
 		cpuprof.on = false
@@ -298,7 +301,7 @@ func (p *cpuProfile) flushlog() bool {
 
 // getprofile blocks until the next block of profiling data is available
 // and returns it as a []byte.  It is called from the writing goroutine.
-func (p *cpuProfile) getprofile() []byte {
+func (p *cpuProfile) getprofile() []byte { // 获取cpu profile数据
 	if p == nil {
 		return nil
 	}
@@ -414,7 +417,7 @@ func uintptrBytes(p []uintptr) (ret []byte) {
 // Most clients should use the runtime/pprof package or
 // the testing package's -test.cpuprofile flag instead of calling
 // CPUProfile directly.
-func CPUProfile() []byte {
+func CPUProfile() []byte { // 运行CPUProfile获取profile数据
 	return cpuprof.getprofile()
 }
 

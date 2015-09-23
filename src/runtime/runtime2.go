@@ -522,7 +522,7 @@ type _func struct {
 // layout of Itab known to compilers
 // allocated in non-garbage-collected memory
 type itab struct {
-	inter  *interfacetype
+	inter  *interfacetype // 接口类型
 	_type  *_type
 	link   *itab
 	bad    int32

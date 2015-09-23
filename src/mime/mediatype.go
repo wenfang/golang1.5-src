@@ -345,7 +345,7 @@ func ishex(c byte) bool { // 查看是否16进制
 	return false
 }
 
-func unhex(c byte) byte {
+func unhex(c byte) byte { // 反解析16进制
 	switch {
 	case '0' <= c && c <= '9':
 		return c - '0'

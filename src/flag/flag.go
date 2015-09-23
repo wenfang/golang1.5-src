@@ -201,31 +201,31 @@ func newFloat64Value(val float64, p *float64) *float64Value {
 	return (*float64Value)(p)
 }
 
-func (f *float64Value) Set(s string) error { // ÉèÖÃfloatµÄÖµ
+func (f *float64Value) Set(s string) error { // è®¾ç½®floatçš„å€¼
 	v, err := strconv.ParseFloat(s, 64)
 	*f = float64Value(v)
 	return err
 }
 
-func (f *float64Value) Get() interface{} { return float64(*f) } // »ñµÃfloatµÄÖµ
+func (f *float64Value) Get() interface{} { return float64(*f) } // è·å¾—floatçš„å€¼
 
 func (f *float64Value) String() string { return fmt.Sprintf("%v", *f) }
 
 // -- time.Duration Value
-type durationValue time.Duration // durationValueÊµÏÖValue½Ó¿Ú
+type durationValue time.Duration // durationValueå®ç°Valueæ¥å£
 
 func newDurationValue(val time.Duration, p *time.Duration) *durationValue {
 	*p = val
 	return (*durationValue)(p)
 }
 
-func (d *durationValue) Set(s string) error { // ÉèÖÃdurationµÄÖµ
+func (d *durationValue) Set(s string) error { // è®¾ç½®durationçš„å€¼
 	v, err := time.ParseDuration(s)
 	*d = durationValue(v)
 	return err
 }
 
-func (d *durationValue) Get() interface{} { return time.Duration(*d) } // »ñµÃdurationµÄÖµ
+func (d *durationValue) Get() interface{} { return time.Duration(*d) } // è·å¾—durationçš„å€¼
 
 func (d *durationValue) String() string { return (*time.Duration)(d).String() }
 
@@ -237,7 +237,7 @@ func (d *durationValue) String() string { return (*time.Duration)(d).String() }
 // rather than using the next command-line argument.
 //
 // Set is called once, in command line order, for each flag present.
-type Value interface { // Öµ½Ó¿Ú
+type Value interface { // å€¼æ¥å£
 	String() string
 	Set(string) error
 }
@@ -263,23 +263,23 @@ const (
 
 // A FlagSet represents a set of defined flags.  The zero value of a FlagSet
 // has no name and has ContinueOnError error handling.
-type FlagSet struct { // FlagSet½á¹¹
+type FlagSet struct { // FlagSetç»“æ„
 	// Usage is the function called when an error occurs while parsing flags.
 	// The field is a function (not a method) that may be changed to point to
 	// a custom error handler.
-	Usage func() // Usageº¯Êı
+	Usage func() // Usageå‡½æ•°
 
-	name          string // FlagSetµÄÃû³Æ
-	parsed        bool   // ÊÇ·ñÒÑ±»½âÎö
+	name          string // FlagSetçš„åç§°
+	parsed        bool   // æ˜¯å¦å·²è¢«è§£æ
 	actual        map[string]*Flag
 	formal        map[string]*Flag
-	args          []string // arguments after flags
-	errorHandling ErrorHandling // ´íÎó´¦Àí
-	output        io.Writer // nil means stderr; use out() accessor
+	args          []string      // arguments after flags
+	errorHandling ErrorHandling // é”™è¯¯å¤„ç†
+	output        io.Writer     // nil means stderr; use out() accessor
 }
 
 // A Flag represents the state of a flag.
-type Flag struct { // ´ú±íÒ»¸öFlagµÄ×´Ì¬
+type Flag struct { // ä»£è¡¨ä¸€ä¸ªFlagçš„çŠ¶æ€
 	Name     string // name as it appears on command line
 	Usage    string // help message
 	Value    Value  // value as set
@@ -591,7 +591,7 @@ func (f *FlagSet) Int(name string, value int, usage string) *int {
 
 // Int defines an int flag with specified name, default value, and usage string.
 // The return value is the address of an int variable that stores the value of the flag.
-func Int(name string, value int, usage string) *int { // ÉèÖÃInt value
+func Int(name string, value int, usage string) *int { // è®¾ç½®Int value
 	return CommandLine.Int(name, value, usage)
 }
 
@@ -617,7 +617,7 @@ func (f *FlagSet) Int64(name string, value int64, usage string) *int64 {
 
 // Int64 defines an int64 flag with specified name, default value, and usage string.
 // The return value is the address of an int64 variable that stores the value of the flag.
-func Int64(name string, value int64, usage string) *int64 { // ÉèÖÃInt64Öµ
+func Int64(name string, value int64, usage string) *int64 { // è®¾ç½®Int64å€¼
 	return CommandLine.Int64(name, value, usage)
 }
 
@@ -643,7 +643,7 @@ func (f *FlagSet) Uint(name string, value uint, usage string) *uint {
 
 // Uint defines a uint flag with specified name, default value, and usage string.
 // The return value is the address of a uint  variable that stores the value of the flag.
-func Uint(name string, value uint, usage string) *uint { // ÉèÖÃUintµÄÖµ
+func Uint(name string, value uint, usage string) *uint { // è®¾ç½®Uintçš„å€¼
 	return CommandLine.Uint(name, value, usage)
 }
 
@@ -669,7 +669,7 @@ func (f *FlagSet) Uint64(name string, value uint64, usage string) *uint64 {
 
 // Uint64 defines a uint64 flag with specified name, default value, and usage string.
 // The return value is the address of a uint64 variable that stores the value of the flag.
-func Uint64(name string, value uint64, usage string) *uint64 { // ÉèÖÃuint64µÄÖµ
+func Uint64(name string, value uint64, usage string) *uint64 { // è®¾ç½®uint64çš„å€¼
 	return CommandLine.Uint64(name, value, usage)
 }
 
@@ -695,7 +695,7 @@ func (f *FlagSet) String(name string, value string, usage string) *string {
 
 // String defines a string flag with specified name, default value, and usage string.
 // The return value is the address of a string variable that stores the value of the flag.
-func String(name string, value string, usage string) *string { // ÉèÖÃstringµÄÖµ
+func String(name string, value string, usage string) *string { // è®¾ç½®stringçš„å€¼
 	return CommandLine.String(name, value, usage)
 }
 
@@ -721,7 +721,7 @@ func (f *FlagSet) Float64(name string, value float64, usage string) *float64 {
 
 // Float64 defines a float64 flag with specified name, default value, and usage string.
 // The return value is the address of a float64 variable that stores the value of the flag.
-func Float64(name string, value float64, usage string) *float64 { // ÉèÖÃfloat64Öµ
+func Float64(name string, value float64, usage string) *float64 { // è®¾ç½®float64å€¼
 	return CommandLine.Float64(name, value, usage)
 }
 
@@ -751,7 +751,7 @@ func (f *FlagSet) Duration(name string, value time.Duration, usage string) *time
 // Duration defines a time.Duration flag with specified name, default value, and usage string.
 // The return value is the address of a time.Duration variable that stores the value of the flag.
 // The flag accepts a value acceptable to time.ParseDuration.
-func Duration(name string, value time.Duration, usage string) *time.Duration { // ÉèÖÃdurationÖµ
+func Duration(name string, value time.Duration, usage string) *time.Duration { // è®¾ç½®durationå€¼
 	return CommandLine.Duration(name, value, usage)
 }
 
@@ -761,11 +761,11 @@ func Duration(name string, value time.Duration, usage string) *time.Duration { /
 // caller could create a flag that turns a comma-separated string into a slice
 // of strings by giving the slice the methods of Value; in particular, Set would
 // decompose the comma-separated string into the slice.
-func (f *FlagSet) Var(value Value, name string, usage string) { // ÔÚFlagSetÖĞ´´½¨±äÁ¿
+func (f *FlagSet) Var(value Value, name string, usage string) { // åœ¨FlagSetä¸­åˆ›å»ºå˜é‡
 	// Remember the default value as a string; it won't change.
-	flag := &Flag{name, usage, value, value.String()} // ´´½¨Ò»¸öĞÂµÄFlag½á¹¹
-	_, alreadythere := f.formal[name]                 // ¼ì²éÊÇ·ñÒÑ¾­¶¨ÒåÁË¸Ãname
-	if alreadythere {                                 // ÖØ¸´¶¨Òå
+	flag := &Flag{name, usage, value, value.String()} // åˆ›å»ºä¸€ä¸ªæ–°çš„Flagç»“æ„
+	_, alreadythere := f.formal[name]                 // æ£€æŸ¥æ˜¯å¦å·²ç»å®šä¹‰äº†è¯¥name
+	if alreadythere {                                 // é‡å¤å®šä¹‰
 		var msg string
 		if f.name == "" {
 			msg = fmt.Sprintf("flag redefined: %s", name)
@@ -775,7 +775,7 @@ func (f *FlagSet) Var(value Value, name string, usage string) { // ÔÚFlagSetÖĞ´´
 		fmt.Fprintln(f.out(), msg)
 		panic(msg) // Happens only if flags are declared with identical names
 	}
-	if f.formal == nil { // ³õ´ÎÌí¼Óval£¬´´½¨map
+	if f.formal == nil { // åˆæ¬¡æ·»åŠ valï¼Œåˆ›å»ºmap
 		f.formal = make(map[string]*Flag)
 	}
 	f.formal[name] = flag
@@ -893,7 +893,7 @@ func (f *FlagSet) parseOne() (bool, error) {
 // include the command name.  Must be called after all flags in the FlagSet
 // are defined and before flags are accessed by the program.
 // The return value will be ErrHelp if -help or -h were set but not defined.
-func (f *FlagSet) Parse(arguments []string) error { // ½âÎö²ÎÊı
+func (f *FlagSet) Parse(arguments []string) error { // è§£æå‚æ•°
 	f.parsed = true
 	f.args = arguments
 	for {
@@ -923,24 +923,24 @@ func (f *FlagSet) Parsed() bool {
 
 // Parse parses the command-line flags from os.Args[1:].  Must be called
 // after all flags are defined and before flags are accessed by the program.
-func Parse() { // ½âÎöÃüÁîĞĞ²ÎÊı
+func Parse() { // è§£æå‘½ä»¤è¡Œå‚æ•°
 	// Ignore errors; CommandLine is set for ExitOnError.
 	CommandLine.Parse(os.Args[1:])
 }
 
 // Parsed reports whether the command-line flags have been parsed.
-func Parsed() bool { // ²é¿´ÃüÁîĞĞ²ÎÊıÊÇ·ñÒÑ±»½âÎö
+func Parsed() bool { // æŸ¥çœ‹å‘½ä»¤è¡Œå‚æ•°æ˜¯å¦å·²è¢«è§£æ
 	return CommandLine.Parsed()
 }
 
 // CommandLine is the default set of command-line flags, parsed from os.Args.
 // The top-level functions such as BoolVar, Arg, and so on are wrappers for the
 // methods of CommandLine.
-var CommandLine = NewFlagSet(os.Args[0], ExitOnError) // Ä¬ÈÏµÄ²Ù×÷ÃüÁîĞĞ²ÎÊıµÄFlagSet
+var CommandLine = NewFlagSet(os.Args[0], ExitOnError) // é»˜è®¤çš„æ“ä½œå‘½ä»¤è¡Œå‚æ•°çš„FlagSet
 
 // NewFlagSet returns a new, empty flag set with the specified name and
 // error handling property.
-func NewFlagSet(name string, errorHandling ErrorHandling) *FlagSet { // ĞÂ½¨FlagSet½á¹¹
+func NewFlagSet(name string, errorHandling ErrorHandling) *FlagSet { // æ–°å»ºFlagSetç»“æ„
 	f := &FlagSet{
 		name:          name,
 		errorHandling: errorHandling,

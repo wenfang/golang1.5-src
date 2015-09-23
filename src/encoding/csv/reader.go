@@ -60,7 +60,7 @@ import (
 
 // A ParseError is returned for parsing errors.
 // The first line is 1.  The first column is 0.
-type ParseError struct {
+type ParseError struct { // è§£æé”™è¯¯ç»“æ„
 	Line   int   // Line where the error occurred
 	Column int   // Column (rune index) where the error occurred
 	Err    error // The actual error
@@ -113,16 +113,16 @@ type Reader struct {
 }
 
 // NewReader returns a new Reader that reads from r.
-func NewReader(r io.Reader) *Reader { // ĞÂ´´½¨Ò»¸öcsvÎÄ¼şµÄReader
+func NewReader(r io.Reader) *Reader { // æ–°åˆ›å»ºä¸€ä¸ªcsvæ–‡ä»¶çš„Reader
 	return &Reader{
-		Comma: ',', // readerµÄ·Ö¸ô·û
+		Comma: ',', // readerçš„åˆ†éš”ç¬¦
 		r:     bufio.NewReader(r),
 	}
 }
 
 // error creates a new ParseError based on err.
-func (r *Reader) error(err error) error { // »ùÓÚerr´´½¨Ò»¸öParseError
-	return &ParseError{
+func (r *Reader) error(err error) error { // åŸºäºerråˆ›å»ºä¸€ä¸ªParseError
+	return &ParseError{ // è¿”å›ä¸€ä¸ªè§£æé”™è¯¯ç»“æ„
 		Line:   r.line,
 		Column: r.column,
 		Err:    err,
@@ -131,7 +131,7 @@ func (r *Reader) error(err error) error { // »ùÓÚerr´´½¨Ò»¸öParseError
 
 // Read reads one record from r.  The record is a slice of strings with each
 // string representing one field.
-func (r *Reader) Read() (record []string, err error) { // ¶ÁÒ»´®¼ÇÂ¼
+func (r *Reader) Read() (record []string, err error) { // è¯»ä¸€ä¸²è®°å½•
 	for {
 		record, err = r.parseRecord()
 		if record != nil {

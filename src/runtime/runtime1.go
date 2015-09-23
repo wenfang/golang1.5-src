@@ -13,6 +13,7 @@ import "unsafe"
 // gotraceback value.
 var traceback_cache uint32 = 2 << 1
 
+// GOTRACEBACK环境变量控制go程序在crash和退出时的行为
 // The GOTRACEBACK environment variable controls the
 // behavior of a Go program that is crashing and exiting.
 //	GOTRACEBACK=0   suppress all tracebacks
@@ -21,8 +22,8 @@ var traceback_cache uint32 = 2 << 1
 //	GOTRACEBACK=crash   show tracebacks including runtime frames, then crash (core dump etc)
 //go:nosplit
 func gotraceback(crash *bool) int32 {
-	_g_ := getg()
-	if crash != nil {
+	_g_ := getg()     // 返回当前的goroutine
+	if crash != nil { // crash指针不空，设置crash为false
 		*crash = false
 	}
 	if _g_.m.traceback != 0 {
@@ -84,7 +85,7 @@ func goenvs_unix() {
 	}
 }
 
-func environ() []string {
+func environ() []string { // 返回环境变量slice
 	return envs
 }
 
@@ -320,7 +321,7 @@ var debug struct {
 	wbshadow          int32
 }
 
-var dbgvars = []dbgVar{
+var dbgvars = []dbgVar{ // debug变量
 	{"allocfreetrace", &debug.allocfreetrace},
 	{"efence", &debug.efence},
 	{"gccheckmark", &debug.gccheckmark},

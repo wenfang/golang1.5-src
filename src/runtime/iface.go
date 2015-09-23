@@ -11,8 +11,8 @@ const (
 )
 
 var (
-	ifaceLock mutex // lock for accessing hash 作为访问hash表的锁
-	hash      [hashSize]*itab
+	ifaceLock mutex           // lock for accessing hash 作为访问hash表的锁
+	hash      [hashSize]*itab // 1009个itab结构指针
 )
 
 // fInterface is our standard non-empty interface.  We use it instead
@@ -22,7 +22,7 @@ type fInterface interface {
 	f()
 }
 
-func getitab(inter *interfacetype, typ *_type, canfail bool) *itab {
+func getitab(inter *interfacetype, typ *_type, canfail bool) *itab { // 获得itab结构指针
 	if len(inter.mhdr) == 0 {
 		throw("internal error - misuse of itab")
 	}
@@ -122,7 +122,7 @@ search:
 	return m
 }
 
-func typ2Itab(t *_type, inter *interfacetype, cache **itab) *itab {
+func typ2Itab(t *_type, inter *interfacetype, cache **itab) *itab { // 类型转换为接口
 	tab := getitab(inter, t, false)
 	atomicstorep(unsafe.Pointer(cache), unsafe.Pointer(tab))
 	return tab

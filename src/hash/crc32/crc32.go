@@ -38,7 +38,7 @@ const (
 )
 
 // Table is a 256-word table representing the polynomial for efficient processing.
-type Table [256]uint32 // TableÊÇ256¸öÎŞ·ûºÅÕûĞÍ´ú±íµÄÊı×é
+type Table [256]uint32 // Tableæ˜¯256ä¸ªæ— ç¬¦å·æ•´å‹ä»£è¡¨çš„æ•°ç»„
 
 // castagnoliTable points to a lazily initialized Table for the Castagnoli
 // polynomial. MakeTable will always return this value when asked to make a
@@ -116,7 +116,7 @@ func New(tab *Table) hash.Hash32 { return &digest{0, tab} }
 
 // NewIEEE creates a new hash.Hash32 computing the CRC-32 checksum
 // using the IEEE polynomial.
-func NewIEEE() hash.Hash32 { return New(IEEETable) } // ´´½¨Ò»¸öÊ¹ÓÃIEEE¶àÏîÊ½µÄHash32½Ó¿Ú
+func NewIEEE() hash.Hash32 { return New(IEEETable) } // åˆ›å»ºä¸€ä¸ªä½¿ç”¨IEEEå¤šé¡¹å¼çš„Hash32æ¥å£
 
 func (d *digest) Size() int { return Size }
 

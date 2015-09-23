@@ -90,7 +90,7 @@ type bigEndian struct{}
 
 func (bigEndian) Uint16(b []byte) uint16 { return uint16(b[1]) | uint16(b[0])<<8 }
 
-func (bigEndian) PutUint16(b []byte, v uint16) {
+func (bigEndian) PutUint16(b []byte, v uint16) { // 将uint16写入byte slice
 	b[0] = byte(v >> 8)
 	b[1] = byte(v)
 }

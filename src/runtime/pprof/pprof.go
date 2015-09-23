@@ -23,14 +23,19 @@ import (
 // BUG(rsc): Profiles are incomplete and inaccurate on NetBSD and OS X.
 // See https://golang.org/issue/6047 for details.
 
+// Profile是栈调用状况的收集器，显示了导致特定事件的调用序列，例如分配。
+// 包可以生成及维护自己的profiles，最常用的用法是tracking必须主动关闭的
+// 资源的使用，例如文件和网络连接
 // A Profile is a collection of stack traces showing the call sequences
 // that led to instances of a particular event, such as allocation.
 // Packages can create and maintain their own profiles; the most common
 // use is for tracking resources that must be explicitly closed, such as files
 // or network connections.
 //
+// Profile方法能够被多个goroutine同时调用
 // A Profile's methods can be called from multiple goroutines simultaneously.
 //
+// 每个profile都具有一个唯一的名称，有一些预定义的profiles
 // Each Profile has a unique name.  A few profiles are predefined:
 //
 //	goroutine    - stack traces of all current goroutines
@@ -52,7 +57,7 @@ import (
 // the StartCPUProfile and StopCPUProfile functions, because it streams
 // output to a writer during profiling.
 //
-type Profile struct {
+type Profile struct { // Profile结构
 	name  string
 	mu    sync.Mutex
 	m     map[interface{}][]uintptr
@@ -111,7 +116,7 @@ func unlockProfiles() {
 // If a profile with that name already exists, NewProfile panics.
 // The convention is to use a 'import/path.' prefix to create
 // separate name spaces for each package.
-func NewProfile(name string) *Profile {
+func NewProfile(name string) *Profile { // 新创建一个profile，必须具有上面给定的四个name之一
 	lockProfiles()
 	defer unlockProfiles()
 	if name == "" {
@@ -564,6 +569,8 @@ var cpu struct {
 	done      chan bool
 }
 
+// enable当前进程的CPU profiling，profile数据将被写到w中
+// 如果已经启动了StartCPUProfile会返回错误
 // StartCPUProfile enables CPU profiling for the current process.
 // While profiling, the profile will be buffered and written to w.
 // StartCPUProfile returns an error if profiling is already enabled.
@@ -588,15 +595,15 @@ func StartCPUProfile(w io.Writer) error {
 	if cpu.profiling {
 		return fmt.Errorf("cpu profiling already in use")
 	}
-	cpu.profiling = true
-	runtime.SetCPUProfileRate(hz)
-	go profileWriter(w)
+	cpu.profiling = true          // 启动cpu profiling
+	runtime.SetCPUProfileRate(hz) // 设置cpu profile采样频率
+	go profileWriter(w)           // goroutine中运行
 	return nil
 }
 
 func profileWriter(w io.Writer) {
 	for {
-		data := runtime.CPUProfile()
+		data := runtime.CPUProfile() // 运行CPUProfile获取数据写入w中
 		if data == nil {
 			break
 		}

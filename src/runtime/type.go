@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Runtime type representation.
+// Runtime type representation. 运行时的类型表示
 
 package runtime
 
@@ -11,7 +11,7 @@ import "unsafe"
 // Needs to be in sync with ../cmd/internal/ld/decodesym.go:/^func.commonsize,
 // ../cmd/internal/gc/reflect.go:/^func.dcommontype and
 // ../reflect/type.go:/^type.rtype.
-type _type struct {
+type _type struct { // 类型结构
 	size       uintptr
 	ptrdata    uintptr // size of memory prefix holding all pointers
 	hash       uint32
@@ -27,12 +27,12 @@ type _type struct {
 	_string *string
 	x       *uncommontype
 	ptrto   *_type
-	zero    *byte // ptr to the zero value for this type
+	zero    *byte // ptr to the zero value for this type 指向该类型的0值
 }
 
-type method struct {
-	name    *string
-	pkgpath *string
+type method struct { // 方法结构
+	name    *string // 方法名
+	pkgpath *string // 包路径
 	mtyp    *_type
 	typ     *_type
 	ifn     unsafe.Pointer
@@ -45,18 +45,18 @@ type uncommontype struct {
 	mhdr    []method
 }
 
-type imethod struct {
+type imethod struct { // 接口方法结构
 	name    *string
 	pkgpath *string
 	_type   *_type
 }
 
-type interfacetype struct {
+type interfacetype struct { // 接口类型的结构
 	typ  _type
-	mhdr []imethod
+	mhdr []imethod // 接口方法的slice
 }
 
-type maptype struct {
+type maptype struct { // map类型结构
 	typ           _type
 	key           *_type
 	elem          *_type
@@ -70,25 +70,25 @@ type maptype struct {
 	reflexivekey  bool   // true if k==k for all keys
 }
 
-type chantype struct {
+type chantype struct { // chan类型
 	typ  _type
 	elem *_type
 	dir  uintptr
 }
 
-type slicetype struct {
+type slicetype struct { // slice类型
 	typ  _type
 	elem *_type
 }
 
-type functype struct {
+type functype struct { // 函数类型
 	typ       _type
 	dotdotdot bool
 	in        slice
 	out       slice
 }
 
-type ptrtype struct {
+type ptrtype struct { // 指针类型
 	typ  _type
 	elem *_type
 }
