@@ -354,7 +354,7 @@ type m struct {
 	//#endif
 }
 
-type p struct {
+type p struct { // P的结构
 	lock mutex
 
 	id          int32
@@ -372,10 +372,14 @@ type p struct {
 	goidcache    uint64
 	goidcacheend uint64
 
+	// 可运行的goroutine队列，在无锁状态下访问
 	// Queue of runnable goroutines. Accessed without lock.
 	runqhead uint32
 	runqtail uint32
 	runq     [256]*g
+	// runnext如果非空,是一个可运行的g，这个g被当前的g通过ready
+	// 操作激活,下一步就需要运行这个g，而不是在runq中的g，如果在
+	// g的运行slice中仍有时间。
 	// runnext, if non-nil, is a runnable G that was ready'd by
 	// the current G and should be run next instead of what's in
 	// runq if there's time remaining in the running G's time
@@ -434,7 +438,7 @@ type schedt struct {
 	npidle     uint32
 	nmspinning uint32
 
-	// Global runnable queue.
+	// Global runnable queue. 全局可运行队列
 	runqhead guintptr
 	runqtail guintptr
 	runqsize int32

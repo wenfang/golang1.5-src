@@ -127,23 +127,23 @@ func mcommoninit(mp *m) {
 }
 
 // Mark gp ready to run.
-func ready(gp *g, traceskip int) {
+func ready(gp *g, traceskip int) { // 标记gp g准备执行
 	if trace.enabled {
 		traceGoUnpark(gp, traceskip)
 	}
 
-	status := readgstatus(gp)
+	status := readgstatus(gp) // 读取goroutine的状态
 
 	// Mark runnable.
-	_g_ := getg()
-	_g_.m.locks++ // disable preemption because it can be holding p in a local var
-	if status&^_Gscan != _Gwaiting {
+	_g_ := getg()                    // 获取当前的goroutine
+	_g_.m.locks++                    // disable preemption because it can be holding p in a local var disable掉优先级调度
+	if status&^_Gscan != _Gwaiting { // 如果当前的状态不是Gwaiting，抛出异常
 		dumpgstatus(gp)
 		throw("bad g->status in ready")
 	}
 
 	// status is Gwaiting or Gscanwaiting, make Grunnable and put on runq
-	casgstatus(gp, _Gwaiting, _Grunnable)
+	casgstatus(gp, _Gwaiting, _Grunnable) // 将goroutine的状态变为runnable
 	runqput(_g_.m.p.ptr(), gp, true)
 	if atomicload(&sched.npidle) != 0 && atomicload(&sched.nmspinning) == 0 { // TODO: fast atomic
 		wakep()
@@ -3404,35 +3404,38 @@ func runqempty(_p_ *p) bool {
 // assumptions.
 const randomizeScheduler = raceenabled
 
+// put一个g到本地可运行队列中.如果next是false,runqput将g加入到本地可运行队列尾部
+// 如果next为true,runqput将g加入到_p_.runnext中
+// 如果运行队列已满,runnext将g放入到全局队列
 // runqput tries to put g on the local runnable queue.
 // If next if false, runqput adds g to the tail of the runnable queue.
 // If next is true, runqput puts g in the _p_.runnext slot.
 // If the run queue is full, runnext puts g on the global queue.
 // Executed only by the owner P.
-func runqput(_p_ *p, gp *g, next bool) {
-	if randomizeScheduler && next && fastrand1()%2 == 0 {
-		next = false
+func runqput(_p_ *p, gp *g, next bool) { // put一个g到可运行队列中
+	if randomizeScheduler && next && fastrand1()%2 == 0 { // 如果启用了随机调度并且next为true并且满足随机值
+		next = false // 设置next为false
 	}
 
-	if next {
+	if next { // 如果next为true
 	retryNext:
 		oldnext := _p_.runnext
-		if !_p_.runnext.cas(oldnext, guintptr(unsafe.Pointer(gp))) {
+		if !_p_.runnext.cas(oldnext, guintptr(unsafe.Pointer(gp))) { // 用goroutine gp替换p的runnext
 			goto retryNext
 		}
-		if oldnext == 0 {
+		if oldnext == 0 { // 如果以前的runnext为空，直接返回
 			return
 		}
 		// Kick the old runnext out to the regular run queue.
-		gp = oldnext.ptr()
+		gp = oldnext.ptr() // 否则取出来老的goroutine
 	}
 
 retry:
-	h := atomicload(&_p_.runqhead) // load-acquire, synchronize with consumers
-	t := _p_.runqtail
-	if t-h < uint32(len(_p_.runq)) {
-		_p_.runq[t%uint32(len(_p_.runq))] = gp
-		atomicstore(&_p_.runqtail, t+1) // store-release, makes the item available for consumption
+	h := atomicload(&_p_.runqhead)   // load-acquire, synchronize with consumers 获取P的可运行队列
+	t := _p_.runqtail                // 获取可运行队列的尾部
+	if t-h < uint32(len(_p_.runq)) { // 如果runq队列还够用
+		_p_.runq[t%uint32(len(_p_.runq))] = gp // 将goroutine放到p的运行队列尾部
+		atomicstore(&_p_.runqtail, t+1)        // store-release, makes the item available for consumption
 		return
 	}
 	if runqputslow(_p_, gp, h, t) {
