@@ -79,10 +79,10 @@ var mheap_ mheap // 全局的mheap结构
 // An MSpan representing actual memory has state _MSpanInUse,
 // _MSpanStack, or _MSpanFree. Transitions between these states are
 // constrained as follows:
-// 在GC阶段,Mspan的状态可以从free变为in-use或者stack状态
+// 在任何GC阶段,mspan的状态可以从free变为in-use或者stack状态
 // * A span may transition from free to in-use or stack during any GC
 //   phase.
-// 在sweeping阶段，span可以从in_use状态变为free状态或者从stack状态变为free状态
+// 在sweeping阶段，mspan可以从in_use状态变为free状态或者从stack状态变为free状态
 // * During sweeping (gcphase == _GCoff), a span may transition from
 //   in-use to free (as a result of sweeping) or stack to free (as a
 //   result of stacks being freed).
@@ -101,28 +101,30 @@ const (
 type mspan struct {
 	next     *mspan    // in a span linked list mspan的双向列表
 	prev     *mspan    // in a span linked list
-	start    pageID    // starting page number 其实页面号
-	npages   uintptr   // number of pages in span 在该mspan中页面的数量
+	start    pageID    // starting page number 起始页面号
+	npages   uintptr   // number of pages in span 该mspan中页面的数量
 	freelist gclinkptr // list of free objects 空闲对象的列表
-	// sweep 代
+	// sweep 代数
 	// 如果sweepgen == 堆的sweepgen-2，该span需要进行sweeping
-	// 如果sweepgen ==
+	// 如果sweepgen == 堆的sweepgen-1，该span当前正在进行sweeping
+	// 如果sweepgen == 堆的sweepgen，该span被sweep了，准备使用
+	// 每次gc后堆得sweepgen值都会增2
 	// sweep generation:
 	// if sweepgen == h->sweepgen - 2, the span needs sweeping
 	// if sweepgen == h->sweepgen - 1, the span is currently being swept
 	// if sweepgen == h->sweepgen, the span is swept and ready to use
 	// h->sweepgen is incremented by 2 after every GC
 
-	sweepgen    uint32
+	sweepgen    uint32   // 该mspan的代数
 	divMul      uint32   // for divide by elemsize - divMagic.mul
-	ref         uint16   // capacity - number of objects in freelist
-	sizeclass   uint8    // size class
+	ref         uint16   // capacity - number of objects in freelist 容量,freelist中对象的数量
+	sizeclass   uint8    // size class size class的值
 	incache     bool     // being used by an mcache
 	state       uint8    // mspaninuse etc
-	needzero    uint8    // needs to be zeroed before allocation
+	needzero    uint8    // needs to be zeroed before allocation 在分配前需要清0
 	divShift    uint8    // for divide by elemsize - divMagic.shift
 	divShift2   uint8    // for divide by elemsize - divMagic.shift2
-	elemsize    uintptr  // computed from sizeclass or from npages
+	elemsize    uintptr  // computed from sizeclass or from npages 保存的元素大小
 	unusedsince int64    // first time spotted by gc in mspanfree state
 	npreleased  uintptr  // number of pages released to the os
 	limit       uintptr  // end of data in span
@@ -136,7 +138,7 @@ func (s *mspan) base() uintptr { // 获得mspan对应的起始地址
 }
 
 func (s *mspan) layout() (size, n, total uintptr) { // 获得可保存的元素大小，可保存的元素数量和总大小
-	total = s.npages << _PageShift // 获得该mspan所有空间大小
+	total = s.npages << _PageShift // 获得该mspan所有空间大小，页数量乘以页大小
 	size = s.elemsize              // 获得该mspan可保存的元素大小
 	if size > 0 {
 		n = total / size // 获得可保存的元素数量
@@ -144,8 +146,12 @@ func (s *mspan) layout() (size, n, total uintptr) { // 获得可保存的元素�
 	return
 }
 
+// 指向所有格mspan结构的指针
 var h_allspans []*mspan // TODO: make this h.allspans once mheap can be defined in Go
 
+// h_spans是一个查找表，将虚拟的页面ID映射到*mspan。对已分配的span，映射到span本身。
+// 对空闲的span，只有最低和最高的页面映射到span自身。内部页面映射到任意span。
+// 对从来没有分配的页面，h_spans项为空。
 // h_spans is a lookup table to map virtual address page IDs to *mspan.
 // For allocated spans, their pages map to the span itself.
 // For free spans, only the lowest and highest pages map to the span itself.  Internal
@@ -153,23 +159,23 @@ var h_allspans []*mspan // TODO: make this h.allspans once mheap can be defined 
 // For pages that have never been allocated, h_spans entries are nil.
 var h_spans []*mspan // TODO: make this h.spans once mheap can be defined in Go
 
-func recordspan(vh unsafe.Pointer, p unsafe.Pointer) {
-	h := (*mheap)(vh)
-	s := (*mspan)(p)
-	if len(h_allspans) >= cap(h_allspans) {
-		n := 64 * 1024 / ptrSize
+func recordspan(vh unsafe.Pointer, p unsafe.Pointer) { // 将mspan p记录到堆vh中
+	h := (*mheap)(vh)                       // 将vh转换为mheap结构
+	s := (*mspan)(p)                        // 将p转换为mspan结构
+	if len(h_allspans) >= cap(h_allspans) { // 如果h_allspans slice不够用了
+		n := 64 * 1024 / ptrSize // 缺省的最小大小
 		if n < cap(h_allspans)*3/2 {
 			n = cap(h_allspans) * 3 / 2
 		}
 		var new []*mspan
-		sp := (*slice)(unsafe.Pointer(&new))
-		sp.array = sysAlloc(uintptr(n)*ptrSize, &memstats.other_sys)
-		if sp.array == nil {
+		sp := (*slice)(unsafe.Pointer(&new))                         // 转换为slice指针
+		sp.array = sysAlloc(uintptr(n)*ptrSize, &memstats.other_sys) // 分配空间
+		if sp.array == nil {                                         // 分配空间失败
 			throw("runtime: cannot allocate memory")
 		}
-		sp.len = len(h_allspans)
+		sp.len = len(h_allspans) // 获得h_allspans的长度
 		sp.cap = n
-		if len(h_allspans) > 0 {
+		if len(h_allspans) > 0 { // 将原有的span拷贝过来
 			copy(new, h_allspans)
 			// Don't free the old array if it's referenced by sweep.
 			// See the comment in mgc.go.
@@ -180,8 +186,8 @@ func recordspan(vh unsafe.Pointer, p unsafe.Pointer) {
 		h_allspans = new
 		h.allspans = (**mspan)(unsafe.Pointer(sp.array))
 	}
-	h_allspans = append(h_allspans, s)
-	h.nspan = uint32(len(h_allspans))
+	h_allspans = append(h_allspans, s) // 将mspan s加入到h_allspans slice中
+	h.nspan = uint32(len(h_allspans))  // 更新堆中span的数量
 }
 
 // inheap指示是否b是一个指向堆对象的指针

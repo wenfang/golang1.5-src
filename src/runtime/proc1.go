@@ -3379,7 +3379,7 @@ func pidleput(_p_ *p) {
 // May run during STW, so write barriers are not allowed.
 //go:nowritebarrier
 func pidleget() *p {
-	_p_ := sched.pidle.ptr()
+	_p_ := sched.pidle.ptr() // 从pidle列表中获取一个P
 	if _p_ != nil {
 		sched.pidle = _p_.link
 		xadd(&sched.npidle, -1) // TODO: fast atomic

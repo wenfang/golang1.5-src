@@ -14,8 +14,8 @@ const (
 // GC的work pool的抽象
 // Garbage collector work pool abstraction.
 //
-// 实现了生产者消费者模型，主要为指向灰对象的指针。灰对象被mark，并且
-// 在工作队列上。黑对象被mark，没有在工作队列上。
+// 实现了生产者消费者模型，主要为指向灰对象的指针。灰对象被mark并且
+// 在工作队列上。黑对象被mark但没有在工作队列上。
 // This implements a producer/consumer model for pointers to grey
 // objects.  A grey object is one that is marked and on a work
 // queue.  A black object is marked and not on a work queue.
@@ -40,6 +40,7 @@ func (wp wbufptr) ptr() *workbuf {
 	return (*workbuf)(unsafe.Pointer(wp))
 }
 
+// gcWork为垃圾收集器提供了产生及消费work的能力。
 // A gcWork provides the interface to produce and consume work for the
 // garbage collector.
 //
@@ -70,7 +71,7 @@ type gcWork struct {
 
 	// Bytes marked (blackened) on this gcWork. This is aggregated
 	// into work.bytesMarked by dispose.
-	bytesMarked uint64
+	bytesMarked uint64 // 该gcWork mark的字节数
 
 	// Scan work performed on this gcWork. This is aggregated into
 	// gcController by dispose.
@@ -83,16 +84,16 @@ type gcWork struct {
 func (ww *gcWork) put(obj uintptr) { // 将obj指针进行排队
 	w := (*gcWork)(noescape(unsafe.Pointer(ww))) // TODO: remove when escape analysis is fixed
 
-	wbuf := w.wbuf.ptr()
-	if wbuf == nil {
+	wbuf := w.wbuf.ptr() // 获取workBuf的指针
+	if wbuf == nil {     // 如果指针为空
 		wbuf = getpartialorempty(42)
 		w.wbuf = wbufptrOf(wbuf)
 	}
 
-	wbuf.obj[wbuf.nobj] = obj
+	wbuf.obj[wbuf.nobj] = obj // 将obj压入到wbuf中
 	wbuf.nobj++
 
-	if wbuf.nobj == len(wbuf.obj) {
+	if wbuf.nobj == len(wbuf.obj) { // 如果wbuf已经满了
 		putfull(wbuf, 50)
 		w.wbuf = 0
 	}
@@ -104,7 +105,7 @@ func (ww *gcWork) put(obj uintptr) { // 将obj指针进行排队
 // queue, tryGet returns 0.  Note that there may still be pointers in
 // other gcWork instances or other caches.
 //go:nowritebarrier
-func (ww *gcWork) tryGet() uintptr {
+func (ww *gcWork) tryGet() uintptr { // 从gcWork中获得一个对象的指针
 	w := (*gcWork)(noescape(unsafe.Pointer(ww))) // TODO: remove when escape analysis is fixed
 
 	wbuf := w.wbuf.ptr()
@@ -124,7 +125,7 @@ func (ww *gcWork) tryGet() uintptr {
 		w.wbuf = 0
 	}
 
-	return obj
+	return obj // 返回获取到的对象
 }
 
 // get dequeues a pointer for the garbage collector to trace, blocking
@@ -291,10 +292,10 @@ func getempty(entry int) *workbuf {
 	if work.empty != 0 { // 如果work.empty
 		b = (*workbuf)(lfstackpop(&work.empty))
 		if b != nil {
-			b.checkempty()
+			b.checkempty() // 要求取出的workbuf必须为空
 		}
 	}
-	if b == nil {
+	if b == nil { // 如果没有取到，重新分配一个workbuf
 		b = (*workbuf)(persistentalloc(unsafe.Sizeof(*b), _CacheLineSize, &memstats.gc_sys))
 	}
 	b.logget(entry)
@@ -315,9 +316,9 @@ func putempty(b *workbuf, entry int) {
 // with the mutators for ownership of partially full buffers.
 //go:nowritebarrier
 func putfull(b *workbuf, entry int) {
-	b.checknonempty()
+	b.checknonempty() // 要求workbuf不能为空
 	b.logput(entry)
-	lfstackpush(&work.full, &b.node)
+	lfstackpush(&work.full, &b.node) // 加入到work.full栈中
 }
 
 // getpartialorempty tries to return a partially empty

@@ -12,7 +12,7 @@ import (
 
 // makeFuncImpl is the closure value implementing the function
 // returned by MakeFunc.
-type makeFuncImpl struct {
+type makeFuncImpl struct { // makeFuncImpl结构
 	code  uintptr
 	stack *bitVector // stack bitmap for args - offset known to runtime
 	typ   *funcType

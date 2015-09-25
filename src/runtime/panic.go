@@ -50,11 +50,12 @@ func throwinit() {
 	throw("recursive call during initialization - linker skew")
 }
 
+// 创建一个新的deferred函数fn，siz为参数的大小
 // Create a new deferred function fn with siz bytes of arguments.
 // The compiler turns a defer statement into a call to this.
 //go:nosplit
 func deferproc(siz int32, fn *funcval) { // arguments of fn follow fn
-	if getg().m.curg != getg() {
+	if getg().m.curg != getg() { // 系统栈不能进行defer
 		// go code on the system stack can't defer
 		throw("defer on system stack")
 	}
@@ -64,9 +65,9 @@ func deferproc(siz int32, fn *funcval) { // arguments of fn follow fn
 	// collection or stack copying trigger until we've copied them out
 	// to somewhere safe.  The memmove below does that.
 	// Until the copy completes, we can only call nosplit routines.
-	sp := getcallersp(unsafe.Pointer(&siz))
-	argp := uintptr(unsafe.Pointer(&fn)) + unsafe.Sizeof(fn)
-	callerpc := getcallerpc(unsafe.Pointer(&siz))
+	sp := getcallersp(unsafe.Pointer(&siz))                  // 获得调用者的sp
+	argp := uintptr(unsafe.Pointer(&fn)) + unsafe.Sizeof(fn) // 找到参数列表所在位置
+	callerpc := getcallerpc(unsafe.Pointer(&siz))            // 获得调用者的pc
 
 	systemstack(func() {
 		d := newdefer(siz)
@@ -95,14 +96,14 @@ func deferproc(siz int32, fn *funcval) { // arguments of fn follow fn
 // Assign defer allocations to pools by rounding to 16, to match malloc size classes.
 
 const (
-	deferHeaderSize = unsafe.Sizeof(_defer{})
-	minDeferAlloc   = (deferHeaderSize + 15) &^ 15
-	minDeferArgs    = minDeferAlloc - deferHeaderSize
+	deferHeaderSize = unsafe.Sizeof(_defer{})         // 获得defer头部的大小
+	minDeferAlloc   = (deferHeaderSize + 15) &^ 15    // 最小一次分配的defer的大小
+	minDeferArgs    = minDeferAlloc - deferHeaderSize // 最小的defer参数的大小
 )
 
 // defer size class for arg size sz
 //go:nosplit
-func deferclass(siz uintptr) uintptr {
+func deferclass(siz uintptr) uintptr { // 获得了deferclass的类别
 	if siz <= minDeferArgs {
 		return 0
 	}
@@ -145,7 +146,7 @@ func testdefersizes() {
 // The arguments associated with a deferred call are stored
 // immediately after the _defer header in memory.
 //go:nosplit
-func deferArgs(d *_defer) unsafe.Pointer {
+func deferArgs(d *_defer) unsafe.Pointer { // 取得defer参数的位置
 	return add(unsafe.Pointer(d), unsafe.Sizeof(*d))
 }
 
@@ -160,7 +161,7 @@ func init() {
 // Allocate a Defer, usually using per-P pool.
 // Each defer must be released with freedefer.
 // Note: runs on g0 stack
-func newdefer(siz int32) *_defer {
+func newdefer(siz int32) *_defer { // 分配新的defer结构
 	var d *_defer
 	sc := deferclass(uintptr(siz))        // 获得defer所属的类别
 	mp := acquirem()                      // 获取当前的m结构
@@ -182,7 +183,7 @@ func newdefer(siz int32) *_defer {
 			pp.deferpool[sc] = pp.deferpool[sc][:n-1]
 		}
 	}
-	if d == nil {
+	if d == nil { // 如果分配得到的defer结构为nil
 		// Allocate new defer+args.
 		total := roundupsize(totaldefersize(uintptr(siz)))
 		d = (*_defer)(mallocgc(total, deferType, 0))
@@ -197,7 +198,7 @@ func newdefer(siz int32) *_defer {
 
 // Free the given defer.
 // The defer cannot be used after this call.
-func freedefer(d *_defer) {
+func freedefer(d *_defer) { // free掉_defer结构
 	if d._panic != nil {
 		freedeferpanic()
 	}
@@ -501,7 +502,7 @@ func gorecover(argp uintptr) interface{} {
 }
 
 //go:nosplit
-func startpanic() {
+func startpanic() { // 开始panic
 	systemstack(startpanic_m)
 }
 

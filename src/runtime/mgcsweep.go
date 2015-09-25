@@ -13,8 +13,8 @@ var sweep sweepdata // 全局的sweep结构
 // State of background sweep.
 type sweepdata struct { // 后台的sweep的状态
 	lock    mutex
-	g       *g
-	parked  bool
+	g       *g   // 执行sweep的goroutine
+	parked  bool // 是否进入休眠状态
 	started bool
 
 	spanidx uint32 // background sweeper position
@@ -42,12 +42,12 @@ func finishsweep_m() { // 在world停止后，完成sweep
 	}
 }
 
-func bgsweep(c chan int) {
+func bgsweep(c chan int) { // 启动bgsweep goroutine执行
 	sweep.g = getg() // 获得当前的goroutine指针，为sweep.g赋值，也就是bgsweep自己运行的goroutine
 
 	lock(&sweep.lock)
-	sweep.parked = true // 先将使sweep进入parked休眠状态
-	c <- 1
+	sweep.parked = true                                           // 先将使sweep进入parked休眠状态
+	c <- 1                                                        // 赋值完成，下面可以继续执行
 	goparkunlock(&sweep.lock, "GC sweep wait", traceEvGoBlock, 1) // bgsweep groutine进入休眠状态
 
 	for {
@@ -78,9 +78,9 @@ func sweepone() uintptr {
 	// increment locks to ensure that the goroutine is not preempted
 	// in the middle of sweep thus leaving the span in an inconsistent state for next GC
 	_g_.m.locks++         // 保证该goroutine不会被抢占
-	sg := mheap_.sweepgen // 获得当前堆得sweep代数
+	sg := mheap_.sweepgen // 获得当前堆的sweep代数
 	for {
-		idx := xadd(&sweep.spanidx, 1) - 1
+		idx := xadd(&sweep.spanidx, 1) - 1 // 获得spanidx索引，上次处理的span
 		if idx >= uint32(len(work.spans)) {
 			mheap_.sweepdone = 1 // 一次sweep已经完成
 			_g_.m.locks--
@@ -104,7 +104,7 @@ func sweepone() uintptr {
 }
 
 //go:nowritebarrier
-func gosweepone() uintptr {
+func gosweepone() uintptr { // 在系统栈上执行一次sweep
 	var ret uintptr
 	systemstack(func() { // 在系统栈上执行sweepone，返回ret
 		ret = sweepone()

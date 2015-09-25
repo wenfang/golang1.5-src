@@ -177,6 +177,7 @@ func (w *PipeWriter) CloseWithError(err error) error {
 	return nil
 }
 
+// Pipe创建一个同步的在内存中的pipe
 // Pipe creates a synchronous in-memory pipe.
 // It can be used to connect code expecting an io.Reader
 // with code expecting an io.Writer.

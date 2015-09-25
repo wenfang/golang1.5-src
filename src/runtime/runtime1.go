@@ -64,8 +64,8 @@ func goargs() {
 		return
 	}
 
-	argslice = make([]string, argc)
-	for i := int32(0); i < argc; i++ {
+	argslice = make([]string, argc)    // 创建argslice保存参数
+	for i := int32(0); i < argc; i++ { // 保存argslice
 		argslice[i] = gostringnocopy(argv_index(argv, i))
 	}
 }
@@ -338,11 +338,11 @@ var dbgvars = []dbgVar{ // debug变量
 	{"wbshadow", &debug.wbshadow},
 }
 
-func parsedebugvars() {
+func parsedebugvars() { // 解析debug变量
 	// defaults
 	debug.invalidptr = 1
 
-	for p := gogetenv("GODEBUG"); p != ""; {
+	for p := gogetenv("GODEBUG"); p != ""; { // 获得GODEBUG环境变量
 		field := ""
 		i := index(p, ",")
 		if i < 0 {
@@ -370,7 +370,7 @@ func parsedebugvars() {
 		}
 	}
 
-	switch p := gogetenv("GOTRACEBACK"); p {
+	switch p := gogetenv("GOTRACEBACK"); p { // 获得GOTRACEBACK环境变量
 	case "":
 		traceback_cache = 1 << 1
 	case "crash":
@@ -414,14 +414,14 @@ func timediv(v int64, div int32, rem *int32) int32 {
 
 //go:nosplit
 func acquirem() *m { // 获得当前goroutine对应的m，并给m加锁
-	_g_ := getg()
+	_g_ := getg() // 获得当前的goroutine
 	_g_.m.locks++
-	return _g_.m
+	return _g_.m // 获得goroutine对应的m
 }
 
 //go:nosplit
-func releasem(mp *m) {
-	_g_ := getg()
+func releasem(mp *m) { // 释放m
+	_g_ := getg() // 获得当前的goroutine
 	mp.locks--
 	if mp.locks == 0 && _g_.preempt {
 		// restore the preemption request in case we've cleared it in newstack

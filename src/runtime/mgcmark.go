@@ -18,8 +18,8 @@ func gcscan_m() {
 	// Grab the g that called us and potentially allow rescheduling.
 	// This allows it to be scanned like other goroutines.
 	mastergp := _g_.m.curg
-	casgstatus(mastergp, _Grunning, _Gwaiting)
-	mastergp.waitreason = "garbage collection scan"
+	casgstatus(mastergp, _Grunning, _Gwaiting)      // 如果当前goroutine的状态为running，将其变为waiting
+	mastergp.waitreason = "garbage collection scan" // goroutine等待的理由为gc scan
 
 	// Span sweeping has been done by finishsweep_m.
 	// Long term we will want to make this goroutine runnable
@@ -299,7 +299,7 @@ retry:
 }
 
 //go:nowritebarrier
-func scanstack(gp *g) {
+func scanstack(gp *g) { // scan goroutine g的栈
 	if gp.gcscanvalid { // 如果该goroutine的栈已经被scan了
 		if gcphase == _GCmarktermination {
 			gcRemoveStackBarriers(gp)
@@ -1004,7 +1004,7 @@ func gcmarknewobject_m(obj, size uintptr) {
 // If useCheckmark is true, marking of an object uses the
 // checkmark bits (encoding above) instead of the standard
 // mark bits.
-var useCheckmark = false
+var useCheckmark = false // 是否使用checkmarking
 
 //go:nowritebarrier
 func initCheckmarks() {

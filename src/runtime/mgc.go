@@ -203,7 +203,7 @@ func gcinit() { // 初始化gc
 	memstats.next_gc = heapminimum // 设定下一次gc对应的堆大小
 }
 
-func readgogc() int32 {
+func readgogc() int32 { // 读GOGC环境变量
 	p := gogetenv("GOGC") // 获取GOGC环境变量
 	if p == "" {          // 如果为空，返回100
 		return 100
@@ -227,7 +227,7 @@ func gcenable() { // 在启动用户代码执行前执行，开启gc
 func setGCPercent(in int32) (out int32) { // 设置gc的百分比
 	lock(&mheap_.lock) // 先将堆加锁
 	out = gcpercent    // 获取当前的gcpercent
-	if in < 0 {
+	if in < 0 {        // 如果in值小于0，设置为-1
 		in = -1
 	}
 	gcpercent = in                                             // 设置新的gcpercent
@@ -244,7 +244,7 @@ var writeBarrierEnabled bool // compiler emits references to this in write barri
 // gcBlackenEnabled is 1 if mutator assists and background mark
 // workers are allowed to blacken objects. This must only be set when
 // gcphase == _GCmark.
-var gcBlackenEnabled uint32
+var gcBlackenEnabled uint32 // 是否enable置黑
 
 // gcBlackenPromptly indicates that optimizations that may
 // hide work from the global work queue should be disabled.
@@ -271,7 +271,7 @@ const (
 
 //go:nosplit
 func setGCPhase(x uint32) { // 设置gc阶段，同时根据阶段设置是否启动写屏障
-	atomicstore(&gcphase, x)
+	atomicstore(&gcphase, x)                                                                        // 将阶段x写入gcphase
 	writeBarrierEnabled = gcphase == _GCmark || gcphase == _GCmarktermination || gcphase == _GCscan // 在GCmark,marktermination和scan阶段启动write barrier
 }
 
@@ -320,12 +320,13 @@ const (
 // utilization between assist and background marking to be 25% of
 // GOMAXPROCS. The high-level design of this algorithm is documented
 // at https://golang.org/s/go15gcpacing.
-var gcController = gcControllerState{
+var gcController = gcControllerState{ // gc的控制状态
 	// Initial trigger ratio guess.
 	triggerRatio: 7 / 8.0,
 }
 
 type gcControllerState struct {
+	// 在该周期执行的总共的scan work.在周期内更新.
 	// scanWork is the total scan work performed this cycle. This
 	// is updated atomically during the cycle. Updates may be
 	// batched arbitrarily, since the value is only read at the
@@ -416,6 +417,7 @@ type gcControllerState struct {
 	_ [_CacheLineSize]byte
 }
 
+// startCycle重置GC的控制状态
 // startCycle resets the GC controller's state and computes estimates
 // for a new GC cycle. The caller must hold worldsema.
 func (c *gcControllerState) startCycle() {
@@ -861,16 +863,16 @@ func startGC(mode int, forceTrigger bool) {
 	// will do the gc instead.
 	mp := acquirem()                                                                                                               // 获取当前的m
 	if gp := getg(); gp == mp.g0 || mp.locks > 1 || mp.preemptoff != "" || !memstats.enablegc || panicking != 0 || gcpercent < 0 { // 如果当前在g0上或者m加锁了或者没有启动gc或者gcpercent<0，直接返回，不进行gc
-		releasem(mp)
+		releasem(mp) // 释放m
 		return
 	}
 	releasem(mp) // 释放m
-	mp = nil
+	mp = nil     // 将m设置为nil
 
 	if debug.gcstoptheworld == 1 {
-		mode = gcForceMode
+		mode = gcForceMode // 设置gc模式为Force模式
 	} else if debug.gcstoptheworld == 2 {
-		mode = gcForceBlockMode
+		mode = gcForceBlockMode // 设置gc模式为ForceBlock
 	}
 
 	if mode != gcBackgroundMode { // 如果不是后台gc模式，直接调用gc
@@ -879,7 +881,7 @@ func startGC(mode int, forceTrigger bool) {
 		return
 	}
 
-	// trigger concurrent GC
+	// trigger concurrent GC 启动并发GC
 	readied := false
 	lock(&bggc.lock)
 	// The trigger was originally checked speculatively, so
@@ -890,7 +892,7 @@ func startGC(mode int, forceTrigger bool) {
 		unlock(&bggc.lock)
 		return
 	}
-	if !bggc.started {
+	if !bggc.started { // 如果background gc未启动，启动background gc
 		bggc.working = 1
 		bggc.started = true
 		readied = true
@@ -909,11 +911,11 @@ func startGC(mode int, forceTrigger bool) {
 }
 
 // State of the background concurrent GC goroutine.
-var bggc struct {
-	lock    mutex
-	g       *g
-	working uint
-	started bool
+var bggc struct { // background并发GC goroutine的状态
+	lock    mutex // background gc的锁
+	g       *g    // 对应的goroutine
+	working uint  // background gc是否正在工作
+	started bool  // backgroundgc goroutine是否已经启动
 }
 
 // backgroundgc is running in a goroutine and does the concurrent GC work.
@@ -923,8 +925,8 @@ func backgroundgc() {
 	for {
 		gc(gcBackgroundMode) // 执行背景模式的gc
 		lock(&bggc.lock)
-		bggc.working = 0
-		goparkunlock(&bggc.lock, "Concurrent GC wait", traceEvGoBlock, 1)
+		bggc.working = 0                                                  // background gc没有在工作
+		goparkunlock(&bggc.lock, "Concurrent GC wait", traceEvGoBlock, 1) // 当前的goroutine等待
 	}
 }
 
@@ -1102,7 +1104,7 @@ func gc(mode int) { // 开始执行gc
 	heap1 = memstats.heap_live
 	startTime := nanotime()
 
-	mp := acquirem()
+	mp := acquirem() // 获取M结构
 	mp.preemptoff = "gcing"
 	_g_ := getg()
 	_g_.m.traceback = 2
@@ -1747,7 +1749,7 @@ func gchelper() { // gchelper执行
 }
 
 func gchelperstart() {
-	_g_ := getg()
+	_g_ := getg() // 获得当前的goroutine
 
 	if _g_.m.helpgc < 0 || _g_.m.helpgc >= _MaxGcproc {
 		throw("gchelperstart: bad m->helpgc")

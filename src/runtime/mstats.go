@@ -13,11 +13,11 @@ import "unsafe"
 type mstats struct {
 	// General statistics.
 	alloc       uint64 // bytes allocated and not yet freed 分配尚未释放的
-	total_alloc uint64 // bytes allocated (even if freed)
+	total_alloc uint64 // bytes allocated (even if freed) 总共分配的内存，包含已经释放的
 	sys         uint64 // bytes obtained from system (should be sum of xxx_sys below, no locking, approximate) // 从系统中获取的内存数量
 	nlookup     uint64 // number of pointer lookups 指针查找数量
 	nmalloc     uint64 // number of mallocs malloc数量
-	nfree       uint64 // number of frees
+	nfree       uint64 // number of frees free的次数
 
 	// Statistics about malloc heap.
 	// protected by mheap.lock
@@ -86,7 +86,7 @@ type mstats struct {
 	heap_reachable uint64
 }
 
-var memstats mstats
+var memstats mstats // 全局的内存使用统计变量
 
 // A MemStats records statistics about the memory allocator.
 type MemStats struct {
@@ -154,7 +154,7 @@ func init() {
 }
 
 // ReadMemStats populates m with memory allocator statistics.
-func ReadMemStats(m *MemStats) {
+func ReadMemStats(m *MemStats) { // 读取MemStats信息
 	stopTheWorld("read mem stats")
 
 	systemstack(func() {
@@ -164,7 +164,7 @@ func ReadMemStats(m *MemStats) {
 	startTheWorld()
 }
 
-func readmemstats_m(stats *MemStats) {
+func readmemstats_m(stats *MemStats) { // 读取memstats信息
 	updatememstats(nil)
 
 	// Size of the trailing by_size array differs between Go and C,
