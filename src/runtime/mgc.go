@@ -7,7 +7,8 @@
 
 // Garbage collector (GC).
 //
-// GC和用户线程并发执行，而且是类型精确的。gc使用写屏障进行并发的mark和sweep
+// GC和用户线程并发执行，而且是类型精确的，允许多个GC线程并行执行。gc使用写屏障进行并发的mark和sweep。
+// 这个gc算法是non-generational和non-compactiong的。
 // The GC runs concurrently with mutator threads, is type accurate (aka precise), allows multiple
 // GC thread to run in parallel. It is a concurrent mark and sweep that uses a write barrier. It is
 // non-generational and non-compacting. Allocation is done using size segregated per P allocation
@@ -60,6 +61,7 @@
 // 13. Wait for all P's to acknowledge phase change.
 // 14. Now malloc allocates white (but sweeps spans before use).
 //         Write barrier becomes nop.
+// 15. GC开始执行后台sweeping
 // 15. GC does background sweeping, see description below.
 // 16. When sufficient allocation has taken place replay the sequence starting at 0 above,
 //         see discussion of GC rate below.
@@ -67,8 +69,12 @@
 // Changing phases.
 // Phases are changed by setting the gcphase to the next phase and possibly calling ackgcphase.
 // All phase action must be benign in the presence of a change.
+// 从GCoff阶段开始
 // Starting with GCoff
+// GCoff阶段到GCscan阶段
 // GCoff to GCscan
+//		 GCsan查找栈和全局变量，并将他们置灰，但是永远不会将对象变黑。一旦所有的P感知到了新阶段
+//		 他们将开始scan goroutine.这就意味着只有所有的P同意后才能开始scan。
 //     GSscan scans stacks and globals greying them and never marks an object black.
 //     Once all the P's are aware of the new phase they will scan gs on preemption.
 //     This means that the scanning of preempted gs can't start until all the Ps
@@ -165,7 +171,7 @@ const (
 	sweepMinHeapDistance = 1024 * 1024
 )
 
-// heapminimum是触发GC的最小的堆得大小，对于小堆，这个值覆盖了普通的GC
+// heapminimum是触发GC的最小的堆大小，对于小堆，这个值覆盖了普通的GC
 // 设置规则。
 // heapminimum is the minimum heap size at which to trigger GC.
 // For small heaps, this overrides the usual GOGC*live set rule.
@@ -244,7 +250,7 @@ var writeBarrierEnabled bool // compiler emits references to this in write barri
 // gcBlackenEnabled is 1 if mutator assists and background mark
 // workers are allowed to blacken objects. This must only be set when
 // gcphase == _GCmark.
-var gcBlackenEnabled uint32 // 是否enable置黑
+var gcBlackenEnabled uint32 // 是否enable置黑，只有gcphase== _GCmark才能设置该值
 
 // gcBlackenPromptly indicates that optimizations that may
 // hide work from the global work queue should be disabled.
@@ -332,6 +338,7 @@ type gcControllerState struct {
 	// batched arbitrarily, since the value is only read at the
 	// end of the cycle.
 	//
+	// 堆scan的字节的数量，对大多数使用而言，这是一个不透明的工作单元，但是对预估而言则是重要的
 	// Currently this is the bytes of heap scanned. For most uses,
 	// this is an opaque unit of work, but for estimation the
 	// definition is important.
@@ -344,6 +351,7 @@ type gcControllerState struct {
 	// it is both written and read throughout the cycle.
 	bgScanCredit int64
 
+	// assistTime是在这个cycle中mutator assists花费的时间。该值原子更新。
 	// assistTime is the nanoseconds spent in mutator assists
 	// during this cycle. This is updated atomically. Updates
 	// occur in bounded batches, since it is both written and read
@@ -366,10 +374,12 @@ type gcControllerState struct {
 	// the cycle.
 	idleMarkTime int64
 
+	// bgMarkStartTime background mark阶段开始的绝对时间
 	// bgMarkStartTime is the absolute start time in nanoseconds
 	// that the background mark phase started.
 	bgMarkStartTime int64
 
+	// assistStartTime是mutator assists被enable的绝对起始时间
 	// assistTime is the absolute start time in nanoseconds that
 	// mutator assists were enabled.
 	assistStartTime int64
@@ -420,7 +430,7 @@ type gcControllerState struct {
 // startCycle重置GC的控制状态
 // startCycle resets the GC controller's state and computes estimates
 // for a new GC cycle. The caller must hold worldsema.
-func (c *gcControllerState) startCycle() {
+func (c *gcControllerState) startCycle() { // 重置gc的控制状态
 	c.scanWork = 0
 	c.bgScanCredit = 0
 	c.assistTime = 0
@@ -439,8 +449,9 @@ func (c *gcControllerState) startCycle() {
 		memstats.heap_reachable = memstats.heap_marked
 	}
 
+	// 计算本次cycle的堆目标
 	// Compute the heap goal for this cycle
-	c.heapGoal = memstats.heap_reachable + memstats.heap_reachable*uint64(gcpercent)/100
+	c.heapGoal = memstats.heap_reachable + memstats.heap_reachable*uint64(gcpercent)/100 // 每次增长gcpercent倍
 
 	// Compute the total mark utilization goal and divide it among
 	// dedicated and fractional workers.
@@ -735,6 +746,7 @@ func shouldtriggergc() bool { // 是否启动一个gc，如果当前堆得大小
 	return memstats.heap_live >= memstats.next_gc && atomicloaduint(&bggc.working) == 0
 }
 
+// bfMarkSignal同步GC协作者
 // bgMarkSignal synchronizes the GC coordinator and background mark workers.
 type bgMarkSignal struct {
 	// Workers race to cas to 1. Winner signals coordinator.
@@ -920,7 +932,7 @@ var bggc struct { // background并发GC goroutine的状态
 
 // backgroundgc is running in a goroutine and does the concurrent GC work.
 // bggc holds the state of the backgroundgc.
-func backgroundgc() {
+func backgroundgc() { // 启动backgroundgc
 	bggc.g = getg() // 获取当前的goroutine
 	for {
 		gc(gcBackgroundMode) // 执行背景模式的gc
@@ -967,7 +979,7 @@ func gc(mode int) { // 开始执行gc
 	tSweepTerm = now
 	heap0 = memstats.heap_live
 
-	pauseStart = now                  // 设置停止启动时间
+	pauseStart = now                  // 设置pasuse开始的时间
 	systemstack(stopTheWorldWithSema) // 在系统栈上执行stoptheWorldWithSema，将所有的P设置为gcstop状态
 	systemstack(finishsweep_m)        // finish sweep before we start concurrent scan. 在启动并发scan前，完成上一次sweep
 	// clearpools before we start the GC. If we wait they memory will not be
@@ -1018,17 +1030,17 @@ func gc(mode int) { // 开始执行gc
 			// mutators.
 			atomicstore(&gcBlackenEnabled, 1)
 
-			// Concurrent scan.
+			// Concurrent scan. 执行并发的scan
 			startTheWorldWithSema()
-			now = nanotime()
-			pauseNS += now - pauseStart
-			tScan = now
-			gcController.assistStartTime = now
-			gcscan_m() // 执行scan阶段
+			now = nanotime()                   // 获得当前时间
+			pauseNS += now - pauseStart        // 获得pause的时间
+			tScan = now                        // 设置scan起始时间
+			gcController.assistStartTime = now // 设置绝对起始时间
+			gcscan_m()                         // 执行scan阶段
 
 			// Enter mark phase. 进入mark阶段
 			tInstallWB = nanotime()
-			setGCPhase(_GCmark)
+			setGCPhase(_GCmark) // 设置进入GCmark阶段
 			// Ensure all Ps have observed the phase
 			// change and have write barriers enabled
 			// before any blackening occurs.
@@ -1730,7 +1742,7 @@ func gchelper() { // gchelper执行
 	}
 
 	// parallel mark for over GC roots
-	parfordo(work.markfor)
+	parfordo(work.markfor) // 执行并行的mark
 	if gcphase != _GCscan {
 		var gcw gcWork
 		gcDrain(&gcw, -1) // blocks in getfull

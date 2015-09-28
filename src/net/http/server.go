@@ -313,8 +313,8 @@ func (cw *chunkWriter) close() {
 
 // A response represents the server side of an HTTP response.
 type response struct { // 代表服务端对http请求的响应
-	conn          *conn
-	req           *Request // request for this response
+	conn          *conn    // 对应底层的连接
+	req           *Request // request for this response 对应该连接的响应
 	wroteHeader   bool     // reply header has been (logically) written
 	wroteContinue bool     // 100 Continue response was written
 
@@ -617,27 +617,27 @@ func (c *conn) readRequest() (w *response, err error) { // 读出请求返回响
 	if d := c.server.ReadTimeout; d != 0 { // 如果设置了读超时，设置底层rwc的读超时
 		c.rwc.SetReadDeadline(time.Now().Add(d))
 	}
-	if d := c.server.WriteTimeout; d != 0 {
+	if d := c.server.WriteTimeout; d != 0 { // 如果设置了写超时，在defer中设置rwc的写超时
 		defer func() {
 			c.rwc.SetWriteDeadline(time.Now().Add(d))
 		}()
 	}
 
 	c.lr.N = c.server.initialLimitedReaderSize()
-	if c.lastMethod == "POST" {
+	if c.lastMethod == "POST" { // 如果上一个方法为POST
 		// RFC 2616 section 4.1 tolerance for old buggy clients.
 		peek, _ := c.buf.Reader.Peek(4) // ReadRequest will get err below
 		c.buf.Reader.Discard(numLeadingCRorLF(peek))
 	}
 	var req *Request
-	if req, err = ReadRequest(c.buf.Reader); err != nil {
+	if req, err = ReadRequest(c.buf.Reader); err != nil { // 读出请求，生成Request结构
 		if c.lr.N == 0 {
 			return nil, errTooLarge
 		}
 		return nil, err
 	}
 	c.lr.N = noLimit
-	c.lastMethod = req.Method
+	c.lastMethod = req.Method // 设置请求的方法
 
 	req.RemoteAddr = c.remoteAddr
 	req.TLS = c.tlsState
@@ -645,7 +645,7 @@ func (c *conn) readRequest() (w *response, err error) { // 读出请求返回响
 		body.doEarlyClose = true
 	}
 
-	w = &response{
+	w = &response{ // 创建响应结构
 		conn:          c,
 		req:           req,
 		handlerHeader: make(Header),
@@ -678,7 +678,7 @@ func (w *response) Header() Header {
 // well read them)
 const maxPostHandlerReadBytes = 256 << 10
 
-func (w *response) WriteHeader(code int) {
+func (w *response) WriteHeader(code int) { // 写出response的头部
 	if w.conn.hijacked() {
 		w.conn.server.logf("http: response.WriteHeader on hijacked connection")
 		return
@@ -687,7 +687,7 @@ func (w *response) WriteHeader(code int) {
 		w.conn.server.logf("http: multiple response.WriteHeader calls")
 		return
 	}
-	w.wroteHeader = true
+	w.wroteHeader = true // 表明已经写出头部
 	w.status = code
 
 	if w.calledHeader && w.cw.header == nil {
@@ -1143,10 +1143,10 @@ func (w *response) write(lenData int, dataB []byte, dataS string) (n int, err er
 	}
 }
 
-func (w *response) finishRequest() {
+func (w *response) finishRequest() { // 结束请求
 	w.handlerDone = true
 
-	if !w.wroteHeader {
+	if !w.wroteHeader { // 如果没有写出头部，调用WriteHeader写出OK状态头部
 		w.WriteHeader(StatusOK)
 	}
 
@@ -1157,7 +1157,7 @@ func (w *response) finishRequest() {
 
 	// Close the body (regardless of w.closeAfterReply) so we can
 	// re-use its bufio.Reader later safely.
-	w.req.Body.Close()
+	w.req.Body.Close() // 关闭Body
 
 	if w.req.MultipartForm != nil {
 		w.req.MultipartForm.RemoveAll()

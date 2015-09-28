@@ -624,7 +624,7 @@ func bestFit(list *mspan, npage uintptr, best *mspan) *mspan {
 
 // Try to add at least npage pages of memory to the heap,
 // returning whether it worked.
-func mHeap_Grow(h *mheap, npage uintptr) bool {
+func mHeap_Grow(h *mheap, npage uintptr) bool { // 试图添加至少npage个页面到堆中
 	// Ask for a big chunk, to reduce the number of mappings
 	// the operating system needs to track; also amortizes
 	// the overhead of an operating system mapping.
@@ -665,12 +665,13 @@ func mHeap_Grow(h *mheap, npage uintptr) bool {
 // Look up the span at the given address.
 // Address is guaranteed to be in map
 // and is guaranteed to be start or end of span.
-func mHeap_Lookup(h *mheap, v unsafe.Pointer) *mspan {
-	p := uintptr(v)
-	p -= uintptr(unsafe.Pointer(h.arena_start))
-	return h_spans[p>>_PageShift]
+func mHeap_Lookup(h *mheap, v unsafe.Pointer) *mspan { // 查找指定地址v对应的mspan，地址保证保证在span的起始或结束位置
+	p := uintptr(v)                             // 解析为指针地址
+	p -= uintptr(unsafe.Pointer(h.arena_start)) // 减去起始偏移
+	return h_spans[p>>_PageShift]               // 根据页面号找到mspan
 }
 
+// 查找指定地址所在的span，地址不保证一定在map中
 // Look up the span at the given address.
 // Address is *not* guaranteed to be in map
 // and may be anywhere in the span.
@@ -680,7 +681,7 @@ func mHeap_Lookup(h *mheap, v unsafe.Pointer) *mspan {
 // check for that.
 func mHeap_LookupMaybe(h *mheap, v unsafe.Pointer) *mspan {
 	if uintptr(v) < uintptr(unsafe.Pointer(h.arena_start)) || uintptr(v) >= uintptr(unsafe.Pointer(h.arena_used)) {
-		return nil
+		return nil // 如果地址越界，返回空
 	}
 	p := uintptr(v) >> _PageShift
 	q := p
@@ -876,7 +877,7 @@ func mSpanList_Init(list *mspan) { // 初始化mspan列表
 	list.prev = list
 }
 
-func mSpanList_Remove(span *mspan) {
+func mSpanList_Remove(span *mspan) { // 从列表中移除mspan
 	if span.prev == nil && span.next == nil {
 		return
 	}
@@ -890,7 +891,7 @@ func mSpanList_IsEmpty(list *mspan) bool { // 查看mspan列表是否为空
 	return list.next == list
 }
 
-func mSpanList_Insert(list *mspan, span *mspan) {
+func mSpanList_Insert(list *mspan, span *mspan) { // 将mspan加入到列表中
 	if span.next != nil || span.prev != nil {
 		println("failed MSpanList_Insert", span, span.next, span.prev)
 		throw("MSpanList_Insert")
@@ -901,7 +902,7 @@ func mSpanList_Insert(list *mspan, span *mspan) {
 	span.prev.next = span
 }
 
-func mSpanList_InsertBack(list *mspan, span *mspan) {
+func mSpanList_InsertBack(list *mspan, span *mspan) { // 将mspan加入到列表尾部
 	if span.next != nil || span.prev != nil {
 		println("failed MSpanList_InsertBack", span, span.next, span.prev)
 		throw("MSpanList_InsertBack")
@@ -921,7 +922,7 @@ const (
 	// if that happens.
 )
 
-type special struct {
+type special struct { // special结构
 	next   *special // linked list in span
 	offset uint16   // span offset of object
 	kind   byte     // kind of special

@@ -51,11 +51,11 @@ func unhex(c byte) byte { // 从16进制字符转换为数字
 type encoding int
 
 const (
-	encodePath encoding = 1 + iota // 字符出现在path上
-	encodeHost
-	encodeUserPassword
-	encodeQueryComponent // 字符出现在query部分
-	encodeFragment       // 字符出现在fragment部分
+	encodePath           encoding = 1 + iota // 字符出现在path上
+	encodeHost                               // 字符出现在host部分
+	encodeUserPassword                       // 字符出现在user password部分
+	encodeQueryComponent                     // 字符出现在query部分
+	encodeFragment                           // 字符出现在fragment部分
 )
 
 type EscapeError string
@@ -355,11 +355,11 @@ func split(s string, c string, cutc bool) (string, string) {
 }
 
 // Parse parses rawurl into a URL structure.
-// The rawurl may be relative or absolute.
+// The rawurl may be relative or absolute. rawurl可能是绝对路径，也有可能是相对路径
 func Parse(rawurl string) (url *URL, err error) { // 将一个url字符串解析为URL结构，不一定来自请求
 	// Cut off #frag
 	u, frag := split(rawurl, "#", true)         // split出Fragment部分
-	if url, err = parse(u, false); err != nil { // 解析成URL结构
+	if url, err = parse(u, false); err != nil { // 解析成URL结构，不包括Fragment部分
 		return nil, err
 	}
 	if frag == "" {
@@ -377,7 +377,7 @@ func Parse(rawurl string) (url *URL, err error) { // 将一个url字符串解析
 // The string rawurl is assumed not to have a #fragment suffix.
 // (Web browsers strip #fragment before sending the URL to a web server.)
 func ParseRequestURI(rawurl string) (url *URL, err error) { // 解析请求的url字符串为URL结构
-	return parse(rawurl, true)
+	return parse(rawurl, true) // 如果url来自请求，则按照绝对路径解析
 }
 
 // parse parses a URL from a string in one of two contexts.  If
@@ -403,11 +403,11 @@ func parse(rawurl string, viaRequest bool) (url *URL, err error) { // 解析url�
 	if url.Scheme, rest, err = getscheme(rawurl); err != nil { // 先获得scheme
 		goto Error
 	}
-	url.Scheme = strings.ToLower(url.Scheme)
+	url.Scheme = strings.ToLower(url.Scheme) // 将scheme变为小写
 
-	rest, url.RawQuery = split(rest, "?", true)
+	rest, url.RawQuery = split(rest, "?", true) // 获得路径部分与查询部分
 
-	if !strings.HasPrefix(rest, "/") {
+	if !strings.HasPrefix(rest, "/") { // 如果不以/开头
 		if url.Scheme != "" {
 			// We consider rootless paths per RFC 3986 as opaque.
 			url.Opaque = rest
@@ -693,7 +693,7 @@ func ParseQuery(query string) (m Values, err error) { // 解析查询为Key，va
 	return
 }
 
-func parseQuery(m Values, query string) (err error) { // 解析查询
+func parseQuery(m Values, query string) (err error) { // 解析查询，获得key value的形式
 	for query != "" {
 		key := query
 		if i := strings.IndexAny(key, "&;"); i >= 0 {

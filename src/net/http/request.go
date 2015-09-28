@@ -643,14 +643,14 @@ func putTextprotoReader(r *textproto.Reader) {
 }
 
 // ReadRequest reads and parses an incoming request from b.
-func ReadRequest(b *bufio.Reader) (req *Request, err error) {
+func ReadRequest(b *bufio.Reader) (req *Request, err error) { // 从Reader读数据生成Request结构指针
 
-	tp := newTextprotoReader(b)
-	req = new(Request)
+	tp := newTextprotoReader(b) // 新建文本协议读
+	req = new(Request)          // 新建Request结构
 
 	// First line: GET /index.html HTTP/1.0
 	var s string
-	if s, err = tp.ReadLine(); err != nil {
+	if s, err = tp.ReadLine(); err != nil { // 先读出来命令行
 		return nil, err
 	}
 	defer func() {

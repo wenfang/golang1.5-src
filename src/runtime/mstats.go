@@ -8,6 +8,7 @@ package runtime
 
 import "unsafe"
 
+// 内存使用统计信息，和MemStats对应
 // Statistics.
 // If you edit this structure, also edit type MemStats below.
 type mstats struct {
@@ -81,6 +82,7 @@ type mstats struct {
 	// next mark termination.
 	heap_marked uint64
 
+	// heap_reachable是在上次GC完成后，推测的可达到的堆的大小
 	// heap_reachable is an estimate of the reachable heap bytes
 	// at the end of the previous GC.
 	heap_reachable uint64

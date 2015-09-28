@@ -610,8 +610,8 @@ func mhelpgc() {
 	_g_.m.helpgc = -1
 }
 
-func startTheWorldWithSema() {
-	_g_ := getg()
+func startTheWorldWithSema() { // 执行start the world
+	_g_ := getg() // 获取当前的goroutine
 
 	_g_.m.locks++        // disable preemption because it can be holding p in a local var
 	gp := netpoll(false) // non-blocking
@@ -3389,7 +3389,7 @@ func pidleget() *p {
 
 // runqempty returns true if _p_ has no Gs on its local run queue.
 // Note that this test is generally racy.
-func runqempty(_p_ *p) bool {
+func runqempty(_p_ *p) bool { // 判断P的运行队列是否为空
 	return _p_.runqhead == _p_.runqtail && _p_.runnext == 0
 }
 
