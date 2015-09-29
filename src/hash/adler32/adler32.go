@@ -52,8 +52,8 @@ func update(d digest, p []byte) digest {
 			p, q = p[:nmax], p[nmax:]
 		}
 		for _, x := range p {
-			s1 += uint32(x) // s1¼ÓÉÏÃ¿¸ö×Ö·ûµÄÖµ
-			s2 += s1        // s2¼ÓÉÏÃ¿¸ös1
+			s1 += uint32(x) // s1åŠ ä¸Šæ¯ä¸ªå­—ç¬¦çš„å€¼
+			s2 += s1        // s2åŠ ä¸Šæ¯ä¸ªs1
 		}
 		s1 %= mod
 		s2 %= mod
@@ -75,4 +75,4 @@ func (d *digest) Sum(in []byte) []byte {
 }
 
 // Checksum returns the Adler-32 checksum of data.
-func Checksum(data []byte) uint32 { return uint32(update(1, data)) } // ¼ÆËã³ödataµÄadler32Öµ
+func Checksum(data []byte) uint32 { return uint32(update(1, data)) } // è®¡ç®—å‡ºdataçš„adler32å€¼
