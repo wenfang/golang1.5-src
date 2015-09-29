@@ -51,6 +51,7 @@ It is a comma-separated list of name=val pairs setting these named variables:
 	making every garbage collection a stop-the-world event. Setting gcstoptheworld=2
 	also disables concurrent sweeping after the garbage collection finishes.
 
+	设置gctrace=1，导致在每次垃圾收集时向标准错误打印单行信息
 	gctrace: setting gctrace=1 causes the garbage collector to emit a single line to standard
 	error at each collection, summarizing the amount of memory collected and the
 	length of the pause. Setting gctrace=2 emits the same summary but also

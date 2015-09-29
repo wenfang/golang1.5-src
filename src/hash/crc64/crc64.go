@@ -22,11 +22,11 @@ const (
 )
 
 // Table is a 256-word table representing the polynomial for efficient processing.
-type Table [256]uint64
+type Table [256]uint64 // 256个word的table
 
 // MakeTable returns the Table constructed from the specified polynomial.
-func MakeTable(poly uint64) *Table {
-	t := new(Table)
+func MakeTable(poly uint64) *Table { // 创建CRC Table
+	t := new(Table) // 创建Table
 	for i := 0; i < 256; i++ {
 		crc := uint64(i)
 		for j := 0; j < 8; j++ {

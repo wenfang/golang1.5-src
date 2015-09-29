@@ -18,7 +18,7 @@ const sniffLen = 512
 // first 512 bytes of data.  DetectContentType always returns
 // a valid MIME type: if it cannot determine a more specific one, it
 // returns "application/octet-stream".
-func DetectContentType(data []byte) string {
+func DetectContentType(data []byte) string { // 检测内容类型
 	if len(data) > sniffLen {
 		data = data[:sniffLen]
 	}

@@ -17,7 +17,7 @@ type sweepdata struct { // 后台的sweep的状态
 	parked  bool // 是否进入休眠状态
 	started bool
 
-	spanidx uint32 // background sweeper position
+	spanidx uint32 // background sweeper position 已经处理到的span的索引
 
 	nbgsweep    uint32
 	npausesweep uint32
@@ -27,7 +27,7 @@ type sweepdata struct { // 后台的sweep的状态
 func finishsweep_m() { // 在world停止后，完成sweep
 	// The world is stopped so we should be able to complete the sweeps
 	// quickly.
-	for sweepone() != ^uintptr(0) {
+	for sweepone() != ^uintptr(0) { // 持续执行sweepone
 		sweep.npausesweep++
 	}
 
@@ -68,7 +68,7 @@ func bgsweep(c chan int) { // 启动bgsweep goroutine执行
 	}
 }
 
-// sweep一个span，如果当前没有要sweep的span，返回0的按位非值
+// sweep一个span，返回归还到heap的页面的数量，如果当前没有要sweep的span，返回0的按位非值
 // sweeps one span
 // returns number of pages returned to heap, or ^uintptr(0) if there is nothing to sweep
 //go:nowritebarrier
@@ -78,24 +78,24 @@ func sweepone() uintptr {
 	// increment locks to ensure that the goroutine is not preempted
 	// in the middle of sweep thus leaving the span in an inconsistent state for next GC
 	_g_.m.locks++         // 保证该goroutine不会被抢占
-	sg := mheap_.sweepgen // 获得当前堆的sweep代数
+	sg := mheap_.sweepgen // 获得堆的sweep代数
 	for {
-		idx := xadd(&sweep.spanidx, 1) - 1 // 获得spanidx索引，上次处理的span
-		if idx >= uint32(len(work.spans)) {
+		idx := xadd(&sweep.spanidx, 1) - 1  // 获得spanidx索引，上次处理的span
+		if idx >= uint32(len(work.spans)) { // 如果spanidx的索引大于spans列表的长度
 			mheap_.sweepdone = 1 // 一次sweep已经完成
 			_g_.m.locks--
-			return ^uintptr(0)
+			return ^uintptr(0) // 已经完成了一次sweep
 		}
-		s := work.spans[idx]
-		if s.state != mSpanInUse {
-			s.sweepgen = sg
+		s := work.spans[idx]       // 获取索引对应的mspan
+		if s.state != mSpanInUse { // 如果mspan的状态不是正在使用
+			s.sweepgen = sg // 将mspan的代数设置为堆得代数
+			continue        // 查看下一个
+		}
+		if s.sweepgen != sg-2 || !cas(&s.sweepgen, sg-2, sg-1) { // 如果当前由人正在sweep该mspan，查看下一个
 			continue
 		}
-		if s.sweepgen != sg-2 || !cas(&s.sweepgen, sg-2, sg-1) {
-			continue
-		}
-		npages := s.npages
-		if !mSpan_Sweep(s, false) {
+		npages := s.npages          // 取出mspan的页面大小
+		if !mSpan_Sweep(s, false) { // 执行mSpan_Sweep执行sweep
 			npages = 0
 		}
 		_g_.m.locks--
@@ -104,7 +104,7 @@ func sweepone() uintptr {
 }
 
 //go:nowritebarrier
-func gosweepone() uintptr { // 在系统栈上执行一次sweep
+func gosweepone() uintptr { // 在系统栈上执行一次sweepone
 	var ret uintptr
 	systemstack(func() { // 在系统栈上执行sweepone，返回ret
 		ret = sweepone()
@@ -113,7 +113,7 @@ func gosweepone() uintptr { // 在系统栈上执行一次sweep
 }
 
 //go:nowritebarrier
-func gosweepdone() bool {
+func gosweepdone() bool { // 判断sweep是否结束
 	return mheap_.sweepdone != 0
 }
 
@@ -143,7 +143,7 @@ func mSpan_EnsureSwept(s *mspan) {
 	}
 }
 
-// 对在mark阶段没有被mark的块释放或者收集finalizer，为下一次gc周期清楚mark标记
+// 释放mark阶段没有被mark的块释放，或者收集finalizer，为下一次gc周期清除mark标记。
 // 如果Span被归还到了mheap中，返回true，如果preserve为true，不将Span返回到heap中
 // 也不将Span重新加入MCentral列表中，由调用者负责处理
 // Sweep frees or collects finalizers for blocks not marked in the mark phase.
@@ -155,7 +155,7 @@ func mSpan_EnsureSwept(s *mspan) {
 func mSpan_Sweep(s *mspan, preserve bool) bool {
 	// It's critical that we enter this function with preemption disabled,
 	// GC must not start while we are in the middle of this function.
-	_g_ := getg()                                                    // 返回当前的goroutine结构指针
+	_g_ := getg()                                                    // 返回当前的goroutine
 	if _g_.m.locks == 0 && _g_.m.mallocing == 0 && _g_ != _g_.m.g0 { // 如果m没有被锁定，抛出异常
 		throw("MSpan_Sweep: m is not locked")
 	}
@@ -171,14 +171,14 @@ func mSpan_Sweep(s *mspan, preserve bool) bool {
 	// 增加统计，被sweep的页面的数量
 	xadd64(&mheap_.pagesSwept, int64(s.npages))
 
-	cl := s.sizeclass
-	size := s.elemsize
+	cl := s.sizeclass  //该mspan对应的sizeclass
+	size := s.elemsize // 该mspan保存的元素大小
 	res := false
 	nfree := 0
 
 	var head, end gclinkptr
 
-	c := _g_.m.mcache
+	c := _g_.m.mcache // 获得该goroutine对应的mcache
 	freeToHeap := false
 
 	// Mark any free objects in this span so we don't collect them.

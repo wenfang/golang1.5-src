@@ -8,7 +8,7 @@
 // Stack, data, and bss bitmaps
 //
 // 在数据段和bss段中的栈帧和全局变量由1bit的位图描述，0表示不感兴趣，1表示活跃指针
-// 需要在gc时检查。在每个字节中bit的消耗从低到高
+// 需要在gc时检查。在每个字节中bit的消耗从低到高。
 // Stack frames and global variables in the data and bss sections are described
 // by 1-bit bitmaps in which 0 means uninteresting and 1 means live pointer
 // to be visited during GC. The bits in each byte are consumed starting with
@@ -164,15 +164,17 @@ func mHeap_MapBits(h *mheap, arena_used uintptr) {
 	h.bitmap_mapped = n
 }
 
+// heapBits提供了到位图bit的访问，对单个堆的word.
 // heapBits provides access to the bitmap bits for a single heap word.
 // The methods on heapBits take value receivers so that the compiler
 // can more easily inline calls to those methods and registerize the
 // struct fields independently.
 type heapBits struct {
-	bitp  *uint8
-	shift uint32
+	bitp  *uint8 // bit位所在的uint8位置
+	shift uint32 // 在4个bit上的偏移
 }
 
+// heapBitsForAddr返回对应addr地址的heapBits，调用者必须保证addr在arena_start到arena_used之间
 // heapBitsForAddr returns the heapBits for the address addr.
 // The caller must have already checked that addr is in the range [mheap_.arena_start, mheap_.arena_used).
 //
@@ -180,38 +182,39 @@ type heapBits struct {
 //go:nosplit
 func heapBitsForAddr(addr uintptr) heapBits {
 	// 2 bits per work, 4 pairs per byte, and a mask is hard coded.
-	off := (addr - mheap_.arena_start) / ptrSize
+	off := (addr - mheap_.arena_start) / ptrSize // addr是第几个word，从0开始
 	return heapBits{(*uint8)(unsafe.Pointer(mheap_.arena_start - off/4 - 1)), uint32(off & 3)}
 }
 
 // heapBitsForSpan returns the heapBits for the span base address base.
 func heapBitsForSpan(base uintptr) (hbits heapBits) {
-	if base < mheap_.arena_start || base >= mheap_.arena_used {
+	if base < mheap_.arena_start || base >= mheap_.arena_used { // base地址不在范围之内，抛出异常
 		throw("heapBitsForSpan: base out of range")
 	}
-	hbits = heapBitsForAddr(base)
-	if hbits.shift != 0 {
+	hbits = heapBitsForAddr(base) // 获取该base地址对应的bit位图地址
+	if hbits.shift != 0 {         // hbits所在的偏移非0，抛出异常，没有对齐
 		throw("heapBitsForSpan: unaligned start")
 	}
 	return hbits
 }
 
+// heapBitsForObject返回包含地址p的堆对象的基地址
 // heapBitsForObject returns the base address for the heap object
 // containing the address p, along with the heapBits for base.
 // If p does not point into a heap object,
 // return base == 0
 // otherwise return the base of the object.
 func heapBitsForObject(p uintptr) (base uintptr, hbits heapBits, s *mspan) {
-	arenaStart := mheap_.arena_start
-	if p < arenaStart || p >= mheap_.arena_used {
+	arenaStart := mheap_.arena_start              // 获得堆的起始地址
+	if p < arenaStart || p >= mheap_.arena_used { // p不在堆的有效区域中，返回
 		return
 	}
-	off := p - arenaStart
-	idx := off >> _PageShift
+	off := p - arenaStart    // 获得地址的偏移量
+	idx := off >> _PageShift // 获得页面号
 	// p points into the heap, but possibly to the middle of an object.
 	// Consult the span table to find the block beginning.
-	k := p >> _PageShift
-	s = h_spans[idx]
+	k := p >> _PageShift // 获得绝对地址的页面号
+	s = h_spans[idx]     // 获得对应的mspan
 	if s == nil || pageID(k) < s.start || p >= s.limit || s.state != mSpanInUse {
 		if s == nil || s.state == _MSpanStack {
 			// If s is nil, the virtual address has never been part of the heap.
@@ -294,15 +297,16 @@ func (h heapBits) bits() uint32 {
 	return uint32(*h.bitp) >> h.shift
 }
 
+// 报告是否该heap bits被marked
 // isMarked reports whether the heap bits have the marked bit set.
 // h must describe the initial word of the object.
-func (h heapBits) isMarked() bool {
+func (h heapBits) isMarked() bool { // 查看是否被marked
 	return *h.bitp&(bitMarked<<h.shift) != 0
 }
 
 // setMarked sets the marked bit in the heap bits, atomically.
 // h must describe the initial word of the object.
-func (h heapBits) setMarked() {
+func (h heapBits) setMarked() { // 设置heap bits的mark
 	// Each byte of GC bitmap holds info for four words.
 	// Might be racing with other updates, so use atomic update always.
 	// We used to be clever here and use a non-atomic update in certain
@@ -321,18 +325,20 @@ func (h heapBits) setMarkedNonAtomic() {
 //
 // nosplit because it is used during write barriers and must not be preempted.
 //go:nosplit
-func (h heapBits) isPointer() bool {
+func (h heapBits) isPointer() bool { // 判断是否是指针
 	return (*h.bitp>>h.shift)&bitPointer != 0
 }
 
+// hasPointers报告是否给定的对象具有指针.
 // hasPointers reports whether the given object has any pointers.
 // It must be told how large the object at h is, so that it does not read too
 // far into the bitmap.
 // h must describe the initial word of the object.
 func (h heapBits) hasPointers(size uintptr) bool {
-	if size == ptrSize { // 1-word objects are always pointers
+	if size == ptrSize { // 1-word objects are always pointers 1个word的对象总是指针
 		return true
 	}
+	// 至少2个word的对象
 	// Otherwise, at least a 2-word object, and at least 2-word aligned,
 	// so h.shift is either 0 or 4, so we know we can get the bits for the
 	// first two words out of *h.bitp.

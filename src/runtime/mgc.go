@@ -1046,6 +1046,7 @@ func gc(mode int) { // 开始执行gc
 			// before any blackening occurs.
 			forEachP(func(*p) {})
 		})
+		// 执行并发的mark
 		// Concurrent mark.
 		tMark = nanotime()
 
@@ -1268,6 +1269,8 @@ func gc(mode int) { // 开始执行gc
 	}
 }
 
+// gcBgMarkStartWorkers准备后台mark工作goroutine，这些goroutine直到mark
+// 阶段才开始工作。
 // gcBgMarkStartWorkers prepares background mark worker goroutines.
 // These goroutines will not run until the mark phase, but they must
 // be started while the work is not stopped and from a regular G
@@ -1275,12 +1278,12 @@ func gc(mode int) { // 开始执行gc
 func gcBgMarkStartWorkers() {
 	// Background marking is performed by per-P G's. Ensure that
 	// each P has a background GC G.
-	for _, p := range &allp {
+	for _, p := range &allp { // 遍历所有的P
 		if p == nil || p.status == _Pdead {
 			break
 		}
 		if p.gcBgMarkWorker == nil {
-			go gcBgMarkWorker(p)
+			go gcBgMarkWorker(p) // 为每个P创建一个gcBgMarkWorker
 			notetsleepg(&work.bgMarkReady, -1)
 			noteclear(&work.bgMarkReady)
 		}
@@ -1307,9 +1310,10 @@ func gcBgMarkPrepare() {
 	work.bgMark2.done = 1
 }
 
+// 为每个P启动的gcBgMarkWorker
 func gcBgMarkWorker(p *p) {
 	// Register this G as the background mark worker for p.
-	if p.gcBgMarkWorker != nil {
+	if p.gcBgMarkWorker != nil { // P已经有gcBgMarkWoker了，抛出异常
 		throw("P already has a background mark worker")
 	}
 	gp := getg()
