@@ -235,7 +235,7 @@ func IndexRune(s string, r rune) int { // 在string s中查找rune r所在的位
 
 // IndexAny returns the index of the first instance of any Unicode code point
 // from chars in s, or -1 if no Unicode code point from chars is present in s.
-func IndexAny(s, chars string) int {
+func IndexAny(s, chars string) int { // 返回任意在chars中出现的字符的位置
 	if len(chars) > 0 {
 		for i, c := range s {
 			for _, m := range chars {
@@ -251,7 +251,7 @@ func IndexAny(s, chars string) int {
 // LastIndexAny returns the index of the last instance of any Unicode code
 // point from chars in s, or -1 if no Unicode code point from chars is
 // present in s.
-func LastIndexAny(s, chars string) int {
+func LastIndexAny(s, chars string) int { // 从后向前查找chars中任意字符的位置
 	if len(chars) > 0 {
 		for i := len(s); i > 0; {
 			rune, size := utf8.DecodeLastRuneInString(s[0:i])
@@ -267,7 +267,7 @@ func LastIndexAny(s, chars string) int {
 }
 
 // LastIndexByte returns the index of the last instance of c in s, or -1 if c is not present in s.
-func LastIndexByte(s string, c byte) int {
+func LastIndexByte(s string, c byte) int { // 从后向前查找一个byte的位置
 	for i := len(s) - 1; i >= 0; i-- {
 		if s[i] == c {
 			return i
@@ -304,6 +304,7 @@ func genSplit(s, sep string, sepSave, n int) []string {
 	return a[0 : na+1]
 }
 
+// 用sep分割字符串s
 // SplitN slices s into substrings separated by sep and returns a slice of
 // the substrings between those separators.
 // If sep is empty, SplitN splits after each UTF-8 sequence.
