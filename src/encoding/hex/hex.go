@@ -88,7 +88,7 @@ func EncodeToString(src []byte) string { // 将src byte编码为字符串
 }
 
 // DecodeString returns the bytes represented by the hexadecimal string s.
-func DecodeString(s string) ([]byte, error) {
+func DecodeString(s string) ([]byte, error) { // 解码字符串
 	src := []byte(s)
 	dst := make([]byte, DecodedLen(len(src)))
 	_, err := Decode(dst, src)

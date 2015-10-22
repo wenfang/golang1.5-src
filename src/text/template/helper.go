@@ -48,7 +48,7 @@ func (t *Template) ParseFiles(filenames ...string) (*Template, error) { // 解�
 
 // parseFiles is the helper for the method and function. If the argument
 // template is nil, it is created from the first file.
-func parseFiles(t *Template, filenames ...string) (*Template, error) {
+func parseFiles(t *Template, filenames ...string) (*Template, error) { // 解析一组文件，生成模板
 	if len(filenames) == 0 { /// 如果文件名长度为0，返回错误
 		// Not really a problem, but be consistent.
 		return nil, fmt.Errorf("template: no files named in call to ParseFiles")

@@ -24,8 +24,8 @@ import (
 )
 
 var (
-	driversMu sync.Mutex // 保护drivers map的锁
-	drivers   = make(map[string]driver.Driver)
+	driversMu sync.Mutex                       // 保护drivers map的锁
+	drivers   = make(map[string]driver.Driver) // 保存driver的map
 )
 
 // Register makes a database driver available by the provided name.
@@ -51,7 +51,7 @@ func unregisterAllDrivers() { // 反注册所有的driver
 }
 
 // Drivers returns a sorted list of the names of the registered drivers.
-func Drivers() []string { // 返回drivers的名称列表
+func Drivers() []string { // 返回drivers的名称列表，返回排序后的名称列表
 	driversMu.Lock()
 	defer driversMu.Unlock()
 	var list []string
@@ -1082,13 +1082,13 @@ func (db *DB) Driver() driver.Driver { // 返回database所使用的driver
 // The statements prepared for a transaction by calling
 // the transaction's Prepare or Stmt methods are closed
 // by the call to Commit or Rollback.
-type Tx struct {
+type Tx struct { // 数据库事务
 	db *DB
 
 	// dc is owned exclusively until Commit or Rollback, at which point
 	// it's returned with putConn.
-	dc  *driverConn
-	txi driver.Tx
+	dc  *driverConn // 对应driver的连接
+	txi driver.Tx   // 对应driver的事务
 
 	// done transitions from false to true exactly once, on Commit
 	// or Rollback. once done, all operations fail with
@@ -1322,8 +1322,8 @@ type Stmt struct { // 代表一个prepared的语句，goroutine safe
 	closemu sync.RWMutex // held exclusively during close, for read otherwise.
 
 	// If in a transaction, else both nil:
-	tx   *Tx
-	txsi *driverStmt
+	tx   *Tx         // 对应事务的指针，否则为nil
+	txsi *driverStmt // 对应底层driver的Stmt
 
 	mu     sync.Mutex // protects the rest of the fields
 	closed bool
@@ -1751,7 +1751,7 @@ func (r *Row) Scan(dest ...interface{}) error { // 将行查询的结果放入de
 	// don't care.
 	defer r.rows.Close()
 	for _, dp := range dest {
-		if _, ok := dp.(*RawBytes); ok {
+		if _, ok := dp.(*RawBytes); ok { // RawBytes不允许进行Row.Scan
 			return errors.New("sql: RawBytes isn't allowed on Row.Scan")
 		}
 	}
@@ -1790,17 +1790,17 @@ type Result interface { // 执行SQL语句后返回结果接口
 }
 
 type driverResult struct { // driverResult实现了Result接口
-	sync.Locker // the *driverConn
-	resi        driver.Result
+	sync.Locker               // the *driverConn
+	resi        driver.Result // 封装了内部的driver.Result
 }
 
-func (dr driverResult) LastInsertId() (int64, error) {
+func (dr driverResult) LastInsertId() (int64, error) { // 获得insert行的id
 	dr.Lock()
 	defer dr.Unlock()
 	return dr.resi.LastInsertId()
 }
 
-func (dr driverResult) RowsAffected() (int64, error) {
+func (dr driverResult) RowsAffected() (int64, error) { // 获得影响的行数
 	dr.Lock()
 	defer dr.Unlock()
 	return dr.resi.RowsAffected()

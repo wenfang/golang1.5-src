@@ -247,7 +247,7 @@ var (
 // Publish declares a named exported variable. This should be called from a
 // package's init function when it creates its Vars. If the name is already
 // registered then this will log.Panic.
-func Publish(name string, v Var) { // 声明一个命名的导出变量
+func Publish(name string, v Var) { // 声明一个命名的导出变量，注册进vars map中
 	mutex.Lock()
 	defer mutex.Unlock()
 	if _, existing := vars[name]; existing { // 遍历所有要导出的Var，查找重复

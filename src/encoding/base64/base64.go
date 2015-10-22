@@ -21,7 +21,7 @@ import (
 // the standard encoding with - and _ substituted for + and /.
 type Encoding struct { // 编码结构
 	encode    [64]byte
-	decodeMap [256]byte
+	decodeMap [256]byte // 对每个字符，设置解码的对应表
 	padChar   rune
 }
 
@@ -38,13 +38,13 @@ const encodeURL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678
 // The resulting Encoding uses the default padding character ('='),
 // which may be changed or disabled via WithPadding.
 func NewEncoding(encoder string) *Encoding { // 新创建一个base64编码器
-	if len(encoder) != 64 {
+	if len(encoder) != 64 { // 字母表必须为64个字节长
 		panic("encoding alphabet is not 64-bytes long")
 	}
 
-	e := new(Encoding)
-	e.padChar = StdPadding
-	copy(e.encode[:], encoder)
+	e := new(Encoding)         // 创建Encoding结构
+	e.padChar = StdPadding     // 设置标准的padding字符
+	copy(e.encode[:], encoder) // 将字符表复制过来
 
 	for i := 0; i < len(e.decodeMap); i++ { // 初始化decodeMap
 		e.decodeMap[i] = 0xFF // 先全部初始化为0xFF
