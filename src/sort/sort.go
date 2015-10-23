@@ -9,17 +9,17 @@ package sort
 // A type, typically a collection, that satisfies sort.Interface can be
 // sorted by the routines in this package.  The methods require that the
 // elements of the collection be enumerated by an integer index.
-type Interface interface { // Ö»ÒªÂú×ãsort.Interface½Ó¿Ú¼´¿É±»sortÅÅĞò£¬°´ÕÕÓÉĞ¡µ½´óµÄË³ĞòÅÅĞò
+type Interface interface { // åªè¦æ»¡è¶³sort.Interfaceæ¥å£å³å¯è¢«sortæ’åºï¼ŒæŒ‰ç…§ç”±å°åˆ°å¤§çš„é¡ºåºæ’åº
 	// Len is the number of elements in the collection.
-	Len() int // »ñµÃ´ıÅÅĞòÁĞ±íµÄ³¤¶È
+	Len() int // è·å¾—å¾…æ’åºåˆ—è¡¨çš„é•¿åº¦
 	// Less reports whether the element with
 	// index i should sort before the element with index j.
-	Less(i, j int) bool // ±È½ÏÁ½¸öÔªËØµÄ´óĞ¡
+	Less(i, j int) bool // æ¯”è¾ƒä¸¤ä¸ªå…ƒç´ çš„å¤§å°
 	// Swap swaps the elements with indexes i and j.
-	Swap(i, j int) // ½»»»Á½¸öÔªËØ
+	Swap(i, j int) // äº¤æ¢ä¸¤ä¸ªå…ƒç´ 
 }
 
-func min(a, b int) int { // È¡Á½¸öÖµÖĞ×îĞ¡µÄ
+func min(a, b int) int { // å–ä¸¤ä¸ªå€¼ä¸­æœ€å°çš„
 	if a < b {
 		return a
 	}
@@ -162,7 +162,7 @@ func doPivot(data Interface, lo, hi int) (midlo, midhi int) {
 	return lo + b - a, hi - (d - c)
 }
 
-func quickSort(data Interface, a, b, maxDepth int) { // ¿ìËÙÅÅĞò
+func quickSort(data Interface, a, b, maxDepth int) { // å¿«é€Ÿæ’åº
 	for b-a > 7 {
 		if maxDepth == 0 {
 			heapSort(data, a, b)
@@ -188,7 +188,7 @@ func quickSort(data Interface, a, b, maxDepth int) { // ¿ìËÙÅÅĞò
 // Sort sorts data.
 // It makes one call to data.Len to determine n, and O(n*log(n)) calls to
 // data.Less and data.Swap. The sort is not guaranteed to be stable.
-func Sort(data Interface) { // Ê¹ÓÃ¿ìËÙÅÅĞò½øĞĞÅÅĞò£¬½«ÊµÏÖÁËInterface½Ó¿ÚµÄdata½øĞĞÅÅĞò
+func Sort(data Interface) { // ä½¿ç”¨å¿«é€Ÿæ’åºè¿›è¡Œæ’åºï¼Œå°†å®ç°äº†Interfaceæ¥å£çš„dataè¿›è¡Œæ’åº
 	// Switch to heapsort if depth of 2*ceil(lg(n+1)) is reached.
 	n := data.Len()
 	maxDepth := 0
@@ -196,27 +196,27 @@ func Sort(data Interface) { // Ê¹ÓÃ¿ìËÙÅÅĞò½øĞĞÅÅĞò£¬½«ÊµÏÖÁËInterface½Ó¿ÚµÄdata
 		maxDepth++
 	}
 	maxDepth *= 2
-	quickSort(data, 0, n, maxDepth) // Ê¹ÓÃ¿ìÅÄ·½·¨½øĞĞÅÅĞò
+	quickSort(data, 0, n, maxDepth) // ä½¿ç”¨å¿«æ‹æ–¹æ³•è¿›è¡Œæ’åº
 }
 
-type reverse struct { // ¶ÔsortµÄ½Ó¿Ú½øĞĞÖØĞÂ°ü×°£¬·µ»ØĞÂ½Ó¿Ú£¬½«ÔªËØµ¹ÅÅ
+type reverse struct { // å¯¹sortçš„æ¥å£è¿›è¡Œé‡æ–°åŒ…è£…ï¼Œè¿”å›æ–°æ¥å£ï¼Œå°†å…ƒç´ å€’æ’
 	// This embedded Interface permits Reverse to use the methods of
 	// another Interface implementation.
 	Interface
 }
 
 // Less returns the opposite of the embedded implementation's Less method.
-func (r reverse) Less(i, j int) bool { // ÖØĞÂ°ü×°Lessº¯Êı
+func (r reverse) Less(i, j int) bool { // é‡æ–°åŒ…è£…Lesså‡½æ•°
 	return r.Interface.Less(j, i)
 }
 
 // Reverse returns the reverse order for data.
-func Reverse(data Interface) Interface { // ÓÃReverse¶ÔInterface½øĞĞÒ»²ã°ü×°£¬»ñµÃµ¹Ğò
+func Reverse(data Interface) Interface { // ç”¨Reverseå¯¹Interfaceè¿›è¡Œä¸€å±‚åŒ…è£…ï¼Œè·å¾—å€’åº
 	return &reverse{data}
 }
 
 // IsSorted reports whether data is sorted.
-func IsSorted(data Interface) bool { // ¼ì²éÊı¾İdataÊÇ·ñÊÇÓĞĞòµÄ
+func IsSorted(data Interface) bool { // æ£€æŸ¥æ•°æ®dataæ˜¯å¦æ˜¯æœ‰åºçš„
 	n := data.Len()
 	for i := n - 1; i > 0; i-- {
 		if data.Less(i, i-1) {
@@ -229,7 +229,7 @@ func IsSorted(data Interface) bool { // ¼ì²éÊı¾İdataÊÇ·ñÊÇÓĞĞòµÄ
 // Convenience types for common cases
 
 // IntSlice attaches the methods of Interface to []int, sorting in increasing order.
-type IntSlice []int // Ê¹int slice¾ßÓĞÅÅĞò¹¦ÄÜ
+type IntSlice []int // ä½¿int sliceå…·æœ‰æ’åºåŠŸèƒ½
 
 func (p IntSlice) Len() int           { return len(p) }
 func (p IntSlice) Less(i, j int) bool { return p[i] < p[j] }
@@ -239,7 +239,7 @@ func (p IntSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p IntSlice) Sort() { Sort(p) }
 
 // Float64Slice attaches the methods of Interface to []float64, sorting in increasing order.
-type Float64Slice []float64 // Ê¹float64 slice¾ßÓĞÅÅĞò¹¦ÄÜ
+type Float64Slice []float64 // ä½¿float64 sliceå…·æœ‰æ’åºåŠŸèƒ½
 
 func (p Float64Slice) Len() int           { return len(p) }
 func (p Float64Slice) Less(i, j int) bool { return p[i] < p[j] || isNaN(p[i]) && !isNaN(p[j]) }
@@ -254,7 +254,7 @@ func isNaN(f float64) bool {
 func (p Float64Slice) Sort() { Sort(p) }
 
 // StringSlice attaches the methods of Interface to []string, sorting in increasing order.
-type StringSlice []string // Ê¹string slice¾ßÓĞÅÅĞò¹¦ÄÜ
+type StringSlice []string // ä½¿string sliceå…·æœ‰æ’åºåŠŸèƒ½
 
 func (p StringSlice) Len() int           { return len(p) }
 func (p StringSlice) Less(i, j int) bool { return p[i] < p[j] }
@@ -266,13 +266,13 @@ func (p StringSlice) Sort() { Sort(p) }
 // Convenience wrappers for common cases
 
 // Ints sorts a slice of ints in increasing order.
-func Ints(a []int) { Sort(IntSlice(a)) } // Ö±½ÓÅÅĞòInt Slice
+func Ints(a []int) { Sort(IntSlice(a)) } // ç›´æ¥æ’åºInt Slice
 
 // Float64s sorts a slice of float64s in increasing order.
-func Float64s(a []float64) { Sort(Float64Slice(a)) } // Ö±½ÓÅÅĞòfloat Slice
+func Float64s(a []float64) { Sort(Float64Slice(a)) } // ç›´æ¥æ’åºfloat Slice
 
 // Strings sorts a slice of strings in increasing order.
-func Strings(a []string) { Sort(StringSlice(a)) } // Ö±½ÓÅÅĞòString Slice
+func Strings(a []string) { Sort(StringSlice(a)) } // ç›´æ¥æ’åºString Slice
 
 // IntsAreSorted tests whether a slice of ints is sorted in increasing order.
 func IntsAreSorted(a []int) bool { return IsSorted(IntSlice(a)) }
