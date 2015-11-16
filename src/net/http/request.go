@@ -74,7 +74,7 @@ var reqWriteExcludeHeader = map[string]bool{
 type Request struct {
 	// Method specifies the HTTP method (GET, POST, PUT, etc.).
 	// For client requests an empty string means GET.
-	Method string
+	Method string // 请求方法
 
 	// URL specifies either the URI being requested (for server
 	// requests) or the URL to access (for client requests).
@@ -214,7 +214,7 @@ type Request struct {
 	// Request-Line (RFC 2616, Section 5.1) as sent by the client
 	// to a server. Usually the URL field should be used instead.
 	// It is an error to set this field in an HTTP client request.
-	RequestURI string
+	RequestURI string // 请求URI
 
 	// TLS allows HTTP servers and other software to record
 	// information about the TLS connection on which the request
@@ -235,13 +235,13 @@ type Request struct {
 
 // ProtoAtLeast reports whether the HTTP protocol used
 // in the request is at least major.minor.
-func (r *Request) ProtoAtLeast(major, minor int) bool {
+func (r *Request) ProtoAtLeast(major, minor int) bool { // 检查request的协议版本号至少为major.minor
 	return r.ProtoMajor > major ||
 		r.ProtoMajor == major && r.ProtoMinor >= minor
 }
 
 // UserAgent returns the client's User-Agent, if sent in the request.
-func (r *Request) UserAgent() string {
+func (r *Request) UserAgent() string { // 返回请求的头部User-Agent域
 	return r.Header.Get("User-Agent")
 }
 
@@ -283,7 +283,7 @@ func (r *Request) AddCookie(c *Cookie) {
 // as a method is that the compiler can diagnose programs that use the
 // alternate (correct English) spelling req.Referrer() but cannot
 // diagnose programs that use Header["Referrer"].
-func (r *Request) Referer() string {
+func (r *Request) Referer() string { // 返回请求的Referer字段
 	return r.Header.Get("Referer")
 }
 
@@ -661,7 +661,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err error) { // 从Reader读数
 	}()
 
 	var ok bool
-	req.Method, req.RequestURI, req.Proto, ok = parseRequestLine(s)
+	req.Method, req.RequestURI, req.Proto, ok = parseRequestLine(s) // 解析请求行
 	if !ok {
 		return nil, &badStringError{"malformed HTTP request", s}
 	}

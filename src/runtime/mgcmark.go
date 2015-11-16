@@ -8,7 +8,7 @@ package runtime
 
 import "unsafe"
 
-// scan所有的栈
+// scan所有的栈，将引用置灰
 // Scan all of the stacks, greying (or graying if in America) the referents
 // but not blackening them since the mark write barrier isn't installed.
 //go:nowritebarrier
@@ -17,7 +17,7 @@ func gcscan_m() {
 
 	// Grab the g that called us and potentially allow rescheduling.
 	// This allows it to be scanned like other goroutines.
-	mastergp := _g_.m.curg
+	mastergp := _g_.m.curg                          // 获取master goroutine
 	casgstatus(mastergp, _Grunning, _Gwaiting)      // 如果当前goroutine的状态为running，将其变为waiting
 	mastergp.waitreason = "garbage collection scan" // goroutine等待的理由为gc scan
 
@@ -35,12 +35,12 @@ func gcscan_m() {
 	//	ackgcphase is not needed since we are not scanning running goroutines.
 	parforsetup(work.markfor, useOneP, uint32(_RootCount+local_allglen), false, markroot) // 使用一个P来执行markroot
 	parfordo(work.markfor)
-
+	// 下面检查gcscan工作是否完成，如果有未完成的则抛出异常
 	lock(&allglock)
 	// Check that gc work is done.
-	for i := 0; i < local_allglen; i++ {
-		gp := allgs[i]
-		if !gp.gcscandone {
+	for i := 0; i < local_allglen; i++ { // 检查gc工作已经完成
+		gp := allgs[i]      // 依次取出来goroutine
+		if !gp.gcscandone { // 如果gcscan未完成，抛出异常
 			throw("scan missed a g")
 		}
 	}

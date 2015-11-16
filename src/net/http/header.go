@@ -88,7 +88,7 @@ func ParseTime(text string) (t time.Time, err error) {
 
 var headerNewlineToSpace = strings.NewReplacer("\n", " ", "\r", " ")
 
-type writeStringer interface {
+type writeStringer interface { // writeStringer接口，实现WriteString方法
 	WriteString(string) (int, error)
 }
 
@@ -101,7 +101,7 @@ func (w stringWriter) WriteString(s string) (n int, err error) {
 	return w.w.Write([]byte(s))
 }
 
-type keyValues struct {
+type keyValues struct { // key values结构
 	key    string
 	values []string
 }
@@ -109,7 +109,7 @@ type keyValues struct {
 // A headerSorter implements sort.Interface by sorting a []keyValues
 // by key. It's used as a pointer, so it can fit in a sort.Interface
 // interface value without allocation.
-type headerSorter struct {
+type headerSorter struct { // 实现对keyValues结构的排序
 	kvs []keyValues
 }
 
@@ -117,7 +117,7 @@ func (s *headerSorter) Len() int           { return len(s.kvs) }
 func (s *headerSorter) Swap(i, j int)      { s.kvs[i], s.kvs[j] = s.kvs[j], s.kvs[i] }
 func (s *headerSorter) Less(i, j int) bool { return s.kvs[i].key < s.kvs[j].key }
 
-var headerSorterPool = sync.Pool{
+var headerSorterPool = sync.Pool{ // 创建headerSorter结构池
 	New: func() interface{} { return new(headerSorter) },
 }
 
@@ -125,29 +125,29 @@ var headerSorterPool = sync.Pool{
 // slice. The headerSorter used to sort is also returned, for possible
 // return to headerSorterCache.
 func (h Header) sortedKeyValues(exclude map[string]bool) (kvs []keyValues, hs *headerSorter) {
-	hs = headerSorterPool.Get().(*headerSorter)
+	hs = headerSorterPool.Get().(*headerSorter) // 从SorterPool中取出一个headerSorter结构
 	if cap(hs.kvs) < len(h) {
 		hs.kvs = make([]keyValues, 0, len(h))
 	}
 	kvs = hs.kvs[:0]
 	for k, vv := range h {
-		if !exclude[k] {
+		if !exclude[k] { // 除了exclude中的header外，都放入kvs中
 			kvs = append(kvs, keyValues{k, vv})
 		}
 	}
 	hs.kvs = kvs
-	sort.Sort(hs)
+	sort.Sort(hs) // 进行排序
 	return kvs, hs
 }
 
 // WriteSubset writes a header in wire format.
 // If exclude is not nil, keys where exclude[key] == true are not written.
 func (h Header) WriteSubset(w io.Writer, exclude map[string]bool) error {
-	ws, ok := w.(writeStringer)
+	ws, ok := w.(writeStringer) // 将w变为writeStringer
 	if !ok {
-		ws = stringWriter{w}
+		ws = stringWriter{w} // 转换为WriteStringer接口
 	}
-	kvs, sorter := h.sortedKeyValues(exclude)
+	kvs, sorter := h.sortedKeyValues(exclude) // 将头部信息进行排序
 	for _, kv := range kvs {
 		for _, v := range kv.values {
 			v = headerNewlineToSpace.Replace(v)

@@ -14,7 +14,7 @@ import (
 // common holds the information shared by related templates.
 type common struct { // 被相关模板共享的结构
 	tmpl   map[string]*Template // Map from name to defined templates.
-	option option
+	option option               // 模板选项
 	// We use two maps, one for parsing and one for execution.
 	// This separation makes the API cleaner since it doesn't
 	// expose reflection to the client.

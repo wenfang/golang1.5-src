@@ -30,9 +30,9 @@ var timers struct { // 全局唯一的timers变量
 	gp           *g   // 执行定时器处理的goroutine
 	created      bool // 执行定时器处理的goroutine是否已被创建
 	sleeping     bool
-	rescheduling bool
+	rescheduling bool // 是否重新调度
 	waitnote     note
-	t            []*timer
+	t            []*timer // 定时器结构的列表
 }
 
 // nacl fake time support - time in nanoseconds since 1970
@@ -119,7 +119,7 @@ func addtimerLocked(t *timer) { // 在加锁之后添加定时器
 
 // Delete timer t from the heap.
 // Do not need to update the timerproc: if it wakes up early, no big deal.
-func deltimer(t *timer) bool {
+func deltimer(t *timer) bool { // 删除定时器
 	// Dereference t so that any panic happens before the lock is held.
 	// Discard result, because t might be moving in the heap.
 	_ = t.i
@@ -156,10 +156,10 @@ func timerproc() { // 用于处理定时器的goroutine
 	for {
 		lock(&timers.lock)      // timers加锁
 		timers.sleeping = false // 当前的timers已经处于运行状态了
-		now := nanotime()
+		now := nanotime()       // 获取当前的时间
 		delta := int64(-1)
 		for {
-			if len(timers.t) == 0 {
+			if len(timers.t) == 0 { // 如果timer列表为空，跳出循环
 				delta = -1
 				break
 			}
@@ -193,17 +193,17 @@ func timerproc() { // 用于处理定时器的goroutine
 			if raceenabled {
 				raceacquire(unsafe.Pointer(t))
 			}
-			f(arg, seq)
+			f(arg, seq) // 执行定时器函数
 			lock(&timers.lock)
 		}
 		if delta < 0 || faketime > 0 {
-			// No timers left - put goroutine to sleep.
-			timers.rescheduling = true
+			// No timers left - put goroutine to sleep. 没有timer了，将goroutine置为sleep状态
+			timers.rescheduling = true // 设置timers重新调度
 			goparkunlock(&timers.lock, "timer goroutine (idle)", traceEvGoBlock, 1)
 			continue
 		}
-		// At least one timer pending.  Sleep until then.
-		timers.sleeping = true
+		// At least one timer pending.  Sleep until then. 至少有一个待执行的timer，睡眠直到可以执行
+		timers.sleeping = true // 设置timer处于睡眠状态
 		noteclear(&timers.waitnote)
 		unlock(&timers.lock)
 		notetsleepg(&timers.waitnote, delta)

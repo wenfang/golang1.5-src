@@ -28,34 +28,34 @@ type pipe struct { // pipe结构
 	data  []byte     // data remaining in pending write 数据区
 	rwait sync.Cond  // waiting reader
 	wwait sync.Cond  // waiting writer
-	rerr  error      // if reader closed, error to give writes
-	werr  error      // if writer closed, error to give reads
+	rerr  error      // if reader closed, error to give writes 读者错误
+	werr  error      // if writer closed, error to give reads 如果写者关闭，返回给读者的错误
 }
 
-func (p *pipe) read(b []byte) (n int, err error) {
+func (p *pipe) read(b []byte) (n int, err error) { // 处理管道的读
 	// One reader at a time.
 	p.rl.Lock()
-	defer p.rl.Unlock()
+	defer p.rl.Unlock() // 读互斥加锁
 
 	p.l.Lock()
 	defer p.l.Unlock()
 	for {
-		if p.rerr != nil {
+		if p.rerr != nil { // 如果读者错误，返回pipe已经被关闭
 			return 0, ErrClosedPipe
 		}
-		if p.data != nil {
+		if p.data != nil { // 如果有data数据，跳出循环
 			break
 		}
 		if p.werr != nil {
 			return 0, p.werr
 		}
-		p.rwait.Wait()
+		p.rwait.Wait() // 如果当前没有data数据，开始等待写者
 	}
-	n = copy(b, p.data)
-	p.data = p.data[n:]
-	if len(p.data) == 0 {
+	n = copy(b, p.data)   // 将p.data中的数据拷贝到b中，n为拷贝的数据长度
+	p.data = p.data[n:]   // 截断数据
+	if len(p.data) == 0 { // 如果数据已经被读完了
 		p.data = nil
-		p.wwait.Signal()
+		p.wwait.Signal() // 唤醒写者
 	}
 	return
 }
@@ -142,7 +142,7 @@ func (r *PipeReader) Close() error {
 
 // CloseWithError closes the reader; subsequent writes
 // to the write half of the pipe will return the error err.
-func (r *PipeReader) CloseWithError(err error) error {
+func (r *PipeReader) CloseWithError(err error) error { // PipeReader关闭，带有错误err
 	r.p.rclose(err)
 	return nil
 }
@@ -188,7 +188,7 @@ func (w *PipeWriter) CloseWithError(err error) error {
 // Read, and parallel calls to Write, are also safe:
 // the individual calls will be gated sequentially.
 func Pipe() (*PipeReader, *PipeWriter) { // 创建一个pipe，返回一个PipeReader和一个PipeWriter
-	p := new(pipe)
+	p := new(pipe) // 创建一个新的pipe结构
 	p.rwait.L = &p.l
 	p.wwait.L = &p.l
 	r := &PipeReader{p}

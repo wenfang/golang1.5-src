@@ -47,11 +47,11 @@ func (t *Template) Option(opt ...string) *Template {
 	return t
 }
 
-func (t *Template) setOption(opt string) {
+func (t *Template) setOption(opt string) { // 设置模板选项
 	if opt == "" {
 		panic("empty option string")
 	}
-	elems := strings.Split(opt, "=")
+	elems := strings.Split(opt, "=") // 将选项按照=分割
 	switch len(elems) {
 	case 2:
 		// key=value
@@ -70,5 +70,5 @@ func (t *Template) setOption(opt string) {
 			}
 		}
 	}
-	panic("unrecognized option: " + opt)
+	panic("unrecognized option: " + opt) // 无法识别的选项
 }

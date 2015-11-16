@@ -26,11 +26,11 @@ var fingwake bool
 var allfin *finblock // list of all blocks
 
 // NOTE: Layout known to queuefinalizer.
-type finalizer struct {
-	fn   *funcval       // function to call
-	arg  unsafe.Pointer // ptr to object
+type finalizer struct { // finalizer结构
+	fn   *funcval       // function to call 调用的函数
+	arg  unsafe.Pointer // ptr to object 指向对象的指针
 	nret uintptr        // bytes of return values from fn
-	fint *_type         // type of first argument of fn
+	fint *_type         // type of first argument of fn 第一个参数的类型
 	ot   *ptrtype       // type of ptr to object
 }
 
@@ -220,6 +220,7 @@ func runfinq() {
 // is not called again, the next time the garbage collector sees
 // that x is unreachable, it will free x.
 //
+// SetFinalizer(x, nil)清空所有关于x的finalizer
 // SetFinalizer(x, nil) clears any finalizer associated with x.
 //
 // The argument x must be a pointer to an object allocated by
@@ -255,6 +256,8 @@ func runfinq() {
 // in initializers for package-level variables. Such objects may be
 // linker-allocated, not heap-allocated.
 //
+// 一个goroutine为程序按顺序运行所有的finalizer。如果一个finalizer运行时间过长,
+// 会启动一个新的goroutine来执行
 // A single goroutine runs all finalizers for a program, sequentially.
 // If a finalizer must run for a long time, it should do so by starting
 // a new goroutine.

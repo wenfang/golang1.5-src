@@ -30,7 +30,7 @@ func loadMimeFile(filename string) { // 装载MIME文件
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f) // 创建一个Scanner，缺省为ScanLines
-	for scanner.Scan() {
+	for scanner.Scan() {           // 获取一行数据
 		fields := strings.Fields(scanner.Text())
 		if len(fields) <= 1 || fields[0][0] == '#' { // 略过空行和注释行
 			continue

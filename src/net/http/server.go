@@ -55,7 +55,7 @@ type Handler interface { // Handler接口，只包含一个ServeHTTP方法
 
 // A ResponseWriter interface is used by an HTTP handler to
 // construct an HTTP response.
-type ResponseWriter interface {
+type ResponseWriter interface { // ResponseWriter接口，用来构造HTTP响应
 	// Header returns the header map that will be sent by
 	// WriteHeader. Changing the header after a call to
 	// WriteHeader (or Write) has no effect unless the modified
@@ -119,9 +119,10 @@ type CloseNotifier interface {
 	CloseNotify() <-chan bool
 }
 
+// 代表HTTP连接的server端部分
 // A conn represents the server side of an HTTP connection.
 type conn struct {
-	remoteAddr string               // network address of remote side
+	remoteAddr string               // network address of remote side 远端地址
 	server     *Server              // the Server on which the connection arrived
 	rwc        net.Conn             // i/o connection 底层的io连接
 	w          io.Writer            // checkConnErrorWriter's copy of wrc, not zeroed on Hijack
@@ -134,11 +135,11 @@ type conn struct {
 
 	mu           sync.Mutex // guards the following
 	clientGone   bool       // if client has disconnected mid-request
-	closeNotifyc chan bool  // made lazily
+	closeNotifyc chan bool  // made lazily 关闭通知chan
 	hijackedv    bool       // connection has been hijacked by handler
 }
 
-func (c *conn) hijacked() bool {
+func (c *conn) hijacked() bool { // 返回连接是否被hijacked
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.hijackedv
@@ -147,39 +148,39 @@ func (c *conn) hijacked() bool {
 func (c *conn) hijack() (rwc net.Conn, buf *bufio.ReadWriter, err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.hijackedv {
+	if c.hijackedv { // 连接已经被hijacked，返回错误，连接已被hijacked
 		return nil, nil, ErrHijacked
 	}
-	if c.closeNotifyc != nil {
+	if c.closeNotifyc != nil { // 如果关闭通知chan不为空，返回错误,hijack要求必须有closeNotifyc
 		return nil, nil, errors.New("http: Hijack is incompatible with use of CloseNotifier")
 	}
-	c.hijackedv = true
-	rwc = c.rwc
-	buf = c.buf
+	c.hijackedv = true // 设置连接已被hijack
+	rwc = c.rwc        // 底层的读写连接
+	buf = c.buf        // bufio的读写buf
 	c.rwc = nil
 	c.buf = nil
-	c.setState(rwc, StateHijacked)
+	c.setState(rwc, StateHijacked) // 设置连接状态
 	return
 }
 
-func (c *conn) closeNotify() <-chan bool {
+func (c *conn) closeNotify() <-chan bool { // 返回当前的closeNotifyc chan，如果没有则创建一个
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.closeNotifyc == nil {
-		c.closeNotifyc = make(chan bool, 1)
+		c.closeNotifyc = make(chan bool, 1) // 如果关闭通知chan为nil，创建一个关闭通知chan
 		if c.hijackedv {
 			// to obey the function signature, even though
 			// it'll never receive a value.
-			return c.closeNotifyc
+			return c.closeNotifyc // 如果连接设置了hijackedv，返回光创建的chan
 		}
-		pr, pw := io.Pipe()
+		pr, pw := io.Pipe() // 创建一个pipe
 
-		readSource := c.sr.r
-		c.sr.Lock()
-		c.sr.r = pr
-		c.sr.Unlock()
-		go func() {
-			_, err := io.Copy(pw, readSource)
+		readSource := c.sr.r // 返回读数据源，原有的读数据源内容
+		c.sr.Lock()          // 读数据源加锁
+		c.sr.r = pr          // 设置liveSwitch的读为pr，也就是该Pipe的读端
+		c.sr.Unlock()        // 读数据源解锁
+		go func() {          // 启动一个goroutine
+			_, err := io.Copy(pw, readSource) // 持续不断的从readSource读数据，写入pw中
 			if err == nil {
 				err = io.EOF
 			}
@@ -187,13 +188,13 @@ func (c *conn) closeNotify() <-chan bool {
 			c.noteClientGone()
 		}()
 	}
-	return c.closeNotifyc
+	return c.closeNotifyc // 返回closeNotifyc chan
 }
 
-func (c *conn) noteClientGone() {
+func (c *conn) noteClientGone() { // 通知客户端丢失
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.closeNotifyc != nil && !c.clientGone {
+	if c.closeNotifyc != nil && !c.clientGone { // 如果存在closeNotifyc，并且还没有通知，通知客户端丢失
 		c.closeNotifyc <- true
 	}
 	c.clientGone = true
@@ -207,12 +208,12 @@ type switchWriter struct {
 
 // A liveSwitchReader can have its Reader changed at runtime. It's
 // safe for concurrent reads and switches, if its mutex is held.
-type liveSwitchReader struct {
+type liveSwitchReader struct { // liveSwitchReader，可以在运行时改变其Reader
 	sync.Mutex
 	r io.Reader
 }
 
-func (sr *liveSwitchReader) Read(p []byte) (n int, err error) {
+func (sr *liveSwitchReader) Read(p []byte) (n int, err error) { // 在读操作时先加锁取出来底层的io.Reader再执行读
 	sr.Lock()
 	r := sr.r
 	sr.Unlock()
@@ -233,22 +234,22 @@ const bufferBeforeChunkingSize = 2048
 //
 // See the comment above (*response).Write for the entire write flow.
 type chunkWriter struct {
-	res *response
+	res *response // 对应的response
 
 	// header is either nil or a deep clone of res.handlerHeader
 	// at the time of res.WriteHeader, if res.WriteHeader is
 	// called and extra buffering is being done to calculate
 	// Content-Type and/or Content-Length.
-	header Header
+	header Header // 对应的header
 
 	// wroteHeader tells whether the header's been written to "the
 	// wire" (or rather: w.conn.buf). this is unlike
 	// (*response).wroteHeader, which tells only whether it was
 	// logically written.
-	wroteHeader bool
+	wroteHeader bool // 是否已经写出了header
 
 	// set by the writeHeader method:
-	chunking bool // using chunked transfer encoding for reply body
+	chunking bool // using chunked transfer encoding for reply body 是否使用chunked传输编码
 }
 
 var (
@@ -256,24 +257,24 @@ var (
 	colonSpace = []byte(": ")
 )
 
-func (cw *chunkWriter) Write(p []byte) (n int, err error) {
-	if !cw.wroteHeader {
-		cw.writeHeader(p)
+func (cw *chunkWriter) Write(p []byte) (n int, err error) { // 写chunk数据
+	if !cw.wroteHeader { // 如果还没有写出去Header
+		cw.writeHeader(p) // 写Header
 	}
-	if cw.res.req.Method == "HEAD" {
+	if cw.res.req.Method == "HEAD" { // 如果请求的方法是HEAD
 		// Eat writes.
-		return len(p), nil
+		return len(p), nil // 不写出任何Body体数据，直接返回
 	}
-	if cw.chunking {
-		_, err = fmt.Fprintf(cw.res.conn.buf, "%x\r\n", len(p))
+	if cw.chunking { // 如果使用chunked传输编码
+		_, err = fmt.Fprintf(cw.res.conn.buf, "%x\r\n", len(p)) // 先写数据长度
 		if err != nil {
 			cw.res.conn.rwc.Close()
 			return
 		}
 	}
-	n, err = cw.res.conn.buf.Write(p)
+	n, err = cw.res.conn.buf.Write(p) // 写数据内容到buffer中
 	if cw.chunking && err == nil {
-		_, err = cw.res.conn.buf.Write(crlf)
+		_, err = cw.res.conn.buf.Write(crlf) // 写回车换行
 	}
 	if err != nil {
 		cw.res.conn.rwc.Close()
@@ -281,26 +282,26 @@ func (cw *chunkWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func (cw *chunkWriter) flush() {
+func (cw *chunkWriter) flush() { // 将chunkWriter中的数据flush出来
 	if !cw.wroteHeader {
 		cw.writeHeader(nil)
 	}
-	cw.res.conn.buf.Flush()
+	cw.res.conn.buf.Flush() // flush buffer中的数据
 }
 
-func (cw *chunkWriter) close() {
-	if !cw.wroteHeader {
+func (cw *chunkWriter) close() { // 关闭chunkWriter
+	if !cw.wroteHeader { // 如果没有写header，写出header
 		cw.writeHeader(nil)
 	}
 	if cw.chunking {
 		bw := cw.res.conn.buf // conn's bufio writer
 		// zero chunk to mark EOF
-		bw.WriteString("0\r\n")
-		if len(cw.res.trailers) > 0 {
-			trailers := make(Header)
-			for _, h := range cw.res.trailers {
+		bw.WriteString("0\r\n")       // 写出结束符
+		if len(cw.res.trailers) > 0 { // 如果具有trailers
+			trailers := make(Header)            // 创建一个Header
+			for _, h := range cw.res.trailers { // 遍历response的trailers
 				if vv := cw.res.handlerHeader[h]; len(vv) > 0 {
-					trailers[h] = vv
+					trailers[h] = vv // 取出来handlerHeader赋值给trailers
 				}
 			}
 			trailers.Write(bw) // the writer handles noting errors
@@ -606,11 +607,11 @@ func appendTime(b []byte, t time.Time) []byte {
 		'G', 'M', 'T')
 }
 
-var errTooLarge = errors.New("http: request too large")
+var errTooLarge = errors.New("http: request too large") // 请求过大
 
 // Read next request from connection.
 func (c *conn) readRequest() (w *response, err error) { // 读出请求返回响应结构
-	if c.hijacked() {
+	if c.hijacked() { // 如果连接已经被hijacked，返回nil响应
 		return nil, ErrHijacked
 	}
 
@@ -762,15 +763,15 @@ func (h extraHeader) Write(w *bufio.Writer) {
 // set explicitly.  It's also used to set the Content-Length, if the
 // total body size was small and the handler has already finished
 // running.
-func (cw *chunkWriter) writeHeader(p []byte) {
-	if cw.wroteHeader {
+func (cw *chunkWriter) writeHeader(p []byte) { // 写header信息
+	if cw.wroteHeader { // 如果已经写出了header，直接返回
 		return
 	}
-	cw.wroteHeader = true
+	cw.wroteHeader = true // 标识已经写header了
 
-	w := cw.res
-	keepAlivesEnabled := w.conn.server.doKeepAlives()
-	isHEAD := w.req.Method == "HEAD"
+	w := cw.res                                       // 返回chunkWriter对应的response
+	keepAlivesEnabled := w.conn.server.doKeepAlives() // 查看是否启动keep alive
+	isHEAD := w.req.Method == "HEAD"                  // 请求的方法是不是HEAD
 
 	// header is written out to w.conn.buf below. Depending on the
 	// state of the handler, we either own the map or not. If we
@@ -1407,7 +1408,7 @@ func (w *response) Hijack() (rwc net.Conn, buf *bufio.ReadWriter, err error) {
 	return rwc, buf, err
 }
 
-func (w *response) CloseNotify() <-chan bool {
+func (w *response) CloseNotify() <-chan bool { // 返回底层连接的closeNotify
 	return w.conn.closeNotify()
 }
 
@@ -1533,7 +1534,7 @@ func htmlEscape(s string) string {
 }
 
 // Redirect to a fixed URL
-type redirectHandler struct {
+type redirectHandler struct { // 处理重定向的Handler
 	url  string
 	code int
 }
@@ -1549,6 +1550,7 @@ func RedirectHandler(url string, code int) Handler {
 	return &redirectHandler{url, code}
 }
 
+// ServeMux是HTTP的请求多路分发器
 // ServeMux is an HTTP request multiplexer.
 // It matches the URL of each incoming request against a list of registered
 // patterns and calls the handler for the pattern that
@@ -1576,10 +1578,10 @@ func RedirectHandler(url string, code int) Handler {
 // ServeMux also takes care of sanitizing the URL request path,
 // redirecting any request containing . or .. elements to an
 // equivalent .- and ..-free URL.
-type ServeMux struct {
+type ServeMux struct { // 多路分发结构
 	mu    sync.RWMutex
 	m     map[string]muxEntry
-	hosts bool // whether any patterns contain hostnames
+	hosts bool // whether any patterns contain hostnames 是否有pattern包含主机名
 }
 
 type muxEntry struct {
@@ -1592,27 +1594,27 @@ type muxEntry struct {
 func NewServeMux() *ServeMux { return &ServeMux{m: make(map[string]muxEntry)} }
 
 // DefaultServeMux is the default ServeMux used by Serve.
-var DefaultServeMux = NewServeMux()
+var DefaultServeMux = NewServeMux() // 缺省的Server Mux
 
 // Does path match pattern?
-func pathMatch(pattern, path string) bool {
-	if len(pattern) == 0 {
+func pathMatch(pattern, path string) bool { // 检查是否path match pattern
+	if len(pattern) == 0 { // pattern的长度为0，不应该发生，返回false
 		// should not happen
 		return false
 	}
 	n := len(pattern)
-	if pattern[n-1] != '/' {
+	if pattern[n-1] != '/' { // 如果pattern是文件路径，直接比较
 		return pattern == path
 	}
-	return len(path) >= n && path[0:n] == pattern
+	return len(path) >= n && path[0:n] == pattern // 如果pattern是目录路径，比较目录
 }
 
 // Return the canonical path for p, eliminating . and .. elements.
 func cleanPath(p string) string {
-	if p == "" {
+	if p == "" { // 如果p路径为空，设置为根目录
 		return "/"
 	}
-	if p[0] != '/' {
+	if p[0] != '/' { // 不是以根目录开始，变成以根目录开始
 		p = "/" + p
 	}
 	np := path.Clean(p)
@@ -1653,7 +1655,7 @@ func (mux *ServeMux) match(path string) (h Handler, pattern string) {
 //
 // If there is no registered handler that applies to the request,
 // Handler returns a ``page not found'' handler and an empty pattern.
-func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) {
+func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) { // 根据请求返回Handler
 	if r.Method != "CONNECT" {
 		if p := cleanPath(r.URL.Path); p != r.URL.Path {
 			_, pattern = mux.handler(r.Host, p)
@@ -1668,7 +1670,7 @@ func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) {
 
 // handler is the main implementation of Handler.
 // The path is known to be in canonical form, except for CONNECT methods.
-func (mux *ServeMux) handler(host, path string) (h Handler, pattern string) {
+func (mux *ServeMux) handler(host, path string) (h Handler, pattern string) { // 根据host和path获得handler
 	mux.mu.RLock()
 	defer mux.mu.RUnlock()
 
@@ -1687,15 +1689,15 @@ func (mux *ServeMux) handler(host, path string) (h Handler, pattern string) {
 
 // ServeHTTP dispatches the request to the handler whose
 // pattern most closely matches the request URL.
-func (mux *ServeMux) ServeHTTP(w ResponseWriter, r *Request) {
-	if r.RequestURI == "*" {
-		if r.ProtoAtLeast(1, 1) {
-			w.Header().Set("Connection", "close")
+func (mux *ServeMux) ServeHTTP(w ResponseWriter, r *Request) { // ServeMux的执行
+	if r.RequestURI == "*" { // 如果RequestURI为*
+		if r.ProtoAtLeast(1, 1) { // 如果请求的协议版本号至少为1.1
+			w.Header().Set("Connection", "close") // 设置Connection: close
 		}
-		w.WriteHeader(StatusBadRequest)
+		w.WriteHeader(StatusBadRequest) // 设置请求错误状态
 		return
 	}
-	h, _ := mux.Handler(r)
+	h, _ := mux.Handler(r) // 取出来对应请求的Handler
 	h.ServeHTTP(w, r)
 }
 
