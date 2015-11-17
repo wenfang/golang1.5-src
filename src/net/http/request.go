@@ -543,7 +543,7 @@ func ParseHTTPVersion(vers string) (major, minor int, ok bool) {
 // ReadRequest or manually update the Request fields. See the Request
 // type's documentation for the difference between inbound and outbound
 // request fields.
-func NewRequest(method, urlStr string, body io.Reader) (*Request, error) {
+func NewRequest(method, urlStr string, body io.Reader) (*Request, error) { // 创建一个给定方法和url的请求
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err

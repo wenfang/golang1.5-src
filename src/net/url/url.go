@@ -343,7 +343,7 @@ func getscheme(rawurl string) (scheme, path string, err error) {
 // Maybe s is of the form t c u.
 // If so, return t, c u (or t, u if cutc == true).
 // If not, return s, "".
-func split(s string, c string, cutc bool) (string, string) {
+func split(s string, c string, cutc bool) (string, string) { // c作为分割符将s分为两部分
 	i := strings.Index(s, c)
 	if i < 0 {
 		return s, ""
