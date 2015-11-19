@@ -25,6 +25,8 @@ import (
 	"time"
 )
 
+// DefaultTransport是Transport的缺省实现，被DefaultClient使用。它按需
+// 建立网络连接，并将这些连接缓存，供以后的调用使用。
 // DefaultTransport is the default implementation of Transport and is
 // used by DefaultClient. It establishes network connections as needed
 // and caches them for reuse by subsequent calls. It uses HTTP proxies
@@ -41,7 +43,7 @@ var DefaultTransport RoundTripper = &Transport{ // 缺省的Transport，被Defau
 
 // DefaultMaxIdleConnsPerHost is the default value of Transport's
 // MaxIdleConnsPerHost.
-const DefaultMaxIdleConnsPerHost = 2
+const DefaultMaxIdleConnsPerHost = 2 // 缺省的每主角最大空闲连接2个
 
 // Transport is an implementation of RoundTripper that supports HTTP,
 // HTTPS, and HTTP proxies (for either HTTP or HTTPS with CONNECT).
