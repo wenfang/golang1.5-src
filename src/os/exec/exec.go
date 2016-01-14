@@ -22,7 +22,7 @@ import (
 
 // Error records the name of a binary that failed to be executed
 // and the reason it failed.
-type Error struct { // ´íÎó½á¹¹
+type Error struct { // é”™è¯¯ç»“æ„
 	Name string
 	Err  error
 }
@@ -119,13 +119,13 @@ type Cmd struct {
 // The returned Cmd's Args field is constructed from the command name
 // followed by the elements of arg, so arg should not include the
 // command name itself. For example, Command("echo", "hello")
-func Command(name string, arg ...string) *Cmd { // Éú³ÉÃüÁîÀàĞÍ
-	cmd := &Cmd{ // ´´½¨ÃüÁî½á¹¹
-		Path: name,                           // ÃüÁîÃû
-		Args: append([]string{name}, arg...), // ÃüÁî²ÎÊı
+func Command(name string, arg ...string) *Cmd { // ç”Ÿæˆå‘½ä»¤ç±»å‹
+	cmd := &Cmd{ // åˆ›å»ºå‘½ä»¤ç»“æ„
+		Path: name,                           // å‘½ä»¤å
+		Args: append([]string{name}, arg...), // å‘½ä»¤å‚æ•°
 	}
 	if filepath.Base(name) == name {
-		if lp, err := LookPath(name); err != nil { // ²éÕÒname£¬ĞèÒªÎª¿ÉÖ´ĞĞÎÄ¼ş
+		if lp, err := LookPath(name); err != nil { // æŸ¥æ‰¾nameï¼Œéœ€è¦ä¸ºå¯æ‰§è¡Œæ–‡ä»¶
 			cmd.lookPathErr = err
 		} else {
 			cmd.Path = lp
@@ -163,7 +163,7 @@ func (c *Cmd) argv() []string {
 var skipStdinCopyError func(error) bool
 
 func (c *Cmd) stdin() (f *os.File, err error) {
-	if c.Stdin == nil { // Èç¹ûÊäÈëÎª¿Õ´ò¿ª¿ÕÎÄ¼ş
+	if c.Stdin == nil { // å¦‚æœè¾“å…¥ä¸ºç©ºæ‰“å¼€ç©ºæ–‡ä»¶
 		f, err = os.Open(os.DevNull)
 		if err != nil {
 			return
@@ -172,7 +172,7 @@ func (c *Cmd) stdin() (f *os.File, err error) {
 		return
 	}
 
-	if f, ok := c.Stdin.(*os.File); ok { // Èç¹ûÊäÈëµÄÀàĞÍÎªos.File£¬·µ»ØÎÄ¼ş±¾Éí
+	if f, ok := c.Stdin.(*os.File); ok { // å¦‚æœè¾“å…¥çš„ç±»å‹ä¸ºos.Fileï¼Œè¿”å›æ–‡ä»¶æœ¬èº«
 		return f, nil
 	}
 
@@ -183,7 +183,7 @@ func (c *Cmd) stdin() (f *os.File, err error) {
 
 	c.closeAfterStart = append(c.closeAfterStart, pr)
 	c.closeAfterWait = append(c.closeAfterWait, pw)
-	c.goroutine = append(c.goroutine, func() error { // ¼ÓÈëgoroutine£¬´¦ÀíÊı¾İ´«Êä
+	c.goroutine = append(c.goroutine, func() error { // åŠ å…¥goroutineï¼Œå¤„ç†æ•°æ®ä¼ è¾“
 		_, err := io.Copy(pw, c.Stdin)
 		if skip := skipStdinCopyError; skip != nil && skip(err) {
 			err = nil
@@ -196,7 +196,7 @@ func (c *Cmd) stdin() (f *os.File, err error) {
 	return pr, nil
 }
 
-func (c *Cmd) stdout() (f *os.File, err error) { // Í¬stdinÀàËÆ£¬Æô¶¯goroutine¿½±´Êı¾İ
+func (c *Cmd) stdout() (f *os.File, err error) { // åŒstdinç±»ä¼¼ï¼Œå¯åŠ¨goroutineæ‹·è´æ•°æ®
 	return c.writerDescriptor(c.Stdout)
 }
 
@@ -207,7 +207,7 @@ func (c *Cmd) stderr() (f *os.File, err error) {
 	return c.writerDescriptor(c.Stderr)
 }
 
-func (c *Cmd) writerDescriptor(w io.Writer) (f *os.File, err error) { // Í¬stdinÀàËÆ£¬Æô¶¯goroutine¿½±´Êı¾İ
+func (c *Cmd) writerDescriptor(w io.Writer) (f *os.File, err error) { // åŒstdinç±»ä¼¼ï¼Œå¯åŠ¨goroutineæ‹·è´æ•°æ®
 	if w == nil {
 		f, err = os.OpenFile(os.DevNull, os.O_WRONLY, 0)
 		if err != nil {
@@ -236,7 +236,7 @@ func (c *Cmd) writerDescriptor(w io.Writer) (f *os.File, err error) { // Í¬stdin
 	return pw, nil
 }
 
-func (c *Cmd) closeDescriptors(closers []io.Closer) { // ¹Ø±ÕÃèÊö·û
+func (c *Cmd) closeDescriptors(closers []io.Closer) { // å…³é—­æè¿°ç¬¦
 	for _, fd := range closers {
 		fd.Close()
 	}
@@ -251,7 +251,7 @@ func (c *Cmd) closeDescriptors(closers []io.Closer) { // ¹Ø±ÕÃèÊö·û
 // If the command fails to run or doesn't complete successfully, the
 // error is of type *ExitError. Other error types may be
 // returned for I/O problems.
-func (c *Cmd) Run() error { // Æô¶¯ÃüÁî£¬µÈ´ıÖ´ĞĞÍê³É
+func (c *Cmd) Run() error { // å¯åŠ¨å‘½ä»¤ï¼Œç­‰å¾…æ‰§è¡Œå®Œæˆ
 	if err := c.Start(); err != nil {
 		return err
 	}
@@ -288,13 +288,13 @@ func lookExtensions(path, dir string) (string, error) {
 //
 // The Wait method will return the exit code and release associated resources
 // once the command exits.
-func (c *Cmd) Start() error { // Æô¶¯ÃüÁî
-	if c.lookPathErr != nil { // Èç¹ûÃüÁî²éÕÒ´íÎó£¬·µ»Ø´íÎó
+func (c *Cmd) Start() error { // å¯åŠ¨å‘½ä»¤
+	if c.lookPathErr != nil { // å¦‚æœå‘½ä»¤æŸ¥æ‰¾é”™è¯¯ï¼Œè¿”å›é”™è¯¯
 		c.closeDescriptors(c.closeAfterStart)
 		c.closeDescriptors(c.closeAfterWait)
 		return c.lookPathErr
 	}
-	if runtime.GOOS == "windows" { // Èç¹ûÊÇWindowsÏµÍ³
+	if runtime.GOOS == "windows" { // å¦‚æœæ˜¯Windowsç³»ç»Ÿ
 		lp, err := lookExtensions(c.Path, c.Dir)
 		if err != nil {
 			c.closeDescriptors(c.closeAfterStart)
@@ -303,24 +303,24 @@ func (c *Cmd) Start() error { // Æô¶¯ÃüÁî
 		}
 		c.Path = lp
 	}
-	if c.Process != nil { // ½ø³ÌÒÑ¾­Æô¶¯ÁË
+	if c.Process != nil { // è¿›ç¨‹å·²ç»å¯åŠ¨äº†
 		return errors.New("exec: already started")
 	}
 
 	type F func(*Cmd) (*os.File, error)
-	for _, setupFd := range []F{(*Cmd).stdin, (*Cmd).stdout, (*Cmd).stderr} { // ·Ö±ğµ÷¶¯stdin£¬stdout, stderr
+	for _, setupFd := range []F{(*Cmd).stdin, (*Cmd).stdout, (*Cmd).stderr} { // åˆ†åˆ«è°ƒåŠ¨stdinï¼Œstdout, stderr
 		fd, err := setupFd(c)
 		if err != nil {
 			c.closeDescriptors(c.closeAfterStart)
 			c.closeDescriptors(c.closeAfterWait)
 			return err
 		}
-		c.childFiles = append(c.childFiles, fd) // ¼ÓÈë±ê×¼ÊäÈë¡¢Êä³öºÍ´íÎó¾ä±úµ½childFiles
+		c.childFiles = append(c.childFiles, fd) // åŠ å…¥æ ‡å‡†è¾“å…¥ã€è¾“å‡ºå’Œé”™è¯¯å¥æŸ„åˆ°childFiles
 	}
-	c.childFiles = append(c.childFiles, c.ExtraFiles...) // Ìí¼ÓExtraFiles½øchildfiles
+	c.childFiles = append(c.childFiles, c.ExtraFiles...) // æ·»åŠ ExtraFilesè¿›childfiles
 
 	var err error
-	c.Process, err = os.StartProcess(c.Path, c.argv(), &os.ProcAttr{ // Æô¶¯½ø³Ì
+	c.Process, err = os.StartProcess(c.Path, c.argv(), &os.ProcAttr{ // å¯åŠ¨è¿›ç¨‹
 		Dir:   c.Dir,
 		Files: c.childFiles,
 		Env:   c.envv(),
@@ -335,7 +335,7 @@ func (c *Cmd) Start() error { // Æô¶¯ÃüÁî
 	c.closeDescriptors(c.closeAfterStart)
 
 	c.errch = make(chan error, len(c.goroutine))
-	for _, fn := range c.goroutine { // Æô¶¯goroutine£¬Ö´ĞĞÊı¾İ¿½±´
+	for _, fn := range c.goroutine { // å¯åŠ¨goroutineï¼Œæ‰§è¡Œæ•°æ®æ‹·è´
 		go func(fn func() error) {
 			c.errch <- fn()
 		}(fn)
@@ -369,7 +369,7 @@ func (e *ExitError) Error() string {
 // to complete.
 //
 // Wait releases any resources associated with the Cmd.
-func (c *Cmd) Wait() error { // µÈ´ıÃüÁîÖ´ĞĞÍê³É
+func (c *Cmd) Wait() error { // ç­‰å¾…å‘½ä»¤æ‰§è¡Œå®Œæˆ
 	if c.Process == nil {
 		return errors.New("exec: not started")
 	}
@@ -399,13 +399,13 @@ func (c *Cmd) Wait() error { // µÈ´ıÃüÁîÖ´ĞĞÍê³É
 }
 
 // Output runs the command and returns its standard output.
-func (c *Cmd) Output() ([]byte, error) { // ÔËĞĞÃüÁî£¬È¡»ØÊä³ö
+func (c *Cmd) Output() ([]byte, error) { // è¿è¡Œå‘½ä»¤ï¼Œå–å›è¾“å‡º
 	if c.Stdout != nil {
 		return nil, errors.New("exec: Stdout already set")
 	}
 	var b bytes.Buffer
-	c.Stdout = &b  // ½«Êä³öÉèÖÃÎªbytes.Buffer
-	err := c.Run() // ÔËĞĞÃüÁî
+	c.Stdout = &b  // å°†è¾“å‡ºè®¾ç½®ä¸ºbytes.Buffer
+	err := c.Run() // è¿è¡Œå‘½ä»¤
 	return b.Bytes(), err
 }
 
@@ -431,14 +431,14 @@ func (c *Cmd) CombinedOutput() ([]byte, error) {
 // A caller need only call Close to force the pipe to close sooner.
 // For example, if the command being run will not exit until standard input
 // is closed, the caller must close the pipe.
-func (c *Cmd) StdinPipe() (io.WriteCloser, error) { // ÉèÖÃ±ê×¼ÊäÈë
+func (c *Cmd) StdinPipe() (io.WriteCloser, error) { // è®¾ç½®æ ‡å‡†è¾“å…¥
 	if c.Stdin != nil {
 		return nil, errors.New("exec: Stdin already set")
 	}
 	if c.Process != nil {
 		return nil, errors.New("exec: StdinPipe after process started")
 	}
-	pr, pw, err := os.Pipe() // ´´½¨¶ÁĞ´¹ÜµÀ
+	pr, pw, err := os.Pipe() // åˆ›å»ºè¯»å†™ç®¡é“
 	if err != nil {
 		return nil, err
 	}
@@ -480,7 +480,7 @@ func (c *Cmd) StdoutPipe() (io.ReadCloser, error) {
 	if c.Process != nil {
 		return nil, errors.New("exec: StdoutPipe after process started")
 	}
-	pr, pw, err := os.Pipe() // ´´½¨¶ÁĞ´¹ÜµÀ
+	pr, pw, err := os.Pipe() // åˆ›å»ºè¯»å†™ç®¡é“
 	if err != nil {
 		return nil, err
 	}

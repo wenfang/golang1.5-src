@@ -75,16 +75,16 @@ func init() {
 // Cmdline responds with the running program's
 // command line, with arguments separated by NUL bytes.
 // The package initialization registers it as /debug/pprof/cmdline.
-func Cmdline(w http.ResponseWriter, r *http.Request) { // »ñµÃÃüÁîĞĞ²ÎÊı
+func Cmdline(w http.ResponseWriter, r *http.Request) { // è·å¾—å‘½ä»¤è¡Œå‚æ•°
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	fmt.Fprintf(w, strings.Join(os.Args, "\x00"))
 }
 
 // Profile responds with the pprof-formatted cpu profile.
 // The package initialization registers it as /debug/pprof/profile.
-func Profile(w http.ResponseWriter, r *http.Request) { // »ñÈ¡Ò»¶ÎÊ±¼äµÄ²ÉÑùÊı¾İ£¬Ä¬ÈÏÎª30s
+func Profile(w http.ResponseWriter, r *http.Request) { // è·å–ä¸€æ®µæ—¶é—´çš„é‡‡æ ·æ•°æ®ï¼Œé»˜è®¤ä¸º30s
 	sec, _ := strconv.ParseInt(r.FormValue("seconds"), 10, 64)
-	if sec == 0 { // Ä¬ÈÏÎª30sµÄ²ÉÑùÊı¾İ
+	if sec == 0 { // é»˜è®¤ä¸º30sçš„é‡‡æ ·æ•°æ®
 		sec = 30
 	}
 

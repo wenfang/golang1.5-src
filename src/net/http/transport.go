@@ -45,6 +45,7 @@ var DefaultTransport RoundTripper = &Transport{ // 缺省的Transport，被Defau
 // MaxIdleConnsPerHost.
 const DefaultMaxIdleConnsPerHost = 2 // 缺省的每主角最大空闲连接2个
 
+// Transport是对RoundTripper的实现，支持HTTP
 // Transport is an implementation of RoundTripper that supports HTTP,
 // HTTPS, and HTTP proxies (for either HTTP or HTTPS with CONNECT).
 // Transport can also cache connections for future re-use.

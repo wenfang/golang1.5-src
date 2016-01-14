@@ -15,38 +15,38 @@ import (
 // ErrNotFound is the error resulting if a path search failed to find an executable file.
 var ErrNotFound = errors.New("executable file not found in $PATH")
 
-func findExecutable(file string) error { // ²éÕÒ¿ÉÖ´ĞĞÎÄ¼ş£¬Èç¹ûÎÄ¼şÊÇ¿ÉÖ´ĞĞµÄ·µ»Ønil
+func findExecutable(file string) error { // æŸ¥æ‰¾å¯æ‰§è¡Œæ–‡ä»¶ï¼Œå¦‚æœæ–‡ä»¶æ˜¯å¯æ‰§è¡Œçš„è¿”å›nil
 	d, err := os.Stat(file)
 	if err != nil {
 		return err
 	}
-	if m := d.Mode(); !m.IsDir() && m&0111 != 0 { // Èç¹ûÎÄ¼şµÄÈ¨ÏŞÎ»¿ÉÖ´ĞĞ£¬·µ»Ønil
+	if m := d.Mode(); !m.IsDir() && m&0111 != 0 { // å¦‚æœæ–‡ä»¶çš„æƒé™ä½å¯æ‰§è¡Œï¼Œè¿”å›nil
 		return nil
 	}
-	return os.ErrPermission // ·µ»ØÈ¨ÏŞ´íÎó
+	return os.ErrPermission // è¿”å›æƒé™é”™è¯¯
 }
 
 // LookPath searches for an executable binary named file
 // in the directories named by the PATH environment variable.
 // If file contains a slash, it is tried directly and the PATH is not consulted.
 // The result may be an absolute path or a path relative to the current directory.
-func LookPath(file string) (string, error) { // ²éÕÒ¿ÉÖ´ĞĞµÄÎÄ¼ş
+func LookPath(file string) (string, error) { // æŸ¥æ‰¾å¯æ‰§è¡Œçš„æ–‡ä»¶ï¼Œåœ¨PATHç¯å¢ƒå˜é‡æŒ‡å®šçš„ç›®å½•ä¸­ï¼Œå¦‚æœåªåŒ…å«ç»å¯¹è·¯å¾„ï¼Œä»ç»å¯¹è·¯å¾„æŸ¥æ‰¾
 	// NOTE(rsc): I wish we could use the Plan 9 behavior here
 	// (only bypass the path if file begins with / or ./ or ../)
 	// but that would not match all the Unix shells.
 
 	if strings.Contains(file, "/") {
-		err := findExecutable(file)
+		err := findExecutable(file) // æŸ¥çœ‹æ–‡ä»¶æ˜¯å¦å¯æ‰§è¡Œ
 		if err == nil {
 			return file, nil
 		}
 		return "", &Error{file, err}
 	}
-	pathenv := os.Getenv("PATH") // »ñµÃPATH»·¾³±äÁ¿
+	pathenv := os.Getenv("PATH") // è·å¾—PATHç¯å¢ƒå˜é‡
 	if pathenv == "" {
 		return "", &Error{file, ErrNotFound}
 	}
-	for _, dir := range strings.Split(pathenv, ":") { // ½âÎö³öÄ¿Â¼
+	for _, dir := range strings.Split(pathenv, ":") { // è§£æå‡ºç›®å½•
 		if dir == "" {
 			// Unix shell semantics: path element "" means "."
 			dir = "."
