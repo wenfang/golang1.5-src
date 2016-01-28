@@ -27,7 +27,7 @@ func (h Header) Add(key, value string) {
 // Set sets the header entries associated with key to
 // the single element value.  It replaces any existing
 // values associated with key.
-func (h Header) Set(key, value string) {
+func (h Header) Set(key, value string) { // 设置key, value
 	textproto.MIMEHeader(h).Set(key, value)
 }
 
@@ -35,7 +35,7 @@ func (h Header) Set(key, value string) {
 // If there are no values associated with the key, Get returns "".
 // To access multiple values of a key, access the map directly
 // with CanonicalHeaderKey.
-func (h Header) Get(key string) string {
+func (h Header) Get(key string) string { // 获得header对应的key
 	return textproto.MIMEHeader(h).Get(key)
 }
 

@@ -470,7 +470,7 @@ type fileHandler struct {
 // As a special case, the returned file server redirects any request
 // ending in "/index.html" to the same path, without the final
 // "index.html".
-func FileServer(root FileSystem) Handler {
+func FileServer(root FileSystem) Handler { // 对文件服务的包装
 	return &fileHandler{root}
 }
 

@@ -170,7 +170,7 @@ func (c *Client) send(req *Request) (*Response, error) {
 // Transport, even on errors.
 //
 // Generally Get, Post, or PostForm will be used instead of Do.
-func (c *Client) Do(req *Request) (resp *Response, err error) {
+func (c *Client) Do(req *Request) (resp *Response, err error) { // 发送HTTP请求返回响应
 	if req.Method == "GET" || req.Method == "HEAD" {
 		return c.doFollowingRedirects(req, shouldRedirectGet)
 	}
@@ -180,7 +180,7 @@ func (c *Client) Do(req *Request) (resp *Response, err error) {
 	return c.send(req)
 }
 
-func (c *Client) transport() RoundTripper {
+func (c *Client) transport() RoundTripper { // 返回当前的Transport没有的话返回缺省的Transport
 	if c.Transport != nil {
 		return c.Transport
 	}

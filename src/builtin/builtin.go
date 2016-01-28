@@ -8,7 +8,7 @@
 	but their descriptions here allow godoc to present documentation
 	for the language's special identifiers.
 */
-package builtin // ¶¨ÒåÄÚ½¨µÄº¯ÊıºÍÊı¾İÀàĞÍ¼°½Ó¿Ú
+package builtin // å®šä¹‰å†…å»ºçš„å‡½æ•°å’Œæ•°æ®ç±»å‹åŠæ¥å£
 
 // bool is the set of boolean values, true and false.
 type bool bool
@@ -251,6 +251,6 @@ func println(args ...Type)
 
 // The error built-in interface type is the conventional interface for
 // representing an error condition, with the nil value representing no error.
-type error interface { // error ÄÚ½¨½Ó¿ÚÀàĞÍ£¬Ö§³ÖErrorº¯Êı
+type error interface { // error å†…å»ºæ¥å£ç±»å‹ï¼Œæ”¯æŒErrorå‡½æ•°
 	Error() string
 }

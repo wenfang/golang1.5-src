@@ -1965,7 +1965,7 @@ func (s *Server) logf(format string, args ...interface{}) {
 //		}
 //	}
 func ListenAndServe(addr string, handler Handler) error {
-	server := &Server{Addr: addr, Handler: handler}
+	server := &Server{Addr: addr, Handler: handler} // 创建一个缺省的Server
 	return server.ListenAndServe()
 }
 

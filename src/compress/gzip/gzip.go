@@ -27,7 +27,7 @@ const (
 type Writer struct {
 	Header
 	w           io.Writer
-	level       int // Ñ¹ËõµÄ¼¶±ğ
+	level       int // å‹ç¼©çš„çº§åˆ«
 	wroteHeader bool
 	compressor  *flate.Writer
 	digest      hash.Hash32
@@ -48,8 +48,8 @@ type Writer struct {
 // UTF-8 strings in Go, but the underlying format requires NUL-terminated ISO
 // 8859-1 (Latin-1). NUL or non-Latin-1 runes in those strings will lead to an
 // error on Write.
-func NewWriter(w io.Writer) *Writer { // ĞÂ´´½¨gzipµÄÒ»¸öWriter
-	z, _ := NewWriterLevel(w, DefaultCompression) // ĞÂ´´½¨Writer£¬Ä¬ÈÏÑ¹Ëõ¼¶±ğ
+func NewWriter(w io.Writer) *Writer { // æ–°åˆ›å»ºgzipçš„ä¸€ä¸ªWriter
+	z, _ := NewWriterLevel(w, DefaultCompression) // æ–°åˆ›å»ºWriterï¼Œé»˜è®¤å‹ç¼©çº§åˆ«
 	return z
 }
 
@@ -59,20 +59,20 @@ func NewWriter(w io.Writer) *Writer { // ĞÂ´´½¨gzipµÄÒ»¸öWriter
 // The compression level can be DefaultCompression, NoCompression, or any
 // integer value between BestSpeed and BestCompression inclusive. The error
 // returned will be nil if the level is valid.
-func NewWriterLevel(w io.Writer, level int) (*Writer, error) { // ĞÂ´´½¨Ò»¸öWriter£¬¼ÓÉÏÑ¹ËõµÄ¼¶±ğ
-	if level < DefaultCompression || level > BestCompression { // level¼¶±ğ±ØĞëºÏ·¨
+func NewWriterLevel(w io.Writer, level int) (*Writer, error) { // æ–°åˆ›å»ºä¸€ä¸ªWriterï¼ŒåŠ ä¸Šå‹ç¼©çš„çº§åˆ«
+	if level < DefaultCompression || level > BestCompression { // levelçº§åˆ«å¿…é¡»åˆæ³•
 		return nil, fmt.Errorf("gzip: invalid compression level: %d", level)
 	}
-	z := new(Writer) // ´´½¨Ò»¸öWriter½á¹¹
-	z.init(w, level) // Ö´ĞĞWriterµÄ³õÊ¼»¯
+	z := new(Writer) // åˆ›å»ºä¸€ä¸ªWriterç»“æ„
+	z.init(w, level) // æ‰§è¡ŒWriterçš„åˆå§‹åŒ–
 	return z, nil
 }
 
 func (z *Writer) init(w io.Writer, level int) {
-	digest := z.digest // »ñÈ¡µ±Ç°µÄdigest
-	if digest != nil { // Èç¹ûdigest·Ç¿Õ£¬Ö´ĞĞReset
+	digest := z.digest // è·å–å½“å‰çš„digest
+	if digest != nil { // å¦‚æœdigestéç©ºï¼Œæ‰§è¡ŒReset
 		digest.Reset()
-	} else { // digestÎª¿Õ£¬´´½¨ĞÂµÄdigest
+	} else { // digestä¸ºç©ºï¼Œåˆ›å»ºæ–°çš„digest
 		digest = crc32.NewIEEE()
 	}
 	compressor := z.compressor
@@ -112,7 +112,7 @@ func put4(p []byte, v uint32) {
 }
 
 // writeBytes writes a length-prefixed byte slice to z.w.
-func (z *Writer) writeBytes(b []byte) error { // Ğ´ÈëÒ»¸öbyteµÄslice
+func (z *Writer) writeBytes(b []byte) error { // å†™å…¥ä¸€ä¸ªbyteçš„slice
 	if len(b) > 0xffff {
 		return errors.New("gzip.Write: Extra data is too large")
 	}
@@ -127,7 +127,7 @@ func (z *Writer) writeBytes(b []byte) error { // Ğ´ÈëÒ»¸öbyteµÄslice
 
 // writeString writes a UTF-8 string s in GZIP's format to z.w.
 // GZIP (RFC 1952) specifies that strings are NUL-terminated ISO 8859-1 (Latin-1).
-func (z *Writer) writeString(s string) (err error) { // Ğ´ÈëÒ»¸östring
+func (z *Writer) writeString(s string) (err error) { // å†™å…¥ä¸€ä¸ªstring
 	// GZIP stores Latin-1 strings; error if non-Latin-1; convert if non-ASCII.
 	needconv := false
 	for _, v := range s {
@@ -164,7 +164,7 @@ func (z *Writer) Write(p []byte) (int, error) {
 	}
 	var n int
 	// Write the GZIP header lazily.
-	if !z.wroteHeader { // ÑÓ³ÙĞ´ÈëÍ·²¿
+	if !z.wroteHeader { // å»¶è¿Ÿå†™å…¥å¤´éƒ¨
 		z.wroteHeader = true
 		z.buf[0] = gzipID1
 		z.buf[1] = gzipID2
@@ -247,7 +247,7 @@ func (z *Writer) Flush() error {
 
 // Close closes the Writer, flushing any unwritten data to the underlying
 // io.Writer, but does not close the underlying io.Writer.
-func (z *Writer) Close() error { // ¹Ø±ÕWriter£¬²»¹Ø±Õµ×²ãµÄio.Writer
+func (z *Writer) Close() error { // å…³é—­Writerï¼Œä¸å…³é—­åº•å±‚çš„io.Writer
 	if z.err != nil {
 		return z.err
 	}

@@ -36,19 +36,19 @@ func makeReader(r io.Reader) flate.Reader {
 
 var (
 	// ErrChecksum is returned when reading GZIP data that has an invalid checksum.
-	ErrChecksum = errors.New("gzip: invalid checksum") // ÎŞĞ§µÄĞ£Ñé
+	ErrChecksum = errors.New("gzip: invalid checksum") // æ— æ•ˆçš„æ ¡éªŒ
 	// ErrHeader is returned when reading GZIP data that has an invalid header.
-	ErrHeader = errors.New("gzip: invalid header") // ÎŞĞ§µÄÍ·²¿
+	ErrHeader = errors.New("gzip: invalid header") // æ— æ•ˆçš„å¤´éƒ¨
 )
 
 // The gzip file stores a header giving metadata about the compressed file.
 // That header is exposed as the fields of the Writer and Reader structs.
-type Header struct { // gzipÎÄ¼şµÄÍ·²¿
-	Comment string    // comment ×¢ÊÍ
-	Extra   []byte    // "extra data" ¶îÍâµÄÊı¾İ
-	ModTime time.Time // modification time ¸ü¸ÄÊ±¼ä
-	Name    string    // file name ÎÄ¼şÃû
-	OS      byte      // operating system type ²Ù×÷ÏµÍ³ÀàĞÍ
+type Header struct { // gzipæ–‡ä»¶çš„å¤´éƒ¨
+	Comment string    // comment æ³¨é‡Š
+	Extra   []byte    // "extra data" é¢å¤–çš„æ•°æ®
+	ModTime time.Time // modification time æ›´æ”¹æ—¶é—´
+	Name    string    // file name æ–‡ä»¶å
+	OS      byte      // operating system type æ“ä½œç³»ç»Ÿç±»å‹
 }
 
 // A Reader is an io.Reader that can be read to retrieve
@@ -81,7 +81,7 @@ type Reader struct {
 // If r does not also implement io.ByteReader,
 // the decompressor may read more data than necessary from r.
 // It is the caller's responsibility to call Close on the Reader when done.
-func NewReader(r io.Reader) (*Reader, error) { // ´´½¨Ò»¸öĞÂµÄReader
+func NewReader(r io.Reader) (*Reader, error) { // åˆ›å»ºä¸€ä¸ªæ–°çš„Reader
 	z := new(Reader)
 	z.r = makeReader(r)
 	z.multistream = true

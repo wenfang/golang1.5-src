@@ -26,7 +26,8 @@ import (
 )
 
 // DefaultTransport是Transport的缺省实现，被DefaultClient使用。它按需
-// 建立网络连接，并将这些连接缓存，供以后的调用使用。
+// 建立网络连接，并将这些连接缓存，供以后的调用使用。它使用HTTP_PROXY
+// 和NO_PROXY变量所标明的HTTP 代理
 // DefaultTransport is the default implementation of Transport and is
 // used by DefaultClient. It establishes network connections as needed
 // and caches them for reuse by subsequent calls. It uses HTTP proxies
@@ -138,7 +139,7 @@ type Transport struct {
 // a port number), then a nil URL and nil error will be returned.
 func ProxyFromEnvironment(req *Request) (*url.URL, error) {
 	var proxy string
-	if req.URL.Scheme == "https" {
+	if req.URL.Scheme == "https" { // 如果请求的scheme是https
 		proxy = httpsProxyEnv.Get()
 	}
 	if proxy == "" {
@@ -319,7 +320,7 @@ func (e *envOnce) Get() string {
 	return e.val
 }
 
-func (e *envOnce) init() {
+func (e *envOnce) init() { // 初始化一次获得环境变量的值放入val中
 	for _, n := range e.names {
 		e.val = os.Getenv(n)
 		if e.val != "" {
@@ -329,7 +330,7 @@ func (e *envOnce) init() {
 }
 
 // reset is used by tests
-func (e *envOnce) reset() {
+func (e *envOnce) reset() { // 重置变量的值
 	e.once = sync.Once{}
 	e.val = ""
 }
