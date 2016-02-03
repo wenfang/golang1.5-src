@@ -80,7 +80,7 @@ var DefaultClient = &Client{}
 //
 // A RoundTripper must be safe for concurrent use by multiple
 // goroutines.
-type RoundTripper interface {
+type RoundTripper interface { // 用来执行HTTP事务，从Request中获得Response
 	// RoundTrip executes a single HTTP transaction, returning
 	// the Response for the request req.  RoundTrip should not
 	// attempt to interpret the response.  In particular,
@@ -134,10 +134,10 @@ type readClose struct {
 	io.Closer
 }
 
-func (c *Client) send(req *Request) (*Response, error) {
-	if c.Jar != nil {
+func (c *Client) send(req *Request) (*Response, error) { // 发送请求获得响应
+	if c.Jar != nil { // 如果具有cookie jar
 		for _, cookie := range c.Jar.Cookies(req.URL) {
-			req.AddCookie(cookie)
+			req.AddCookie(cookie) // 添加cookie
 		}
 	}
 	resp, err := send(req, c.transport())
@@ -171,7 +171,7 @@ func (c *Client) send(req *Request) (*Response, error) {
 //
 // Generally Get, Post, or PostForm will be used instead of Do.
 func (c *Client) Do(req *Request) (resp *Response, err error) { // 发送HTTP请求返回响应
-	if req.Method == "GET" || req.Method == "HEAD" {
+	if req.Method == "GET" || req.Method == "HEAD" { // 处理GET和HEAD方法
 		return c.doFollowingRedirects(req, shouldRedirectGet)
 	}
 	if req.Method == "POST" || req.Method == "PUT" {
@@ -187,15 +187,15 @@ func (c *Client) transport() RoundTripper { // 返回当前的Transport没有的
 	return DefaultTransport
 }
 
-// send issues an HTTP request.
+// send issues an HTTP request. 发送HTTP请求，获得响应
 // Caller should close resp.Body when done reading from it.
 func send(req *Request, t RoundTripper) (resp *Response, err error) {
-	if t == nil {
+	if t == nil { // 没有transport，返回错误
 		req.closeBody()
 		return nil, errors.New("http: no Client.Transport or DefaultTransport")
 	}
 
-	if req.URL == nil {
+	if req.URL == nil { // url地址为空，返回
 		req.closeBody()
 		return nil, errors.New("http: nil Request.URL")
 	}
@@ -208,23 +208,23 @@ func send(req *Request, t RoundTripper) (resp *Response, err error) {
 	// Most the callers of send (Get, Post, et al) don't need
 	// Headers, leaving it uninitialized.  We guarantee to the
 	// Transport that this has been initialized, though.
-	if req.Header == nil {
+	if req.Header == nil { // 没有请求头部，创建请求头部
 		req.Header = make(Header)
 	}
 
-	if u := req.URL.User; u != nil && req.Header.Get("Authorization") == "" {
+	if u := req.URL.User; u != nil && req.Header.Get("Authorization") == "" { // 设置user授权
 		username := u.Username()
 		password, _ := u.Password()
 		req.Header.Set("Authorization", "Basic "+basicAuth(username, password))
 	}
-	resp, err = t.RoundTrip(req)
+	resp, err = t.RoundTrip(req) // 处理请求，获得响应
 	if err != nil {
 		if resp != nil {
 			log.Printf("RoundTripper returned a response & error; ignoring response")
 		}
 		return nil, err
 	}
-	return resp, nil
+	return resp, nil // 返回响应
 }
 
 // See 2 (end of page 4) http://www.ietf.org/rfc/rfc2617.txt
@@ -232,7 +232,7 @@ func send(req *Request, t RoundTripper) (resp *Response, err error) {
 // separated by a single colon (":") character, within a base64
 // encoded string in the credentials."
 // It is not meant to be urlencoded.
-func basicAuth(username, password string) string {
+func basicAuth(username, password string) string { // 创建授权Auth字符串
 	auth := username + ":" + password
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }

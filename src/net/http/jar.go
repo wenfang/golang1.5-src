@@ -14,7 +14,7 @@ import (
 // goroutines.
 //
 // The net/http/cookiejar package provides a CookieJar implementation.
-type CookieJar interface {
+type CookieJar interface { // CookieJar的接口
 	// SetCookies handles the receipt of the cookies in a reply for the
 	// given URL.  It may or may not choose to save the cookies, depending
 	// on the jar's policy and implementation.

@@ -364,7 +364,7 @@ func FieldsFunc(s string, f func(rune) bool) []string {
 	}
 
 	// Now create them.
-	a := make([]string, n)
+	a := make([]string, n) // 创建string slice
 	na := 0
 	fieldStart := -1 // Set to -1 when looking for start of field.
 	for i, rune := range s {

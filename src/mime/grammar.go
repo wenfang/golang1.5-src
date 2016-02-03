@@ -28,5 +28,5 @@ func isToken(s string) bool { // 检查字符串s是否为一个Token
 	if s == "" { // 空字符串，不是token
 		return false
 	}
-	return strings.IndexFunc(s, isNotTokenChar) < 0
+	return strings.IndexFunc(s, isNotTokenChar) < 0 // 检查是否为token的字符
 }

@@ -45,24 +45,24 @@ const (
 // output to an io.Writer.  Each logging operation makes a single call to
 // the Writer's Write method.  A Logger can be used simultaneously from
 // multiple goroutines; it guarantees to serialize access to the Writer.
-type Logger struct { // Logger½á¹¹
-	mu     sync.Mutex // ensures atomic writes; protects the following fields ±£»¤LoggerÏÂÃæµÄ¸÷¸öÓò
-	prefix string     // prefix to write at beginning of each line Ã¿ĞĞµÄÇ°×º
-	flag   int        // properties ÊôĞÔ
-	out    io.Writer  // destination for output Ä¿µÄÊä³ö
-	buf    []byte     // for accumulating text to write
+type Logger struct { // Loggerç»“æ„
+	mu     sync.Mutex // ensures atomic writes; protects the following fields ä¿æŠ¤Loggerä¸‹é¢çš„å„ä¸ªåŸŸ
+	prefix string     // prefix to write at beginning of each line æ¯è¡Œçš„å‰ç¼€
+	flag   int        // properties å±æ€§
+	out    io.Writer  // destination for output ç›®çš„è¾“å‡º
+	buf    []byte     // for accumulating text to write ä½œä¸ºæ•°æ®è¾“å‡ºçš„buffer
 }
 
 // New creates a new Logger.   The out variable sets the
 // destination to which log data will be written.
 // The prefix appears at the beginning of each generated log line.
 // The flag argument defines the logging properties.
-func New(out io.Writer, prefix string, flag int) *Logger { // ĞÂ´´½¨Ò»¸öLogger
+func New(out io.Writer, prefix string, flag int) *Logger { // æ–°åˆ›å»ºä¸€ä¸ªLogger
 	return &Logger{out: out, prefix: prefix, flag: flag}
 }
 
 // SetOutput sets the output destination for the logger.
-func (l *Logger) SetOutput(w io.Writer) {
+func (l *Logger) SetOutput(w io.Writer) { // è®¾ç½®è¾“å‡ºçš„io.Writer
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.out = w
@@ -87,7 +87,7 @@ func itoa(buf *[]byte, i int, wid int) {
 	*buf = append(*buf, b[bp:]...)
 }
 
-func (l *Logger) formatHeader(buf *[]byte, t time.Time, file string, line int) {
+func (l *Logger) formatHeader(buf *[]byte, t time.Time, file string, line int) { // æ ¼å¼åŒ–å¤´éƒ¨
 	*buf = append(*buf, l.prefix...)
 	if l.flag&LUTC != 0 {
 		t = t.UTC()
@@ -144,13 +144,13 @@ func (l *Logger) Output(calldepth int, s string) error {
 	now := time.Now() // get this early.
 	var file string
 	var line int
-	l.mu.Lock() // ¶ÔLogger¼ÓËø
+	l.mu.Lock() // å¯¹LoggeråŠ é”
 	defer l.mu.Unlock()
 	if l.flag&(Lshortfile|Llongfile) != 0 {
 		// release lock while getting caller info - it's expensive.
 		l.mu.Unlock()
 		var ok bool
-		_, file, line, ok = runtime.Caller(calldepth) // »ñµÃµ±Ç°µ÷ÓÃÎ»ÖÃµÄÎÄ¼şÃû¼°ĞĞºÅ
+		_, file, line, ok = runtime.Caller(calldepth) // è·å¾—å½“å‰è°ƒç”¨ä½ç½®çš„æ–‡ä»¶ååŠè¡Œå·
 		if !ok {
 			file = "???"
 			line = 0
@@ -214,7 +214,7 @@ func (l *Logger) Panicf(format string, v ...interface{}) {
 }
 
 // Panicln is equivalent to l.Println() followed by a call to panic().
-func (l *Logger) Panicln(v ...interface{}) { // ´òÓ¡³öÀ´vµÄÖµ£¬È»ºópanic
+func (l *Logger) Panicln(v ...interface{}) { // æ‰“å°å‡ºæ¥vçš„å€¼ï¼Œç„¶åpanic
 	s := fmt.Sprintln(v...)
 	l.Output(2, s)
 	panic(s)
@@ -235,7 +235,7 @@ func (l *Logger) SetFlags(flag int) {
 }
 
 // Prefix returns the output prefix for the logger.
-func (l *Logger) Prefix() string {
+func (l *Logger) Prefix() string { // è¿”å›å‰ç¼€
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.prefix
@@ -249,7 +249,7 @@ func (l *Logger) SetPrefix(prefix string) {
 }
 
 // SetOutput sets the output destination for the standard logger.
-func SetOutput(w io.Writer) { // ÉèÖÃĞÂµÄout£¬Ìæ»»stderr
+func SetOutput(w io.Writer) { // è®¾ç½®æ–°çš„outï¼Œæ›¿æ¢stderr
 	std.mu.Lock()
 	defer std.mu.Unlock()
 	std.out = w

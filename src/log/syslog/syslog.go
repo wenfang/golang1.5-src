@@ -26,7 +26,7 @@ type Priority int
 const severityMask = 0x07
 const facilityMask = 0xf8
 
-const ( // ¶¨Òå¼¶±ğ
+const ( // å®šä¹‰çº§åˆ«
 	// Severity.
 
 	// From /usr/include/sys/syslog.h.
@@ -41,7 +41,7 @@ const ( // ¶¨Òå¼¶±ğ
 	LOG_DEBUG
 )
 
-const ( // ¶¨ÒåÓ¦ÓÃ
+const ( // å®šä¹‰åº”ç”¨
 	// Facility.
 
 	// From /usr/include/sys/syslog.h.
@@ -73,9 +73,9 @@ const ( // ¶¨ÒåÓ¦ÓÃ
 )
 
 // A Writer is a connection to a syslog server.
-// Writer´ú±íÁ¬½Óµ½syslog·şÎñµÄÁ¬½Ó
+// Writerä»£è¡¨è¿æ¥åˆ°syslogæœåŠ¡çš„è¿æ¥
 type Writer struct {
-	priority Priority //ÓÅÏÈ¼¶
+	priority Priority //ä¼˜å…ˆçº§
 	tag      string
 	hostname string
 	network  string
@@ -104,7 +104,7 @@ type netConn struct {
 // New establishes a new connection to the system log daemon.  Each
 // write to the returned writer sends a log message with the given
 // priority and prefix.
-// ĞÂ½¨Á¢Ò»¸öµ½system log daemonµÄÁ¬½Ó
+// æ–°å»ºç«‹ä¸€ä¸ªåˆ°system log daemonçš„è¿æ¥
 func New(priority Priority, tag string) (w *Writer, err error) {
 	return Dial("", "", priority, tag)
 }
@@ -115,16 +115,16 @@ func New(priority Priority, tag string) (w *Writer, err error) {
 // tag.
 // If network is empty, Dial will connect to the local syslog server.
 func Dial(network, raddr string, priority Priority, tag string) (*Writer, error) {
-	if priority < 0 || priority > LOG_LOCAL7|LOG_DEBUG { // priority²»ÕıÈ·
+	if priority < 0 || priority > LOG_LOCAL7|LOG_DEBUG { // priorityä¸æ­£ç¡®
 		return nil, errors.New("log/syslog: invalid priority")
 	}
 
-	if tag == "" { // tagÎª¿ÕµÄ»°È¡³ÌĞòÃû×÷Îªtag
+	if tag == "" { // tagä¸ºç©ºçš„è¯å–ç¨‹åºåä½œä¸ºtag
 		tag = os.Args[0]
 	}
-	hostname, _ := os.Hostname() // È¡³öÖ÷»úÃû
+	hostname, _ := os.Hostname() // å–å‡ºä¸»æœºå
 
-	w := &Writer{ // ¹¹ÔìÒ»¸öĞÂµÄWriter
+	w := &Writer{ // æ„é€ ä¸€ä¸ªæ–°çš„Writer
 		priority: priority,
 		tag:      tag,
 		hostname: hostname,
@@ -132,10 +132,10 @@ func Dial(network, raddr string, priority Priority, tag string) (*Writer, error)
 		raddr:    raddr,
 	}
 
-	w.mu.Lock() // »¥³â±äÁ¿¼ÓËø
+	w.mu.Lock() // äº’æ–¥å˜é‡åŠ é”
 	defer w.mu.Unlock()
 
-	err := w.connect() // Á¬½Óµ½syslog daemon
+	err := w.connect() // è¿æ¥åˆ°syslog daemon
 	if err != nil {
 		return nil, err
 	}
@@ -144,19 +144,19 @@ func Dial(network, raddr string, priority Priority, tag string) (*Writer, error)
 
 // connect makes a connection to the syslog server.
 // It must be called with w.mu held.
-func (w *Writer) connect() (err error) { // Á¬½ÓWriterµ½syslog daemon
-	if w.conn != nil { // ÏÖÔÚµÄÁ¬½Ó²»ÊÇ¿ÕµÄ£¬ÏÈ¹Ø±Õ
+func (w *Writer) connect() (err error) { // è¿æ¥Writeråˆ°syslog daemon
+	if w.conn != nil { // ç°åœ¨çš„è¿æ¥ä¸æ˜¯ç©ºçš„ï¼Œå…ˆå…³é—­
 		// ignore err from close, it makes sense to continue anyway
 		w.conn.close()
 		w.conn = nil
 	}
 
-	if w.network == "" { // Á¬½ÓunixÌ×½Ó×Ösyslog
+	if w.network == "" { // è¿æ¥unixå¥—æ¥å­—syslog
 		w.conn, err = unixSyslog()
 		if w.hostname == "" {
 			w.hostname = "localhost"
 		}
-	} else { // Á¬½ÓÍøÂçsyslog
+	} else { // è¿æ¥ç½‘ç»œsyslog
 		var c net.Conn
 		c, err = net.Dial(w.network, w.raddr)
 		if err == nil {
@@ -246,7 +246,7 @@ func (w *Writer) Debug(m string) (err error) {
 func (w *Writer) writeAndRetry(p Priority, s string) (int, error) {
 	pr := (w.priority & facilityMask) | (p & severityMask)
 
-	w.mu.Lock() // ¼ÓËø·ÃÎÊ£¬ËùÒÔÓ¦¸ÃÊÇgoroutine°²È«µÄ
+	w.mu.Lock() // åŠ é”è®¿é—®ï¼Œæ‰€ä»¥åº”è¯¥æ˜¯goroutineå®‰å…¨çš„
 	defer w.mu.Unlock()
 
 	if w.conn != nil {
