@@ -15,7 +15,7 @@ func (f fileAddr) String() string { return string(f) }
 // the open file f.
 // It is the caller's responsibility to close f when finished.
 // Closing c does not affect f, and closing f does not affect c.
-func FileConn(f *os.File) (c Conn, err error) {
+func FileConn(f *os.File) (c Conn, err error) { // 将文件变为Conn
 	c, err = fileConn(f)
 	if err != nil {
 		err = &OpError{Op: "file", Net: "file+net", Source: nil, Addr: fileAddr(f.Name()), Err: err}
@@ -27,7 +27,7 @@ func FileConn(f *os.File) (c Conn, err error) {
 // to the open file f.
 // It is the caller's responsibility to close ln when finished.
 // Closing ln does not affect f, and closing f does not affect ln.
-func FileListener(f *os.File) (ln Listener, err error) {
+func FileListener(f *os.File) (ln Listener, err error) { // 将文件变为Listener
 	ln, err = fileListener(f)
 	if err != nil {
 		err = &OpError{Op: "file", Net: "file+net", Source: nil, Addr: fileAddr(f.Name()), Err: err}

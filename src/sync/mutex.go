@@ -47,12 +47,12 @@ func (m *Mutex) Lock() { // 排他锁加锁
 		return // 加锁成功
 	}
 	// 如果加锁不成功
-	awoke := false // 初值为当前的goroutine未被唤醒
-	iter := 0
+	awoke := false // awoke初值为当前的goroutine未被唤醒
+	iter := 0      // 迭代次数
 	for {
-		old := m.state
-		new := old | mutexLocked
-		if old&mutexLocked != 0 {
+		old := m.state            // 获取Mutex的状态
+		new := old | mutexLocked  // 设置新状态置已被Lock标记
+		if old&mutexLocked != 0 { // 如果老的已经被标记了
 			if runtime_canSpin(iter) {
 				// Active spinning makes sense.
 				// Try to set mutexWoken flag to inform Unlock

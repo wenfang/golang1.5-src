@@ -7,7 +7,7 @@ package runtime
 import "unsafe"
 
 const (
-	hashSize = 1009
+	hashSize = 1009 // hash表的大小1009
 )
 
 var (

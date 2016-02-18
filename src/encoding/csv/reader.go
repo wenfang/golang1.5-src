@@ -100,7 +100,7 @@ var (
 //
 // If TrimLeadingSpace is true, leading white space in a field is ignored.
 type Reader struct {
-	Comma            rune // field delimiter (set to ',' by NewReader)
+	Comma            rune // field delimiter (set to ',' by NewReader) 分隔符
 	Comment          rune // comment character for start of line
 	FieldsPerRecord  int  // number of expected fields per record
 	LazyQuotes       bool // allow lazy quotes
@@ -108,7 +108,7 @@ type Reader struct {
 	TrimLeadingSpace bool // trim leading space
 	line             int
 	column           int
-	r                *bufio.Reader
+	r                *bufio.Reader // 数据reader源
 	field            bytes.Buffer
 }
 
@@ -137,6 +137,7 @@ func (r *Reader) Read() (record []string, err error) { // 读一串记录
 		if record != nil {
 			break
 		}
+
 		if err != nil {
 			return nil, err
 		}

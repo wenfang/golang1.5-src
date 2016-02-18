@@ -149,7 +149,7 @@ func (f *File) Stat() (FileInfo, error) {
 
 // Stat returns a FileInfo describing the named file.
 // If there is an error, it will be of type *PathError.
-func Stat(name string) (FileInfo, error) {
+func Stat(name string) (FileInfo, error) { // stat文件信息
 	var stat syscall.Stat_t
 	err := syscall.Stat(name, &stat)
 	if err != nil {
@@ -162,7 +162,7 @@ func Stat(name string) (FileInfo, error) {
 // If the file is a symbolic link, the returned FileInfo
 // describes the symbolic link.  Lstat makes no attempt to follow the link.
 // If there is an error, it will be of type *PathError.
-func Lstat(name string) (FileInfo, error) {
+func Lstat(name string) (FileInfo, error) { // lstat文件信息
 	var stat syscall.Stat_t
 	err := syscall.Lstat(name, &stat)
 	if err != nil {
